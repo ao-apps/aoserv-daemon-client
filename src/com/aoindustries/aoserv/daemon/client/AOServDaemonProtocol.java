@@ -16,6 +16,7 @@ final public class AOServDaemonProtocol {
     /**
      * Each time the protocols are changed in a way that is not backwards-compatible, please increase this number
      * so that older clients will not be allowed to connect, rather than get undefined erroneous behavior.
+     * These versions roughly match the version of AOServProtocol at the time they were first used.
      */
     public static final String VERSION_1_1="1.1";
     public static final String VERSION_1_2="1.2";
@@ -24,7 +25,8 @@ final public class AOServDaemonProtocol {
     public static final String VERSION_1_6_2="1.6.2";
     public static final String VERSION_1_8="1.8";
     public static final String VERSION_1_9="1.9";
-    public static final String CURRENT_VERSION=VERSION_1_9;
+    public static final String VERSION_1_13="1.13";
+    public static final String CURRENT_VERSION=VERSION_1_13;
 
     /**
      * The protocol codes used between the AOServ Master and the AOServ Daemons
