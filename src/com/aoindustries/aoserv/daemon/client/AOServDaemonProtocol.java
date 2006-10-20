@@ -26,7 +26,8 @@ final public class AOServDaemonProtocol {
     public static final String VERSION_1_8="1.8";
     public static final String VERSION_1_9="1.9";
     public static final String VERSION_1_13="1.13";
-    public static final String CURRENT_VERSION=VERSION_1_13;
+    public static final String VERSION_1_18="1.18";
+    public static final String CURRENT_VERSION=VERSION_1_18;
 
     /**
      * The protocol codes used between the AOServ Master and the AOServ Daemons
