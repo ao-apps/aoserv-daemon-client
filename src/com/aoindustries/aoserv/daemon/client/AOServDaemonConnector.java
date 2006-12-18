@@ -43,6 +43,11 @@ final public class AOServDaemonConnector {
     final String hostname;
     
     /**
+     * The local IP address to connect from.
+     */
+    final String local_ip;
+
+    /**
      * The port to connect to.
      */
     final int port;
@@ -77,6 +82,7 @@ final public class AOServDaemonConnector {
     private AOServDaemonConnector(
         int aoServer,
         String hostname,
+        String local_ip,
         int port,
         String protocol,
         String key,
@@ -88,10 +94,11 @@ final public class AOServDaemonConnector {
         String trustStorePassword,
         ErrorHandler errorHandler
     ) throws IOException {
-        Profiler.startProfile(Profiler.FAST, AOServDaemonConnector.class, "<init>(int,String,int,String,String,int,long,Object,boolean[],String,String,ErrorHandler)", null);
+        Profiler.startProfile(Profiler.FAST, AOServDaemonConnector.class, "<init>(int,String,String,int,String,String,int,long,Object,boolean[],String,String,ErrorHandler)", null);
         try {
             this.aoServer=aoServer;
             this.hostname=hostname;
+            this.local_ip=local_ip;
             this.port=port;
             this.protocol=protocol;
             this.key=key;
@@ -283,7 +290,7 @@ final public class AOServDaemonConnector {
             try {
                 return pool.getConnection();
             } catch(IOException err) {
-                IOException newErr = new IOException("IOException while trying to get a connection to server #"+aoServer+": "+hostname+":"+port);
+                IOException newErr = new IOException("IOException while trying to get a connection to server #"+aoServer+": from "+local_ip+" to "+hostname+":"+port);
                 newErr.initCause(err);
                 throw newErr;
             }
@@ -326,6 +333,7 @@ final public class AOServDaemonConnector {
     public synchronized static AOServDaemonConnector getConnector(
         int aoServer,
         String hostname,
+        String local_ip,
         int port,
         String protocol,
         String key,
@@ -337,9 +345,10 @@ final public class AOServDaemonConnector {
         String trustStorePassword,
         ErrorHandler errorHandler
     ) throws IOException {
-        Profiler.startProfile(Profiler.FAST, AOServDaemonConnector.class, "getConnector(int,String,int,String,String,int,long,Object,boolean[],String,String,ErrorHandler)", null);
+        Profiler.startProfile(Profiler.FAST, AOServDaemonConnector.class, "getConnector(int,String,String,int,String,String,int,long,Object,boolean[],String,String,ErrorHandler)", null);
         try {
             if(hostname==null) throw new NullPointerException("hostname is null");
+            if(local_ip==null) throw new NullPointerException("local_ip is null");
             if(protocol==null) throw new NullPointerException("protocol is null");
 
             int size=connectors.size();
@@ -348,6 +357,7 @@ final public class AOServDaemonConnector {
                 if(
                     connector.aoServer==aoServer
                     && connector.hostname.equals(hostname)
+                    && connector.local_ip.equals(local_ip)
                     && connector.port==port
                     && connector.protocol.equals(protocol)
                     && (key==null?connector.key==null:key.equals(connector.key))
@@ -358,6 +368,7 @@ final public class AOServDaemonConnector {
             AOServDaemonConnector connector=new AOServDaemonConnector(
                 aoServer,
                 hostname,
+                local_ip,
                 port,
                 protocol,
                 key,
@@ -853,6 +864,13 @@ final public class AOServDaemonConnector {
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
+    }
+
+    /**
+     * Gets the local IP address that connections are established from.
+     */
+    public String getLocalIp() {
+        return local_ip;
     }
 
     public int getMaxConcurrency() {
@@ -1726,7 +1744,7 @@ final public class AOServDaemonConnector {
     final public String toString() {
         Profiler.startProfile(Profiler.FAST, AOServDaemonConnector.class, "toString()", null);
         try {
-            return getClass().getName()+"?hostname="+hostname+"&port="+port+"&protocol="+protocol;
+            return getClass().getName()+"?hostname="+hostname+"&local_ip="+local_ip+"&port="+port+"&protocol="+protocol;
         } finally {
             Profiler.endProfile(Profiler.FAST);
         }

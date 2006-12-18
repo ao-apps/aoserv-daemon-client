@@ -24,7 +24,7 @@ final public class AOServDaemonConnectionPool extends AOPool {
      * @deprecated
      */
     AOServDaemonConnectionPool(AOServDaemonConnector connector) {
-        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge);
+        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge);
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnectionPool.class, "<init>(AOServDaemonConnector)", Integer.valueOf(connector.aoServer));
         try {
             this.connector=connector;
@@ -34,7 +34,7 @@ final public class AOServDaemonConnectionPool extends AOPool {
     }
 
     AOServDaemonConnectionPool(AOServDaemonConnector connector, ErrorHandler errorHandler) {
-        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge, errorHandler);
+        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge, errorHandler);
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnectionPool.class, "<init>(AOServDaemonConnector,ErrorHandler)", Integer.valueOf(connector.aoServer));
         try {
             this.connector=connector;
@@ -116,6 +116,7 @@ final public class AOServDaemonConnectionPool extends AOPool {
         try {
             out.print("<TABLE>\n"
                     + "  <TR><TH colspan=2><FONT size=+1>AOServ Daemon Connection Pool</FONT></TH></TR>\n"
+                    + "  <TR><TD>Local IP:</TD><TD>").print(connector.local_ip).print("</TD></TR>\n"
                     + "  <TR><TD>Host:</TD><TD>").print(connector.hostname).print("</TD></TR>\n"
                     + "  <TR><TD>Port:</TD><TD>").print(connector.port).print("</TD></TR>\n"
                     + "  <TR><TD>Protocol:</TD><TD>").print(connector.protocol).print("</TD></TR>\n"

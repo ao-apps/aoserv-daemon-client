@@ -66,6 +66,7 @@ final public class AOServDaemonConnection {
                 socket.setKeepAlive(true);
                 socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
                 //socket.setTcpNoDelay(true);
+                socket.bind(new InetSocketAddress(connector.local_ip, 0));
                 socket.connect(new InetSocketAddress(connector.hostname, connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
             } else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
                 synchronized(connector.sslLock) {
@@ -78,6 +79,7 @@ final public class AOServDaemonConnection {
                 }
                 SSLSocketFactory sslFact=(SSLSocketFactory)SSLSocketFactory.getDefault();
                 Socket regSocket = new Socket();
+                regSocket.bind(new InetSocketAddress(connector.local_ip, 0));
                 regSocket.connect(new InetSocketAddress(connector.hostname, connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
                 regSocket.setKeepAlive(true);
                 regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
