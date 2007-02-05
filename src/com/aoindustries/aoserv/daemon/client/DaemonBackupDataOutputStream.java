@@ -1,7 +1,7 @@
 package com.aoindustries.aoserv.daemon.client;
 
 /*
- * Copyright 2002-2006 by AO Industries, Inc.,
+ * Copyright 2002-2007 by AO Industries, Inc.,
  * 816 Azalea Rd, Mobile, Alabama, 36693, U.S.A.
  * All rights reserved.
  */
