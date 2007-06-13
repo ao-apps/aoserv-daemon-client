@@ -721,6 +721,58 @@ final public class AOServDaemonConnector {
         }
     }
 
+    public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(String failoverRoot, int nestedOperatingSystemVersion, int port) throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getMySQLSlaveStatus(String,int,int)", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream daemonOut=conn.getOutputStream();
+                daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS);
+                daemonOut.writeUTF(failoverRoot);
+                daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
+                daemonOut.writeCompressedInt(port);
+                daemonOut.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.NEXT) {
+                    return new FailoverMySQLReplication.SlaveStatus(
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF(),
+                        in.readNullUTF()
+                    );
+                } else if(code==AOServDaemonProtocol.DONE) {
+                    return null;
+                } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
+                    throw new IOException(in.readUTF());
+                } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
+                    throw new SQLException(in.readUTF());
+                } else {
+                    throw new IOException("Unknown result: " + code);
+                }
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
     public void getAWStatsFile(String siteName, String path, String queryString, CompressedDataOutputStream out) throws IOException, SQLException {
         Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getAWStatsFile(String,String,String,CompressedDataOutputStream)", null);
         try {
