@@ -721,6 +721,44 @@ final public class AOServDaemonConnector {
         }
     }
 
+    public MySQLServer.MasterStatus getMySQLMasterStatus(int mysqlServer) throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getMySQLMasterStatus(int)", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream daemonOut=conn.getOutputStream();
+                daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_MASTER_STATUS);
+                daemonOut.writeCompressedInt(mysqlServer);
+                daemonOut.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.NEXT) {
+                    return new MySQLServer.MasterStatus(
+                        in.readNullUTF(),
+                        in.readNullUTF()
+                    );
+                } else if(code==AOServDaemonProtocol.DONE) {
+                    return null;
+                } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
+                    throw new IOException(in.readUTF());
+                } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
+                    throw new SQLException(in.readUTF());
+                } else {
+                    throw new IOException("Unknown result: " + code);
+                }
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
     public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(String failoverRoot, int nestedOperatingSystemVersion, int port) throws IOException, SQLException {
         Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getMySQLSlaveStatus(String,int,int)", null);
         try {
@@ -1921,14 +1959,14 @@ final public class AOServDaemonConnector {
         }
     }
 
-    private void waitFor(int tableID) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "waitFor(int)", null);
+    private void waitFor(SchemaTable.TableID tableID) throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "waitFor(SchemaTable.TableID)", null);
         try {
             AOServDaemonConnection conn=getConnection();
             try {
                 CompressedDataOutputStream out=conn.getOutputStream();
                 out.writeCompressedInt(AOServDaemonProtocol.WAIT_FOR_REBUILD);
-                out.writeCompressedInt(tableID);
+                out.writeCompressedInt(tableID.ordinal());
                 out.flush();
                 
                 CompressedDataInputStream in=conn.getInputStream();
@@ -1951,7 +1989,7 @@ final public class AOServDaemonConnector {
     public void waitForHttpdSiteRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForHttpdSiteRebuild()", null);
         try {
-            waitFor(SchemaTable.HTTPD_SITES);
+            waitFor(SchemaTable.TableID.HTTPD_SITES);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -1960,7 +1998,7 @@ final public class AOServDaemonConnector {
     public void waitForInterBaseRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForInterBaseRebuild()", null);
         try {
-            waitFor(SchemaTable.INTERBASE_USERS);
+            waitFor(SchemaTable.TableID.INTERBASE_USERS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -1969,7 +2007,7 @@ final public class AOServDaemonConnector {
     public void waitForLinuxAccountRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForLinuxAccountRebuild()", null);
         try {
-            waitFor(SchemaTable.LINUX_ACCOUNTS);
+            waitFor(SchemaTable.TableID.LINUX_ACCOUNTS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -1978,7 +2016,7 @@ final public class AOServDaemonConnector {
     public void waitForMySQLDatabaseRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForMySQLDatabaseRebuild()", null);
         try {
-            waitFor(SchemaTable.MYSQL_DATABASES);
+            waitFor(SchemaTable.TableID.MYSQL_DATABASES);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -1987,7 +2025,7 @@ final public class AOServDaemonConnector {
     public void waitForMySQLDBUserRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForMySQLDBUserRebuild()", null);
         try {
-            waitFor(SchemaTable.MYSQL_DB_USERS);
+            waitFor(SchemaTable.TableID.MYSQL_DB_USERS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -1996,7 +2034,7 @@ final public class AOServDaemonConnector {
     public void waitForMySQLUserRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForMySQLUserRebuild()", null);
         try {
-            waitFor(SchemaTable.MYSQL_USERS);
+            waitFor(SchemaTable.TableID.MYSQL_USERS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -2005,7 +2043,7 @@ final public class AOServDaemonConnector {
     public void waitForPostgresDatabaseRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForPostgresDatabaseRebuild()", null);
         try {
-            waitFor(SchemaTable.POSTGRES_DATABASES);
+            waitFor(SchemaTable.TableID.POSTGRES_DATABASES);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -2014,7 +2052,7 @@ final public class AOServDaemonConnector {
     public void waitForPostgresServerRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForPostgresServerRebuild()", null);
         try {
-            waitFor(SchemaTable.POSTGRES_SERVERS);
+            waitFor(SchemaTable.TableID.POSTGRES_SERVERS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -2023,7 +2061,7 @@ final public class AOServDaemonConnector {
     public void waitForPostgresUserRebuild() throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForPostgresUserRebuild()", null);
         try {
-            waitFor(SchemaTable.POSTGRES_USERS);
+            waitFor(SchemaTable.TableID.POSTGRES_USERS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
