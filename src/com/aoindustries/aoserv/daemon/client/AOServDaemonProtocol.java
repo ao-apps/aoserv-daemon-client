@@ -30,7 +30,8 @@ final public class AOServDaemonProtocol {
     public static final String VERSION_1_18_1="1.18.1";
     public static final String VERSION_1_28="1.28";
     public static final String VERSION_1_28_1="1.28.1";
-    public static final String CURRENT_VERSION=VERSION_1_28_1;
+    public static final String VERSION_1_29="1.29";
+    public static final String CURRENT_VERSION=VERSION_1_29;
 
     /**
      * The protocol codes used between the AOServ Master and the AOServ Daemons
@@ -105,7 +106,8 @@ final public class AOServDaemonProtocol {
         GET_AWSTATS_FILE=WAIT_FOR_REBUILD+1,
         STORE_BACKUP_DATA_DIRECT_ACCESS=GET_AWSTATS_FILE+1,
         GET_MYSQL_SLAVE_STATUS=STORE_BACKUP_DATA_DIRECT_ACCESS+1,
-        GET_MYSQL_MASTER_STATUS = GET_MYSQL_SLAVE_STATUS + 1,
+        GET_MYSQL_MASTER_STATUS = GET_MYSQL_SLAVE_STATUS+1,
+        GET_NET_DEVICE_BONDING_REPORT = GET_MYSQL_MASTER_STATUS+1,
 
         DONE=0,
         NEXT=DONE+1,

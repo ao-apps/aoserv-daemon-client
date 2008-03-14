@@ -432,6 +432,41 @@ final public class AOServDaemonConnector {
     }
 
     /**
+     * Gets a bonding report.
+     *
+     * @param  pkey  the unique ID of the net_device
+     *
+     * @return  the report
+     */
+    public String getNetDeviceBondingReport(int pkey) throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getNetDeviceBondingReport(int)", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_NET_DEVICE_BONDING_REPORT);
+                out.writeCompressedInt(pkey);
+                out.flush();
+                
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
+    /**
      * Determines if the inbox is in manual procmail mode.
      *
      * @param  lsa  the pkey of the LinuxServerAccount
