@@ -6,14 +6,12 @@ package com.aoindustries.aoserv.daemon.client;
  * All rights reserved.
  */
 import com.aoindustries.aoserv.client.*;
-import com.aoindustries.aoserv.daemon.client.AOServDaemonProtocol;
 import com.aoindustries.io.*;
 import com.aoindustries.profiler.*;
 import com.aoindustries.util.*;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * A <code>AOServConnector</code> provides the connection
@@ -201,19 +199,10 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public void dumpInterBaseDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "dumpInterBaseDatabase(int,CompressedDataOutputStream)", null);
-        try {
-            transferStream(AOServDaemonProtocol.DUMP_INTERBASE_DATABASE, pkey, masterOut, null);
-        } finally {
-            Profiler.endProfile(Profiler.INSTANTANEOUS);
-        }
-    }
-
     public void dumpMySQLDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "dumpMySQLDatabase(int,CompressedDataOutputStream)", null);
         try {
-            transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, masterOut, null);
+            transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, masterOut);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -222,7 +211,7 @@ final public class AOServDaemonConnector {
     public void dumpPostgresDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "dumpPostgresDatabase(int,CompressedDataOutputStream)", null);
         try {
-            transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, masterOut, null);
+            transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, masterOut);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -253,19 +242,6 @@ final public class AOServDaemonConnector {
             }
         } finally {
             Profiler.endProfile(Profiler.IO);
-        }
-    }
-
-    public void getBackupData(
-        String path,
-        CompressedDataOutputStream masterOut,
-        long skipBytes,
-        GetBackupDataReporter reporter) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "getBackupData(String,CompressedDataOutputStream,long,GetBackupDataReporter)", null);
-        try {
-            transferStream(AOServDaemonProtocol.GET_BACKUP_DATA, path, masterOut, skipBytes, reporter);
-        } finally {
-            Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
     }
 
@@ -536,14 +512,14 @@ final public class AOServDaemonConnector {
     /**
      * Gets the total size of a mounted filesystem in bytes.
      */
-    public long getDiskDeviceTotalSize(String device) throws IOException, SQLException {
+    public long getDiskDeviceTotalSize(String path) throws IOException, SQLException {
         Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getDiskDeviceTotalSize(String)", null);
         try {
             AOServDaemonConnection conn=getConnection(2);
             try {
                 CompressedDataOutputStream out=conn.getOutputStream();
                 out.writeCompressedInt(AOServDaemonProtocol.GET_DISK_DEVICE_TOTAL_SIZE);
-                out.writeUTF(device);
+                out.writeUTF(path);
                 out.flush();
                 
                 CompressedDataInputStream in=conn.getInputStream();
@@ -566,14 +542,14 @@ final public class AOServDaemonConnector {
     /**
      * Gets the used size of a mounted filesystem in bytes.
      */
-    public long getDiskDeviceUsedSize(String device) throws IOException, SQLException {
+    public long getDiskDeviceUsedSize(String path) throws IOException, SQLException {
         Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getDiskDeviceUsedSize(String)", null);
         try {
             AOServDaemonConnection conn=getConnection(2);
             try {
                 CompressedDataOutputStream out=conn.getOutputStream();
                 out.writeCompressedInt(AOServDaemonProtocol.GET_DISK_DEVICE_USED_SIZE);
-                out.writeUTF(device);
+                out.writeUTF(path);
                 out.flush();
                 
                 CompressedDataInputStream in=conn.getInputStream();
@@ -919,36 +895,6 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Gets the encrypted password for an InterBase user as found in user table.
-     */
-    public String getEncryptedInterBaseUserPassword(String username) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getEncryptedInterBaseUserPassword(String)", null);
-        try {
-            AOServDaemonConnection conn=getConnection();
-            try {
-                CompressedDataOutputStream out=conn.getOutputStream();
-                out.writeCompressedInt(AOServDaemonProtocol.GET_ENCRYPTED_INTERBASE_USER_PASSWORD);
-                out.writeUTF(username);
-                out.flush();
-                
-                CompressedDataInputStream in=conn.getInputStream();
-                int result = in.read();
-                if (result == AOServDaemonProtocol.DONE) return in.readUTF();
-                else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-                else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-                else throw new IOException("Unknown result: " + result);
-            } catch(IOException err) {
-                conn.close();
-                throw err;
-            } finally {
-                releaseConnection(conn);
-            }
-        } finally {
-            Profiler.endProfile(Profiler.IO);
-        }
-    }
-
-    /**
      * Gets the encrypted password for a MySQL user as found in user table.
      */
     public String getEncryptedMySQLUserPassword(int mysqlServer, String username) throws IOException, SQLException {
@@ -1176,34 +1122,6 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public void removeBackupData(int backupPartition, String relativePath) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "removeBackupData(int,String)", null);
-        try {
-            AOServDaemonConnection conn=getConnection();
-            try {
-                CompressedDataOutputStream out=conn.getOutputStream();
-                out.writeCompressedInt(AOServDaemonProtocol.REMOVE_BACKUP_DATA);
-                out.writeCompressedInt(backupPartition);
-                out.writeUTF(relativePath);
-                out.flush();
-
-                CompressedDataInputStream in=conn.getInputStream();
-                int result = in.read();
-                if (result == AOServDaemonProtocol.DONE) return;
-                else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-                else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-                else throw new IOException("Unknown result: " + result);
-            } catch(IOException err) {
-                conn.close();
-                throw err;
-            } finally {
-                releaseConnection(conn);
-            }
-        } finally {
-            Profiler.endProfile(Profiler.IO);
-        }
-    }
-
     /**
      * Deletes the contents of an email list
      */
@@ -1306,15 +1224,6 @@ final public class AOServDaemonConnector {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "restartCron()", null);
         try {
             controlProcess(AOServDaemonProtocol.RESTART_CRON);
-        } finally {
-            Profiler.endProfile(Profiler.INSTANTANEOUS);
-        }
-    }
-
-    public void restartInterBase() throws IOException, SQLException {
-        Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "restartInterBase()", null);
-        try {
-            controlProcess(AOServDaemonProtocol.RESTART_INTERBASE);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -1557,37 +1466,6 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Sets the password for an <code>InterBaseServerUser</code>.
-     */
-    public void setInterBaseUserPassword(String username, String password) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "setInterBaseUserPassword(String,String)", null);
-        try {
-            AOServDaemonConnection conn=getConnection();
-            try {
-                CompressedDataOutputStream out=conn.getOutputStream();
-                out.writeCompressedInt(AOServDaemonProtocol.SET_INTERBASE_USER_PASSWORD);
-                out.writeUTF(username);
-                out.writeBoolean(password!=null); if(password!=null) out.writeUTF(password);
-                out.flush();
-                
-                CompressedDataInputStream in=conn.getInputStream();
-                int result = in.read();
-                if (result == AOServDaemonProtocol.DONE) return;
-                else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-                else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-                else throw new IOException("Unknown result: " + result);
-            } catch(IOException err) {
-                conn.close();
-                throw err;
-            } finally {
-                releaseConnection(conn);
-            }
-        } finally {
-            Profiler.endProfile(Profiler.IO);
-        }
-    }
-
-    /**
      * Sets the password for a <code>MySQLServerUser</code>.
      */
     public void setMySQLUserPassword(int mysqlServer, String username, String password) throws IOException, SQLException {
@@ -1698,15 +1576,6 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public void startInterBase() throws IOException, SQLException {
-        Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "startInterBase()", null);
-        try {
-            controlProcess(AOServDaemonProtocol.START_INTERBASE);
-        } finally {
-            Profiler.endProfile(Profiler.INSTANTANEOUS);
-        }
-    }
-
     /**
      * Starts a Java VM.
      */
@@ -1791,15 +1660,6 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public void stopInterBase() throws IOException, SQLException {
-        Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "stopInterBase()", null);
-        try {
-            controlProcess(AOServDaemonProtocol.STOP_INTERBASE);
-        } finally {
-            Profiler.endProfile(Profiler.INSTANTANEOUS);
-        }
-    }
-
     /**
      * Stops a Java VM.
      */
@@ -1878,10 +1738,9 @@ final public class AOServDaemonConnector {
     private void transferStream(
         int command,
         int param1,
-        CompressedDataOutputStream masterOut,
-        GetBackupDataReporter reporter
+        CompressedDataOutputStream masterOut
     ) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream(int,int,CompressedDataOutputStream,GetBackupDataReporter)", null);
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream(int,int,CompressedDataOutputStream)", null);
         try {
             AOServDaemonConnection conn=getConnection();
             try {
@@ -1890,7 +1749,7 @@ final public class AOServDaemonConnector {
                 out.writeCompressedInt(param1);
                 out.flush();
                 
-                transferStream0(conn, masterOut, reporter);
+                transferStream0(conn, masterOut);
             } catch(IOException err) {
                 conn.close();
                 throw err;
@@ -1905,10 +1764,9 @@ final public class AOServDaemonConnector {
     private void transferStream(
         int command,
         String param1,
-        CompressedDataOutputStream masterOut,
-        GetBackupDataReporter reporter
+        CompressedDataOutputStream masterOut
     ) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream(int,String,CompressedDataOutputStream,GetBackupDataReporter)", null);
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream(int,String,CompressedDataOutputStream)", null);
         try {
             AOServDaemonConnection conn=getConnection();
             try {
@@ -1917,7 +1775,7 @@ final public class AOServDaemonConnector {
                 out.writeUTF(param1);
                 out.flush();
                 
-                transferStream0(conn, masterOut, reporter);
+                transferStream0(conn, masterOut);
             } catch(IOException err) {
                 conn.close();
                 throw err;
@@ -1933,10 +1791,9 @@ final public class AOServDaemonConnector {
         int command,
         String param1,
         CompressedDataOutputStream masterOut,
-        long skipBytes,
-        GetBackupDataReporter reporter
+        long skipBytes
     ) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream(int,String,CompressedDataOutputStream,long,GetBackupDataReporter)", null);
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream(int,String,CompressedDataOutputStream,long)", null);
         try {
             AOServDaemonConnection conn=getConnection();
             try {
@@ -1946,12 +1803,12 @@ final public class AOServDaemonConnector {
                 out.writeLong(skipBytes);
                 out.flush();
                 
-                if(reporter!=null) {
+                /*if(reporter!=null) {
                     long fileSize=conn.getInputStream().readLong();
                     reporter.setTotalSize(fileSize);
                     reporter.setFinishedSize(skipBytes);
-                }
-                transferStream0(conn, masterOut, reporter);
+                }*/
+                transferStream0(conn, masterOut);
             } catch(IOException err) {
                 conn.close();
                 throw err;
@@ -1965,10 +1822,9 @@ final public class AOServDaemonConnector {
 
     private void transferStream0(
         AOServDaemonConnection conn,
-        CompressedDataOutputStream masterOut,
-        GetBackupDataReporter reporter
+        CompressedDataOutputStream masterOut
     ) throws IOException, SQLException {
-        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream0(AOServDaemonConnection,CompressedDataOutputStream,GetBackupDataReporter)", null);
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "transferStream0(AOServDaemonConnection,CompressedDataOutputStream)", null);
         try {
             CompressedDataInputStream in=conn.getInputStream();
             int code;
@@ -1980,7 +1836,7 @@ final public class AOServDaemonConnector {
                     masterOut.writeByte(AOServProtocol.NEXT);
                     masterOut.writeShort(len);
                     masterOut.write(buff, 0, len);
-                    if(reporter!=null) reporter.addFinishedSize(len);
+                    //if(reporter!=null) reporter.addFinishedSize(len);
                 }
             } finally {
                 BufferManager.release(buff);
@@ -2025,15 +1881,6 @@ final public class AOServDaemonConnector {
         Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForHttpdSiteRebuild()", null);
         try {
             waitFor(SchemaTable.TableID.HTTPD_SITES);
-        } finally {
-            Profiler.endProfile(Profiler.INSTANTANEOUS);
-        }
-    }
-
-    public void waitForInterBaseRebuild() throws IOException, SQLException {
-        Profiler.startProfile(Profiler.INSTANTANEOUS, AOServDaemonConnector.class, "waitForInterBaseRebuild()", null);
-        try {
-            waitFor(SchemaTable.TableID.INTERBASE_USERS);
         } finally {
             Profiler.endProfile(Profiler.INSTANTANEOUS);
         }
@@ -2114,66 +1961,99 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public void sendData(
-        long daemonKey,
-        InputStream in,
-        String filename,
-        long length,
-        boolean fileIsCompressed,
-        boolean shouldBeCompressed,
-        BitRateProvider bitRateProvider
-    ) throws IOException, SQLException {
-        long bytesRead=0;
-	OutputStream sendOut=null;
+    /**
+     * Gets a 3ware RAID report.
+     *
+     * @return  the report
+     */
+    public String get3wareRaidReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "get3wareRaidReport()", null);
         try {
-            DaemonBackupDataOutputStream backupOut=new DaemonBackupDataOutputStream(
-                this,
-                daemonKey,
-                filename,
-                fileIsCompressed || shouldBeCompressed
-            );
-            if(bitRateProvider==null) {
-                sendOut=
-                    !fileIsCompressed && shouldBeCompressed
-                    ?(OutputStream)new GZIPOutputStream(new BufferedOutputStream(backupOut))
-                    :backupOut
-                ;
-            } else {
-                sendOut=
-                    !fileIsCompressed && shouldBeCompressed
-                    ?(OutputStream)new GZIPOutputStream(new BufferedOutputStream(new BitRateOutputStream(backupOut, bitRateProvider)))
-                    :new BitRateOutputStream(backupOut, bitRateProvider)
-                ;
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_3WARE_RAID_REPORT);
+                out.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
             }
-	    try {
-		// Should only read up to a maximum length of length, because log files grow between initial processing
-		// and here.
-		byte[] buff=BufferManager.getBytes();
-		try {
-		    while(bytesRead<length) {
-			long bytesLeft=length-bytesRead;
-			if(bytesLeft>BufferManager.BUFFER_SIZE) bytesLeft=BufferManager.BUFFER_SIZE;
-			int ret=in.read(buff, 0, (int)bytesLeft);
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
 
-                        // Unexpected end of file
-			if(ret==-1) break;
-			
-			sendOut.write(buff, 0, ret);
-			bytesRead+=ret;
-		    }
-		} finally {
-		    BufferManager.release(buff);
-		}
-	    } finally {
-		in.close();
-	    }
+    /**
+     * Gets a MD RAID report.
+     *
+     * @return  the report
+     */
+    public String getMdRaidReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getMdRaidReport()", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_MD_RAID_REPORT);
+                out.flush();
 
-	    // The length and MD5 are verified by the daemon as it receives the data.
-	} finally {
-	    if(sendOut!=null) {
-		sendOut.flush();
-		sendOut.close();
-	    }
-	}
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
+    /**
+     * Gets a DRBD report.
+     *
+     * @return  the report
+     */
+    public String getDrbdReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getDrbdReport()", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_DRBD_REPORT);
+                out.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
     }
 }
