@@ -443,6 +443,41 @@ final public class AOServDaemonConnector {
     }
 
     /**
+     * Gets a statistics report.
+     *
+     * @param  pkey  the unique ID of the net_device
+     *
+     * @return  the report
+     */
+    public String getNetDeviceStatisticsReport(int pkey) throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getNetDeviceStatisticsReport(int)", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_NET_DEVICE_STATISTICS_REPORT);
+                out.writeCompressedInt(pkey);
+                out.flush();
+                
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
+    /**
      * Determines if the inbox is in manual procmail mode.
      *
      * @param  lsa  the pkey of the LinuxServerAccount
@@ -1726,6 +1761,7 @@ final public class AOServDaemonConnector {
         }
     }
 
+    @Override
     final public String toString() {
         Profiler.startProfile(Profiler.FAST, AOServDaemonConnector.class, "toString()", null);
         try {
@@ -2038,6 +2074,133 @@ final public class AOServDaemonConnector {
             try {
                 CompressedDataOutputStream out=conn.getOutputStream();
                 out.writeCompressedInt(AOServDaemonProtocol.GET_DRBD_REPORT);
+                out.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
+    /**
+     * Gets a hard drive temperature report.
+     *
+     * @return  the report
+     */
+    public String getHddTempReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getHddTempReport()", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_HDD_TEMP_REPORT);
+                out.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+
+    /**
+     * Gets a filesystems CSV report.
+     *
+     * @return  the report
+     */
+    public String getFilesystemsCsvReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getFilesystemsCsvReport()", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_FILESYSTEMS_CSV_REPORT);
+                out.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+ 
+    /**
+     * Gets a load average report.
+     *
+     * @return  the report
+     */
+    public String getLoadAvgReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getLoadAvgReport()", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_AO_SERVER_LOADAVG_REPORT);
+                out.flush();
+
+                CompressedDataInputStream in=conn.getInputStream();
+                int code=in.read();
+                if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+                throw new IOException("Unknown result: " + code);
+            } catch(IOException err) {
+                conn.close();
+                throw err;
+            } finally {
+                releaseConnection(conn);
+            }
+        } finally {
+            Profiler.endProfile(Profiler.IO);
+        }
+    }
+    /**
+     * Gets a meminfo report.
+     *
+     * @return  the report
+     */
+    public String getMemInfoReport() throws IOException, SQLException {
+        Profiler.startProfile(Profiler.IO, AOServDaemonConnector.class, "getMemInfoReport()", null);
+        try {
+            // Establish the connection to the server
+            AOServDaemonConnection conn=getConnection();
+            try {
+                CompressedDataOutputStream out=conn.getOutputStream();
+                out.writeCompressedInt(AOServDaemonProtocol.GET_AO_SERVER_MEMINFO_REPORT);
                 out.flush();
 
                 CompressedDataInputStream in=conn.getInputStream();

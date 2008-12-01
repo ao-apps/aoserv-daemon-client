@@ -33,8 +33,8 @@ final public class AOServDaemonProtocol {
     public static final String VERSION_1_29="1.29";
     public static final String VERSION_1_30="1.30";
     public static final String VERSION_1_31="1.31";
-    public static final String VERSION_1_34="1.34";
-    public static final String CURRENT_VERSION=VERSION_1_34;
+    public static final String VERSION_1_35="1.35";
+    public static final String CURRENT_VERSION=VERSION_1_35;
 
     /**
      * The protocol codes used between the AOServ Master and the AOServ Daemons
@@ -100,6 +100,11 @@ final public class AOServDaemonProtocol {
         GET_3WARE_RAID_REPORT = GET_NET_DEVICE_BONDING_REPORT+1,
         GET_MD_RAID_REPORT = GET_3WARE_RAID_REPORT+1,
         GET_DRBD_REPORT = GET_MD_RAID_REPORT+1,
+        GET_HDD_TEMP_REPORT = GET_DRBD_REPORT+1,
+        GET_FILESYSTEMS_CSV_REPORT = GET_HDD_TEMP_REPORT+1,
+        GET_AO_SERVER_LOADAVG_REPORT = GET_FILESYSTEMS_CSV_REPORT+1,
+        GET_AO_SERVER_MEMINFO_REPORT = GET_AO_SERVER_LOADAVG_REPORT+1,
+        GET_NET_DEVICE_STATISTICS_REPORT = GET_AO_SERVER_MEMINFO_REPORT+1,
 
         DONE=0,
         NEXT=DONE+1,
