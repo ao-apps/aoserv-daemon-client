@@ -114,17 +114,17 @@ final public class AOServDaemonConnectionPool extends AOPool {
     protected void printConnectionStats(ChainWriter out) {
         Profiler.startProfile(Profiler.IO, AOServDaemonConnectionPool.class, "printConnectionStats(ChainWriter)", null);
         try {
-            out.print("<TABLE>\n"
-                    + "  <TR><TH colspan=2><FONT size=+1>AOServ Daemon Connection Pool</FONT></TH></TR>\n"
-                    + "  <TR><TD>Local IP:</TD><TD>").print(connector.local_ip).print("</TD></TR>\n"
-                    + "  <TR><TD>Host:</TD><TD>").print(connector.hostname).print("</TD></TR>\n"
-                    + "  <TR><TD>Port:</TD><TD>").print(connector.port).print("</TD></TR>\n"
-                    + "  <TR><TD>Protocol:</TD><TD>").print(connector.protocol).print("</TD></TR>\n"
-                    + "  <TR><TD>Key:</TD><TD>");
+            out.print("<table>\n"
+                    + "  <tr><th colspan='2'><font size=+1>AOServ Daemon Connection Pool</font></th></tr>\n"
+                    + "  <tr><td>Local IP:</td><td>").print(connector.local_ip).print("</td></tr>\n"
+                    + "  <tr><td>Host:</td><td>").print(connector.hostname).print("</td></tr>\n"
+                    + "  <tr><td>Port:</td><td>").print(connector.port).print("</td></tr>\n"
+                    + "  <tr><td>Protocol:</td><td>").print(connector.protocol).print("</td></tr>\n"
+                    + "  <tr><td>Key:</td><td>");
             String key=connector.key;
             int len=key.length();
             for(int c=0;c<len;c++) out.print('*');
-            out.print("</TD></TR>\n");
+            out.print("</td></tr>\n");
         } finally {
             Profiler.endProfile(Profiler.IO);
         }
