@@ -10,7 +10,8 @@ import com.aoindustries.io.*;
 import com.aoindustries.util.*;
 import java.io.*;
 import java.sql.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A <code>AOServConnector</code> provides the connection
@@ -571,14 +572,18 @@ final public class AOServDaemonConnector {
             out.writeCompressedInt(AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES);
             out.writeUTF(username);
             out.writeCompressedInt(folderNames.length);
-            for(int c=0;c<folderNames.length;c++) out.writeUTF(folderNames[c]);
+            for(int c=0;c<folderNames.length;c++) {
+                out.writeUTF(folderNames[c]);
+            }
             out.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) {
                 long[] sizes=new long[folderNames.length];
-                for(int c=0;c<folderNames.length;c++) sizes[c]=in.readLong();
+                for(int c=0;c<folderNames.length;c++) {
+                    sizes[c]=in.readLong();
+                }
                 return sizes;
             }
             if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -943,7 +948,7 @@ final public class AOServDaemonConnector {
         }
     }*/
 
-    public void printConnectionStatsHTML(ChainWriter out) throws IOException {
+    public void printConnectionStatsHTML(Appendable out) throws IOException {
         pool.printConnectionStats(out);
     }
 
