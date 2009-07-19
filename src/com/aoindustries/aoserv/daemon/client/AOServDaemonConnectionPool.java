@@ -7,8 +7,8 @@ package com.aoindustries.aoserv.daemon.client;
  */
 import com.aoindustries.io.AOPool;
 import com.aoindustries.util.EncodingUtils;
-import com.aoindustries.util.ErrorHandler;
 import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Connections made by <code>TCPConnector</code> or any
@@ -20,16 +20,8 @@ final public class AOServDaemonConnectionPool extends AOPool {
 
     private final AOServDaemonConnector connector;
 
-    /**
-     * @deprecated
-     */
-    AOServDaemonConnectionPool(AOServDaemonConnector connector) {
-        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge);
-        this.connector=connector;
-    }
-
-    AOServDaemonConnectionPool(AOServDaemonConnector connector, ErrorHandler errorHandler) {
-        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge, errorHandler);
+    AOServDaemonConnectionPool(AOServDaemonConnector connector, Logger logger) {
+        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge, logger);
         this.connector=connector;
     }
 

@@ -5,13 +5,20 @@ package com.aoindustries.aoserv.daemon.client;
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
-import com.aoindustries.aoserv.client.*;
-import com.aoindustries.io.*;
-import com.aoindustries.util.*;
-import java.io.*;
-import java.sql.*;
+import com.aoindustries.aoserv.client.AOServProtocol;
+import com.aoindustries.aoserv.client.DaemonProfile;
+import com.aoindustries.aoserv.client.FailoverMySQLReplication;
+import com.aoindustries.aoserv.client.InboxAttributes;
+import com.aoindustries.aoserv.client.MySQLServer;
+import com.aoindustries.aoserv.client.SchemaTable;
+import com.aoindustries.io.CompressedDataInputStream;
+import com.aoindustries.io.CompressedDataOutputStream;
+import com.aoindustries.util.BufferManager;
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 /**
  * A <code>AOServConnector</code> provides the connection
@@ -90,7 +97,7 @@ final public class AOServDaemonConnector {
         boolean[] sslProviderLoaded,
         String trustStore,
         String trustStorePassword,
-        ErrorHandler errorHandler
+        Logger logger
     ) throws IOException {
         this.aoServer=aoServer;
         this.hostname=hostname;
@@ -104,7 +111,7 @@ final public class AOServDaemonConnector {
         this.sslProviderLoaded=sslProviderLoaded;
         this.trustStore=trustStore;
         this.trustStorePassword=trustStorePassword;
-        this.pool=new AOServDaemonConnectionPool(this, errorHandler);
+        this.pool=new AOServDaemonConnectionPool(this, logger);
     }
 
     /**
@@ -274,7 +281,7 @@ final public class AOServDaemonConnector {
         boolean[] sslProviderLoaded,
         String trustStore,
         String trustStorePassword,
-        ErrorHandler errorHandler
+        Logger logger
     ) throws IOException {
         if(hostname==null) throw new NullPointerException("hostname is null");
         if(local_ip==null) throw new NullPointerException("local_ip is null");
@@ -307,7 +314,7 @@ final public class AOServDaemonConnector {
             sslProviderLoaded,
             trustStore,
             trustStorePassword,
-            errorHandler
+            logger
         );
         connectors.add(connector);
         return connector;
@@ -1562,8 +1569,8 @@ final public class AOServDaemonConnector {
     /**
      * Gets the error handler for this and its underlying connection pool.
      */
-    public ErrorHandler getErrorHandler() {
-        return pool.getErrorHandler();
+    Logger getLogger() {
+        return pool.getLogger();
     }
 
     /**

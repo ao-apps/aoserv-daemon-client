@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.security.Security;
+import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
@@ -116,21 +117,21 @@ final public class AOServDaemonConnection {
             try {
                 in.close();
             } catch(IOException err) {
-                connector.getErrorHandler().reportWarning(err, null);
+                connector.getLogger().log(Level.WARNING, null, err);
             }
         }
         if(out!=null) {
             try {
                 out.close();
             } catch(IOException err) {
-                connector.getErrorHandler().reportWarning(err, null);
+                connector.getLogger().log(Level.WARNING, null, err);
             }
         }
         if(socket!=null) {
             try {
                 socket.close();
             } catch(IOException err) {
-                connector.getErrorHandler().reportWarning(err, null);
+                connector.getLogger().log(Level.WARNING, null, err);
             }
         }
         isClosed=true;
