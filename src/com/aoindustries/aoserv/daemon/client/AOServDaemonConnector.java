@@ -38,11 +38,6 @@ final public class AOServDaemonConnector {
     private static final List<AOServDaemonConnector> connectors=new ArrayList<AOServDaemonConnector>();
 
     /**
-     * The server this connection is to.
-     */
-    final int aoServer;
-
-    /**
      * The hostname to connect to.
      */
     final String hostname;
@@ -85,7 +80,6 @@ final public class AOServDaemonConnector {
      * Creates a new <code>AOServConnector</code>.
      */
     private AOServDaemonConnector(
-        int aoServer,
         String hostname,
         String local_ip,
         int port,
@@ -99,7 +93,6 @@ final public class AOServDaemonConnector {
         String trustStorePassword,
         Logger logger
     ) throws IOException {
-        this.aoServer=aoServer;
         this.hostname=hostname;
         this.local_ip=local_ip;
         this.port=port;
@@ -241,7 +234,7 @@ final public class AOServDaemonConnector {
         try {
             return pool.getConnection();
         } catch(IOException err) {
-            IOException newErr = new IOException("IOException while trying to get a connection to server #"+aoServer+": from "+local_ip+" to "+hostname+":"+port);
+            IOException newErr = new IOException("IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port);
             newErr.initCause(err);
             throw newErr;
         }
@@ -269,7 +262,6 @@ final public class AOServDaemonConnector {
      * is thrown.
      */
     public synchronized static AOServDaemonConnector getConnector(
-        int aoServer,
         String hostname,
         String local_ip,
         int port,
@@ -291,8 +283,7 @@ final public class AOServDaemonConnector {
         for(int c=0;c<size;c++) {
             AOServDaemonConnector connector=connectors.get(c);
             if(
-                connector.aoServer==aoServer
-                && connector.hostname.equals(hostname)
+                connector.hostname.equals(hostname)
                 && connector.local_ip.equals(local_ip)
                 && connector.port==port
                 && connector.protocol.equals(protocol)
@@ -302,7 +293,6 @@ final public class AOServDaemonConnector {
             ) return connector;
         }
         AOServDaemonConnector connector=new AOServDaemonConnector(
-            aoServer,
             hostname,
             local_ip,
             port,
