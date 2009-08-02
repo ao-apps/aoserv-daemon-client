@@ -14,7 +14,6 @@ import java.io.BufferedOutputStream;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.security.Security;
 import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -66,14 +65,8 @@ final public class AOServDaemonConnection {
             socket.bind(new InetSocketAddress(connector.local_ip, 0));
             socket.connect(new InetSocketAddress(connector.hostname, connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
         } else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
-            synchronized(connector.sslLock) {
-                if(!connector.sslProviderLoaded[0]) {
-                    if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
-                    if(connector.trustStorePassword!=null && connector.trustStorePassword.length()>0) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
-                    Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
-                    connector.sslProviderLoaded[0]=true;
-                }
-            }
+            if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
+            if(connector.trustStorePassword!=null && connector.trustStorePassword.length()>0) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
             SSLSocketFactory sslFact=(SSLSocketFactory)SSLSocketFactory.getDefault();
             Socket regSocket = new Socket();
             regSocket.bind(new InetSocketAddress(connector.local_ip, 0));

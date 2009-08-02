@@ -109,6 +109,7 @@ final public class AOServDaemonProtocol {
         GET_LVM_REPORT = GET_AO_SERVER_SYSTEM_TIME_MILLIS+1,
         GET_HDD_MODEL_REPORT = GET_LVM_REPORT+1,
         VNC_CONSOLE = GET_HDD_MODEL_REPORT+1,
+        GET_MYSQL_TABLE_STATUS = VNC_CONSOLE+1,
 
         DONE=0,
         NEXT=DONE+1,

@@ -9,6 +9,7 @@ import com.aoindustries.aoserv.client.AOServProtocol;
 import com.aoindustries.aoserv.client.DaemonProfile;
 import com.aoindustries.aoserv.client.FailoverMySQLReplication;
 import com.aoindustries.aoserv.client.InboxAttributes;
+import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
 import com.aoindustries.io.CompressedDataInputStream;
@@ -66,10 +67,6 @@ final public class AOServDaemonConnector {
 
     final long maxConnectionAge;
 
-    final Object sslLock;
-    
-    final boolean[] sslProviderLoaded;
-    
     final String trustStore;
     
     final String trustStorePassword;
@@ -87,8 +84,6 @@ final public class AOServDaemonConnector {
         String key,
         int poolSize,
         long maxConnectionAge,
-        Object sslLock,
-        boolean[] sslProviderLoaded,
         String trustStore,
         String trustStorePassword,
         Logger logger
@@ -100,8 +95,6 @@ final public class AOServDaemonConnector {
         this.key=key;
         this.poolSize=poolSize;
         this.maxConnectionAge=maxConnectionAge;
-        this.sslLock=sslLock;
-        this.sslProviderLoaded=sslProviderLoaded;
         this.trustStore=trustStore;
         this.trustStorePassword=trustStorePassword;
         this.pool=new AOServDaemonConnectionPool(this, logger);
@@ -269,8 +262,6 @@ final public class AOServDaemonConnector {
         String key,
         int poolSize,
         long maxConnectionAge,
-        Object sslLock,
-        boolean[] sslProviderLoaded,
         String trustStore,
         String trustStorePassword,
         Logger logger
@@ -300,8 +291,6 @@ final public class AOServDaemonConnector {
             key,
             poolSize,
             maxConnectionAge,
-            sslLock,
-            sslProviderLoaded,
             trustStore,
             trustStorePassword,
             logger
@@ -718,6 +707,60 @@ final public class AOServDaemonConnector {
                 );
             } else if(code==AOServDaemonProtocol.DONE) {
                 return null;
+            } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
+                throw new IOException(in.readUTF());
+            } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
+                throw new SQLException(in.readUTF());
+            } else {
+                throw new IOException("Unknown result: " + code);
+            }
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    public List<TableStatus> getMySQLTableStatus(int mysqlDatabase) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream daemonOut=conn.getOutputStream();
+            daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
+            daemonOut.writeCompressedInt(mysqlDatabase);
+            daemonOut.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.NEXT) {
+                int size = in.readCompressedInt();
+                List<TableStatus> tableStatuses = new ArrayList<TableStatus>(size);
+                for(int c=0;c<size;c++) {
+                    tableStatuses.add(
+                        new TableStatus(
+                            in.readUTF(), // name
+                            in.readNullEnum(TableStatus.Engine.class), // engine
+                            in.readNullInteger(), // version
+                            in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
+                            in.readNullLong(), // rows
+                            in.readNullLong(), // avgRowLength
+                            in.readNullLong(), // dataLength
+                            in.readNullLong(), // maxDataLength
+                            in.readNullLong(), // indexLength
+                            in.readNullLong(), // dataFree
+                            in.readNullLong(), // autoIncrement
+                            in.readNullUTF(), // createTime
+                            in.readNullUTF(), // updateTime
+                            in.readNullUTF(), // checkTime
+                            in.readNullEnum(TableStatus.Collation.class), // collation
+                            in.readNullUTF(), // checksum
+                            in.readNullUTF(), // createOptions
+                            in.readNullUTF() // comment
+                        )
+                    );
+                }
+                return tableStatuses;
             } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
                 throw new IOException(in.readUTF());
             } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
