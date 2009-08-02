@@ -16,51 +16,31 @@ import java.util.logging.Logger;
  *
  * @author  AO Industries, Inc.
  */
-final public class AOServDaemonConnectionPool extends AOPool {
+final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOException> {
 
     private final AOServDaemonConnector connector;
 
     AOServDaemonConnectionPool(AOServDaemonConnector connector, Logger logger) {
-        super(AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol, connector.poolSize, connector.maxConnectionAge, logger);
+        super(
+            AOServDaemonConnection.class,
+            AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol,
+            connector.poolSize,
+            connector.maxConnectionAge,
+            logger
+        );
         this.connector=connector;
     }
 
-    void close() throws IOException {
-        try {
-            closeImp();
-        } catch(Exception err) {
-            if(err instanceof IOException) throw (IOException)err;
-            IOException ioErr=new IOException();
-            ioErr.initCause(err);
-            throw ioErr;
-        }
+    protected void close(AOServDaemonConnection conn) {
+        conn.close();
     }
 
-    protected void close(Object O) {
-        ((AOServDaemonConnection)O).close();
-    }
-
-    AOServDaemonConnection getConnection() throws IOException {
-        return getConnection(1);
-    }
-
-    AOServDaemonConnection getConnection(int maxConnections) throws IOException {
-        try {
-            return (AOServDaemonConnection)getConnectionImp(maxConnections);
-        } catch(Exception err) {
-            if(err instanceof IOException) throw (IOException)err;
-            IOException ioErr=new IOException();
-            ioErr.initCause(err);
-            throw ioErr;
-        }
-    }
-
-    protected Object getConnectionObject() throws IOException {
+    protected AOServDaemonConnection getConnectionObject() throws IOException {
         return new AOServDaemonConnection(connector);
     }
 
-    protected boolean isClosed(Object O) {
-        return ((AOServDaemonConnection)O).isClosed();
+    protected boolean isClosed(AOServDaemonConnection conn) {
+        return conn.isClosed();
     }
 
     protected void printConnectionStats(Appendable out) throws IOException {
@@ -85,32 +65,10 @@ final public class AOServDaemonConnectionPool extends AOPool {
         out.append("</td></tr>\n");
     }
 
-    void printStatisticsHTML(Appendable out) throws IOException {
-        try {
-            printStatisticsHTMLImp(out);
-        } catch(Exception err) {
-            if(err instanceof IOException) throw (IOException)err;
-            IOException ioErr=new IOException();
-            ioErr.initCause(err);
-            throw ioErr;
-        }
+    protected void resetConnection(AOServDaemonConnection conn) {
     }
 
-    void releaseConnection(AOServDaemonConnection connection) throws IOException {
-        try {
-            releaseConnectionImp(connection);
-        } catch(Exception err) {
-            if(err instanceof IOException) throw (IOException)err;
-            IOException ioErr=new IOException();
-            ioErr.initCause(err);
-            throw ioErr;
-        }
-    }
-
-    protected void resetConnection(Object O) {
-    }
-
-    protected void throwException(String message, Throwable allocateStackTrace) throws Exception {
+    protected void throwException(String message, Throwable allocateStackTrace) throws IOException {
         IOException err=new IOException(message);
         err.initCause(allocateStackTrace);
         throw err;
