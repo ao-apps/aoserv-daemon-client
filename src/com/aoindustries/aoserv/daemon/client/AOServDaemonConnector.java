@@ -9,6 +9,8 @@ import com.aoindustries.aoserv.client.AOServProtocol;
 import com.aoindustries.aoserv.client.DaemonProfile;
 import com.aoindustries.aoserv.client.FailoverMySQLReplication;
 import com.aoindustries.aoserv.client.InboxAttributes;
+import com.aoindustries.aoserv.client.MySQLDatabase.CheckTableResult;
+import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
@@ -740,7 +742,7 @@ final public class AOServDaemonConnector {
                     tableStatuses.add(
                         new TableStatus(
                             in.readUTF(), // name
-                            in.readNullEnum(TableStatus.Engine.class), // engine
+                            in.readNullEnum(Engine.class), // engine
                             in.readNullInteger(), // version
                             in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
                             in.readNullLong(), // rows
@@ -761,6 +763,49 @@ final public class AOServDaemonConnector {
                     );
                 }
                 return tableStatuses;
+            } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
+                throw new IOException(in.readUTF());
+            } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
+                throw new SQLException(in.readUTF());
+            } else {
+                throw new IOException("Unknown result: " + code);
+            }
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    public List<CheckTableResult> checkMySQLTables(int mysqlDatabase, List<String> tableNames) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream daemonOut=conn.getOutputStream();
+            daemonOut.writeCompressedInt(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
+            daemonOut.writeCompressedInt(mysqlDatabase);
+            int numTables = tableNames.size();
+            daemonOut.writeCompressedInt(numTables);
+            for(int c=0;c<numTables;c++) daemonOut.writeUTF(tableNames.get(c));
+            daemonOut.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.NEXT) {
+                int size = in.readCompressedInt();
+                List<CheckTableResult> checkTableResults = new ArrayList<CheckTableResult>(size);
+                for(int c=0;c<size;c++) {
+                    checkTableResults.add(
+                        new CheckTableResult(
+                            in.readUTF(), // table
+                            in.readLong(), // duration
+                            in.readNullEnum(CheckTableResult.MsgType.class), // msgType
+                            in.readNullUTF() // msgText
+                        )
+                    );
+                }
+                return checkTableResults;
             } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
                 throw new IOException(in.readUTF());
             } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
