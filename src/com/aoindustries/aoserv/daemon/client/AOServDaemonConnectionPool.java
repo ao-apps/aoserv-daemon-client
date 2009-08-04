@@ -22,7 +22,6 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 
     AOServDaemonConnectionPool(AOServDaemonConnector connector, Logger logger) {
         super(
-            AOServDaemonConnection.class,
             AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol,
             connector.poolSize,
             connector.maxConnectionAge,
@@ -68,9 +67,9 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
     protected void resetConnection(AOServDaemonConnection conn) {
     }
 
-    protected void throwException(String message, Throwable allocateStackTrace) throws IOException {
+    protected IOException newException(String message, Throwable cause) {
         IOException err=new IOException(message);
-        err.initCause(allocateStackTrace);
-        throw err;
+        if(cause!=null) err.initCause(cause);
+        return err;
     }
 }
