@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -229,9 +230,8 @@ final public class AOServDaemonConnector {
         try {
             return pool.getConnection();
         } catch(IOException err) {
-            IOException newErr = new IOException("IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port);
-            newErr.initCause(err);
-            throw newErr;
+            pool.getLogger().log(Level.INFO, "IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+            throw err;
         }
     }
 
