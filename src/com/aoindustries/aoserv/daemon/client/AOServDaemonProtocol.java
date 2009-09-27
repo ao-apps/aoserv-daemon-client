@@ -111,6 +111,7 @@ final public class AOServDaemonProtocol {
         VNC_CONSOLE = GET_HDD_MODEL_REPORT+1,
         GET_MYSQL_TABLE_STATUS = VNC_CONSOLE+1,
         CHECK_MYSQL_TABLES = GET_MYSQL_TABLE_STATUS+1,
+        CHECK_PORT = CHECK_MYSQL_TABLES+1,
 
         DONE=0,
         NEXT=DONE+1,

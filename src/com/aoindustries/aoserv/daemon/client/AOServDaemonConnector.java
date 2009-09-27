@@ -1901,6 +1901,38 @@ final public class AOServDaemonConnector {
     }
 
     /**
+     * Checks a port from the server point of view.
+     *
+     * @return  the result
+     */
+    public String checkPort(String ipAddress, int port, String netProtocol, String appProtocol, String monitoringParameters) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.CHECK_PORT);
+            out.writeUTF(ipAddress);
+            out.writeCompressedInt(port);
+            out.writeUTF(netProtocol);
+            out.writeUTF(appProtocol);
+            out.writeUTF(monitoringParameters);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
      * Gets the current system time.
      *
      * @return  the report

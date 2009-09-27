@@ -8,6 +8,7 @@ package com.aoindustries.aoserv.daemon.client;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.util.EncodingUtils;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.logging.Logger;
 
 /**
@@ -16,7 +17,7 @@ import java.util.logging.Logger;
  *
  * @author  AO Industries, Inc.
  */
-final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOException> {
+final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOException,InterruptedIOException> {
 
     private final AOServDaemonConnector connector;
 
@@ -34,7 +35,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
         conn.close();
     }
 
-    protected AOServDaemonConnection getConnectionObject() throws IOException {
+    protected AOServDaemonConnection getConnectionObject() throws InterruptedIOException, IOException {
         return new AOServDaemonConnection(connector);
     }
 
@@ -69,6 +70,12 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 
     protected IOException newException(String message, Throwable cause) {
         IOException err=new IOException(message);
+        if(cause!=null) err.initCause(cause);
+        return err;
+    }
+
+    protected InterruptedIOException newInterruptedException(String message, Throwable cause) {
+        InterruptedIOException err=new InterruptedIOException(message);
         if(cause!=null) err.initCause(cause);
         return err;
     }
