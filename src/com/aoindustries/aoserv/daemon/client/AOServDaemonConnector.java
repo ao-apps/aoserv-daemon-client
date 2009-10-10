@@ -677,7 +677,11 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(String failoverRoot, int nestedOperatingSystemVersion, int port) throws IOException, SQLException {
+    public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(
+        String failoverRoot,
+        int nestedOperatingSystemVersion,
+        int port
+    ) throws IOException, SQLException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -724,13 +728,21 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public List<TableStatus> getMySQLTableStatus(int mysqlDatabase) throws IOException, SQLException {
+    public List<TableStatus> getMySQLTableStatus(
+        String failoverRoot,
+        int nestedOperatingSystemVersion,
+        int port,
+        String databaseName
+    ) throws IOException, SQLException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream daemonOut=conn.getOutputStream();
             daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
-            daemonOut.writeCompressedInt(mysqlDatabase);
+            daemonOut.writeUTF(failoverRoot);
+            daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
+            daemonOut.writeCompressedInt(port);
+            daemonOut.writeUTF(databaseName);
             daemonOut.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
@@ -778,13 +790,22 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public List<CheckTableResult> checkMySQLTables(int mysqlDatabase, List<String> tableNames) throws IOException, SQLException {
+    public List<CheckTableResult> checkMySQLTables(
+        String failoverRoot,
+        int nestedOperatingSystemVersion,
+        int port,
+        String databaseName,
+        List<String> tableNames
+    ) throws IOException, SQLException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream daemonOut=conn.getOutputStream();
             daemonOut.writeCompressedInt(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
-            daemonOut.writeCompressedInt(mysqlDatabase);
+            daemonOut.writeUTF(failoverRoot);
+            daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
+            daemonOut.writeCompressedInt(port);
+            daemonOut.writeUTF(databaseName);
             int numTables = tableNames.size();
             daemonOut.writeCompressedInt(numTables);
             for(int c=0;c<numTables;c++) daemonOut.writeUTF(tableNames.get(c));
