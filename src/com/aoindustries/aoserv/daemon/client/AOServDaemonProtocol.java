@@ -113,6 +113,7 @@ final public class AOServDaemonProtocol {
         GET_MYSQL_TABLE_STATUS = VNC_CONSOLE+1,
         CHECK_MYSQL_TABLES = GET_MYSQL_TABLE_STATUS+1,
         CHECK_PORT = CHECK_MYSQL_TABLES+1,
+        CHECK_SMTP_BLACKLIST = CHECK_PORT+1,
 
         DONE=0,
         NEXT=DONE+1,
