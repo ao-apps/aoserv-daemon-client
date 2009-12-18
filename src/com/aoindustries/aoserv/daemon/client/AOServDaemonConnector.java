@@ -1336,7 +1336,7 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Sets the password for a <code>MySQLServerUser</code>.
+     * Sets the password for a <code>MySQLUser</code>.
      */
     public void setMySQLUserPassword(int mysqlServer, String username, String password) throws IOException, SQLException {
         AOServDaemonConnection conn=getConnection();
