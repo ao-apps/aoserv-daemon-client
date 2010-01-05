@@ -5,15 +5,11 @@ package com.aoindustries.aoserv.daemon.client;
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
-import com.aoindustries.aoserv.client.AOServProtocol;
-import com.aoindustries.aoserv.client.DaemonProfile;
 import com.aoindustries.aoserv.client.FailoverMySQLReplication;
 import com.aoindustries.aoserv.client.InboxAttributes;
-import com.aoindustries.aoserv.client.MySQLDatabase.CheckTableResult;
-import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
-import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
+import com.aoindustries.aoserv.client.MySQLDatabase;
 import com.aoindustries.aoserv.client.MySQLServer;
-import com.aoindustries.aoserv.client.SchemaTable;
+import com.aoindustries.aoserv.client.ServiceName;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.util.BufferManager;
@@ -424,35 +420,6 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Gets the profiling information for the daemon
-     */
-    public void getDaemonProfile(List<DaemonProfile> objs) throws IOException, SQLException {
-        AOServDaemonConnection conn=getConnection();
-        try {
-            CompressedDataOutputStream out=conn.getOutputStream();
-            out.writeCompressedInt(AOServDaemonProtocol.GET_DAEMON_PROFILE);
-            out.flush();
-
-            CompressedDataInputStream in=conn.getInputStream();
-            int result;
-            while((result=in.read())==AOServDaemonProtocol.NEXT) {
-                DaemonProfile dp=new DaemonProfile();
-                dp.read(in);
-                objs.add(dp);
-            }
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
-            conn.close();
-            throw err;
-        } finally {
-            releaseConnection(conn);
-        }
-    }
-
-    /**
      * Gets the total size of a mounted filesystem in bytes.
      */
     public long getDiskDeviceTotalSize(String path) throws IOException, SQLException {
@@ -626,7 +593,7 @@ final public class AOServDaemonConnector {
                 while((code=in.read())==AOServDaemonProtocol.NEXT) {
                     int len=in.readShort();
                     in.readFully(buff, 0, len);
-                    out.writeByte(AOServProtocol.NEXT);
+                    out.writeByte(AOServDaemonProtocol.NEXT);
                     out.writeShort(len);
                     out.write(buff, 0, len);
                 }
@@ -728,7 +695,7 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public List<TableStatus> getMySQLTableStatus(
+    public List<MySQLDatabase.TableStatus> getMySQLTableStatus(
         String failoverRoot,
         int nestedOperatingSystemVersion,
         int port,
@@ -749,14 +716,14 @@ final public class AOServDaemonConnector {
             int code=in.read();
             if(code==AOServDaemonProtocol.NEXT) {
                 int size = in.readCompressedInt();
-                List<TableStatus> tableStatuses = new ArrayList<TableStatus>(size);
+                List<MySQLDatabase.TableStatus> tableStatuses = new ArrayList<MySQLDatabase.TableStatus>(size);
                 for(int c=0;c<size;c++) {
                     tableStatuses.add(
-                        new TableStatus(
+                        new MySQLDatabase.TableStatus(
                             in.readUTF(), // name
-                            in.readNullEnum(Engine.class), // engine
+                            in.readNullEnum(MySQLDatabase.Engine.class), // engine
                             in.readNullInteger(), // version
-                            in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
+                            in.readNullEnum(MySQLDatabase.TableStatus.RowFormat.class), // rowFormat
                             in.readNullLong(), // rows
                             in.readNullLong(), // avgRowLength
                             in.readNullLong(), // dataLength
@@ -767,7 +734,7 @@ final public class AOServDaemonConnector {
                             in.readNullUTF(), // createTime
                             in.readNullUTF(), // updateTime
                             in.readNullUTF(), // checkTime
-                            in.readNullEnum(TableStatus.Collation.class), // collation
+                            in.readNullEnum(MySQLDatabase.TableStatus.Collation.class), // collation
                             in.readNullUTF(), // checksum
                             in.readNullUTF(), // createOptions
                             in.readNullUTF() // comment
@@ -790,7 +757,7 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public List<CheckTableResult> checkMySQLTables(
+    public List<MySQLDatabase.CheckTableResult> checkMySQLTables(
         String failoverRoot,
         int nestedOperatingSystemVersion,
         int port,
@@ -815,13 +782,13 @@ final public class AOServDaemonConnector {
             int code=in.read();
             if(code==AOServDaemonProtocol.NEXT) {
                 int size = in.readCompressedInt();
-                List<CheckTableResult> checkTableResults = new ArrayList<CheckTableResult>(size);
+                List<MySQLDatabase.CheckTableResult> checkTableResults = new ArrayList<MySQLDatabase.CheckTableResult>(size);
                 for(int c=0;c<size;c++) {
                     checkTableResults.add(
-                        new CheckTableResult(
+                        new MySQLDatabase.CheckTableResult(
                             in.readUTF(), // table
                             in.readLong(), // duration
-                            in.readNullEnum(CheckTableResult.MsgType.class), // msgType
+                            in.readNullEnum(MySQLDatabase.CheckTableResult.MsgType.class), // msgType
                             in.readNullUTF() // msgText
                         )
                     );
@@ -860,7 +827,7 @@ final public class AOServDaemonConnector {
                 while((code=in.read())==AOServDaemonProtocol.NEXT) {
                     int len=in.readShort();
                     in.readFully(buff, 0, len);
-                    out.writeByte(AOServProtocol.NEXT);
+                    out.writeByte(AOServDaemonProtocol.NEXT);
                     out.writeShort(len);
                     out.write(buff, 0, len);
                 }
@@ -1537,6 +1504,7 @@ final public class AOServDaemonConnector {
         }
     }
 
+    /*
     private void transferStream(
         int command,
         String param1,
@@ -1557,7 +1525,7 @@ final public class AOServDaemonConnector {
             releaseConnection(conn);
         }
     }
-
+    */
     private void transferStream(
         int command,
         String param1,
@@ -1597,7 +1565,7 @@ final public class AOServDaemonConnector {
             while((code=in.read())==AOServDaemonProtocol.NEXT) {
                 int len=in.readShort();
                 in.readFully(buff, 0, len);
-                masterOut.writeByte(AOServProtocol.NEXT);
+                masterOut.writeByte(AOServDaemonProtocol.NEXT);
                 masterOut.writeShort(len);
                 masterOut.write(buff, 0, len);
                 //if(reporter!=null) reporter.addFinishedSize(len);
@@ -1611,12 +1579,12 @@ final public class AOServDaemonConnector {
         else throw new IOException("Unknown result: " + code);
     }
 
-    private void waitFor(SchemaTable.TableID tableID) throws IOException, SQLException {
+    private void waitFor(ServiceName serviceName) throws IOException, SQLException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
             out.writeCompressedInt(AOServDaemonProtocol.WAIT_FOR_REBUILD);
-            out.writeCompressedInt(tableID.ordinal());
+            out.writeUTF(serviceName.name());
             out.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
@@ -1634,35 +1602,35 @@ final public class AOServDaemonConnector {
     }
 
     public void waitForHttpdSiteRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.HTTPD_SITES);
+        waitFor(ServiceName.httpd_sites);
     }
 
     public void waitForLinuxAccountRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.LINUX_ACCOUNTS);
+        waitFor(ServiceName.linux_accounts);
     }
 
     public void waitForMySQLDatabaseRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.MYSQL_DATABASES);
+        waitFor(ServiceName.mysql_databases);
     }
 
     public void waitForMySQLDBUserRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.MYSQL_DB_USERS);
+        waitFor(ServiceName.mysql_db_users);
     }
 
     public void waitForMySQLUserRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.MYSQL_USERS);
+        waitFor(ServiceName.mysql_users);
     }
 
     public void waitForPostgresDatabaseRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.POSTGRES_DATABASES);
+        waitFor(ServiceName.postgres_databases);
     }
 
     public void waitForPostgresServerRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.POSTGRES_SERVERS);
+        waitFor(ServiceName.postgres_servers);
     }
 
     public void waitForPostgresUserRebuild() throws IOException, SQLException {
-        waitFor(SchemaTable.TableID.POSTGRES_USERS);
+        waitFor(ServiceName.postgres_users);
     }
 
     /**
