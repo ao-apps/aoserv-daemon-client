@@ -47,12 +47,12 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
         out.append("<table>\n"
                 + "  <tr><th colspan='2'><span style='font-size:large;'>AOServ Daemon Connection Pool</span></th></tr>\n"
                 + "  <tr><td>Local IP:</td><td>");
-        EncodingUtils.encodeHtml(connector.local_ip, out);
+        EncodingUtils.encodeHtml(connector.local_ip.toString(), out);
         out.append("</td></tr>\n"
                 + "  <tr><td>Host:</td><td>");
-        EncodingUtils.encodeHtml(connector.hostname, out);
+        EncodingUtils.encodeHtml(connector.hostname.toString(), out);
         out.append("</td></tr>\n"
-                + "  <tr><td>Port:</td><td>").append(Integer.toString(connector.port)).append("</td></tr>\n"
+                + "  <tr><td>Port:</td><td>").append(connector.port.toString()).append("</td></tr>\n"
                 + "  <tr><td>Protocol:</td><td>");
         EncodingUtils.encodeHtml(connector.protocol, out);
         out.append("</td></tr>\n"

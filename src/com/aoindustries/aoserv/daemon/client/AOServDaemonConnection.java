@@ -64,20 +64,20 @@ final public class AOServDaemonConnection {
                 socket.setKeepAlive(true);
                 socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
                 //socket.setTcpNoDelay(true);
-                socket.bind(new InetSocketAddress(connector.local_ip, 0));
-                socket.connect(new InetSocketAddress(connector.hostname, connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
+                socket.bind(new InetSocketAddress(connector.local_ip.getAddress(), 0));
+                socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
             } else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
                 if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
                 if(connector.trustStorePassword!=null && connector.trustStorePassword.length()>0) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
                 SSLSocketFactory sslFact=(SSLSocketFactory)SSLSocketFactory.getDefault();
                 if(Thread.interrupted()) throw new InterruptedIOException();
                 Socket regSocket = new Socket();
-                regSocket.bind(new InetSocketAddress(connector.local_ip, 0));
-                regSocket.connect(new InetSocketAddress(connector.hostname, connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
+                regSocket.bind(new InetSocketAddress(connector.local_ip.getAddress(), 0));
+                regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
                 regSocket.setKeepAlive(true);
                 regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
                 //regSocket.setTcpNoDelay(true);
-                socket=sslFact.createSocket(regSocket, connector.hostname, connector.port, true);
+                socket=sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port.getPort(), true);
             } else throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
 
             if(Thread.interrupted()) throw new InterruptedIOException();

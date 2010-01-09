@@ -1,7 +1,7 @@
 package com.aoindustries.aoserv.daemon.client;
 
 /*
- * Copyright 2001-2009 by AO Industries, Inc.,
+ * Copyright 2001-2010 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
@@ -10,11 +10,14 @@ import com.aoindustries.aoserv.client.InboxAttributes;
 import com.aoindustries.aoserv.client.MySQLDatabase;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.ServiceName;
+import com.aoindustries.aoserv.client.validator.Hostname;
+import com.aoindustries.aoserv.client.validator.InetAddress;
+import com.aoindustries.aoserv.client.validator.NetPort;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.util.BufferManager;
 import java.io.IOException;
-import java.sql.SQLException;
+import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -40,17 +43,17 @@ final public class AOServDaemonConnector {
     /**
      * The hostname to connect to.
      */
-    final String hostname;
+    final Hostname hostname;
     
     /**
      * The local IP address to connect from.
      */
-    final String local_ip;
+    final InetAddress local_ip;
 
     /**
      * The port to connect to.
      */
-    final int port;
+    final NetPort port;
 
     /**
      * The protocol used.
@@ -76,9 +79,9 @@ final public class AOServDaemonConnector {
      * Creates a new <code>AOServConnector</code>.
      */
     private AOServDaemonConnector(
-        String hostname,
-        String local_ip,
-        int port,
+        Hostname hostname,
+        InetAddress local_ip,
+        NetPort port,
         String protocol,
         String key,
         int poolSize,
@@ -86,7 +89,7 @@ final public class AOServDaemonConnector {
         String trustStore,
         String trustStorePassword,
         Logger logger
-    ) throws IOException {
+    ) {
         this.hostname=hostname;
         this.local_ip=local_ip;
         this.port=port;
@@ -107,7 +110,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the number of bytes transferred
      */
-    public long copyHomeDirectory(String username, AOServDaemonConnector to_connector) throws IOException, SQLException {
+    public long copyHomeDirectory(String username, AOServDaemonConnector to_connector) throws RemoteException {
         // Establish the connection to the source
         AOServDaemonConnection sourceConn=getConnection();
         try {
@@ -141,19 +144,13 @@ final public class AOServDaemonConnector {
                     BufferManager.release(buff);
                 }
                 if (sourceCode != AOServDaemonProtocol.DONE) {
-                    if (sourceCode == AOServDaemonProtocol.IO_EXCEPTION) {
+                    if (sourceCode == AOServDaemonProtocol.REMOTE_EXCEPTION) {
                         String message=sourceIn.readUTF();
-                        destOut.writeByte(AOServDaemonProtocol.IO_EXCEPTION);
+                        destOut.writeByte(AOServDaemonProtocol.REMOTE_EXCEPTION);
                         destOut.writeUTF(message);
                         destOut.flush();
-                        throw new IOException(message);
-                    } else if (sourceCode == AOServDaemonProtocol.SQL_EXCEPTION) {
-                        String message=sourceIn.readUTF();
-                        destOut.writeByte(AOServDaemonProtocol.SQL_EXCEPTION);
-                        destOut.writeUTF(message);
-                        destOut.flush();
-                        throw new SQLException(message);
-                    } else throw new IOException("Unknown result: " + sourceCode);
+                        throw new RemoteException(message);
+                    } else throw new RemoteException("Unknown result: " + sourceCode);
                 }
                 destOut.writeByte(AOServDaemonProtocol.DONE);
                 destOut.flush();
@@ -161,35 +158,43 @@ final public class AOServDaemonConnector {
                 CompressedDataInputStream destIn=destConn.getInputStream();
                 int destResult=destIn.read();
                 if(destResult!=AOServDaemonProtocol.DONE) {
-                    if (destResult == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(destIn.readUTF());
-                    else if (destResult == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(destIn.readUTF());
-                    else throw new IOException("Unknown result: " + destResult);
+                    if (destResult == AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(destIn.readUTF());
+                    else throw new RemoteException("Unknown result: " + destResult);
                 }
 
                 return byteCount;
-            } catch(IOException err) {
+            } catch(RuntimeException err) {
+                destConn.close();
+                throw err;
+            } catch(RemoteException err) {
                 destConn.close();
                 throw err;
             } finally {
                 to_connector.releaseConnection(destConn);
             }
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             sourceConn.close();
             throw err;
+        } catch(RemoteException err) {
+            sourceConn.close();
+            throw err;
+        } catch(IOException err) {
+            sourceConn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(sourceConn);
         }
     }
 
-    public void dumpMySQLDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
+    public void dumpMySQLDatabase(int pkey, CompressedDataOutputStream masterOut) throws RemoteException {
         transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, masterOut);
     }
 
-    public void dumpPostgresDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
+    public void dumpPostgresDatabase(int pkey, CompressedDataOutputStream masterOut) throws RemoteException {
         transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, masterOut);
     }
 
-    public String getAutoresponderContent(String path) throws IOException, SQLException {
+    public String getAutoresponderContent(String path) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -201,12 +206,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if (code == AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -222,12 +232,18 @@ final public class AOServDaemonConnector {
      * pooling is obtained this way.  These connections may be over any protocol,
      * so they may only be used for one client/server exchange at a time.
      */
-    public AOServDaemonConnection getConnection() throws IOException {
+    public AOServDaemonConnection getConnection() throws RemoteException {
         try {
             return pool.getConnection();
-        } catch(IOException err) {
-            pool.getLogger().log(Level.INFO, "IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+        } catch(RuntimeException err) {
+            pool.getLogger().log(Level.INFO, "RuntimeException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
             throw err;
+        } catch(RemoteException err) {
+            pool.getLogger().log(Level.INFO, "RemoteException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+            throw err;
+        } catch(IOException err) {
+            pool.getLogger().log(Level.INFO, "IOExceptoin while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+            throw new RemoteException(err.getMessage(), err);
         }
     }
 
@@ -237,8 +253,19 @@ final public class AOServDaemonConnector {
      * pooling is obtained this way.  These connections may be over any protocol,
      * so they may only be used for one client/server exchange at a time.
      */
-    public AOServDaemonConnection getConnection(int maxConnections) throws IOException {
-        return pool.getConnection(maxConnections);
+    public AOServDaemonConnection getConnection(int maxConnections) throws RemoteException {
+        try {
+            return pool.getConnection(maxConnections);
+        } catch(RuntimeException err) {
+            pool.getLogger().log(Level.INFO, "RuntimeException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+            throw err;
+        } catch(RemoteException err) {
+            pool.getLogger().log(Level.INFO, "RemoteException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+            throw err;
+        } catch(IOException err) {
+            pool.getLogger().log(Level.INFO, "IOExceptoin while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+            throw new RemoteException(err.getMessage(), err);
+        }
     }
 
     public int getConnectionCount() {
@@ -249,13 +276,13 @@ final public class AOServDaemonConnector {
      * Gets the default <code>AOServConnector</code> as defined in the
      * <code>client.properties</code> resource.  Each possible
      * protocol is tried, in order, until a successful connection is
-     * made.  If no connection is made, an <code>IOException</code>
+     * made.  If no connection is made, an <code>RemoteException</code>
      * is thrown.
      */
     public synchronized static AOServDaemonConnector getConnector(
-        String hostname,
-        String local_ip,
-        int port,
+        Hostname hostname,
+        InetAddress local_ip,
+        NetPort port,
         String protocol,
         String key,
         int poolSize,
@@ -263,7 +290,7 @@ final public class AOServDaemonConnector {
         String trustStore,
         String trustStorePassword,
         Logger logger
-    ) throws IOException {
+    ) {
         if(hostname==null) throw new NullPointerException("hostname is null");
         if(local_ip==null) throw new NullPointerException("local_ip is null");
         if(protocol==null) throw new NullPointerException("protocol is null");
@@ -274,7 +301,7 @@ final public class AOServDaemonConnector {
             if(
                 connector.hostname.equals(hostname)
                 && connector.local_ip.equals(local_ip)
-                && connector.port==port
+                && connector.port.equals(port)
                 && connector.protocol.equals(protocol)
                 && (key==null?connector.key==null:key.equals(connector.key))
                 && connector.poolSize==poolSize
@@ -308,7 +335,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the cron table
      */
-    public String getCronTable(String username) throws IOException, SQLException {
+    public String getCronTable(String username) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -320,12 +347,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -338,7 +370,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getNetDeviceBondingReport(int pkey) throws IOException, SQLException {
+    public String getNetDeviceBondingReport(int pkey) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -350,12 +382,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -368,7 +405,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getNetDeviceStatisticsReport(int pkey) throws IOException, SQLException {
+    public String getNetDeviceStatisticsReport(int pkey) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -380,12 +417,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -396,7 +438,7 @@ final public class AOServDaemonConnector {
      *
      * @param  lsa  the pkey of the LinuxServerAccount
      */
-    public boolean isProcmailManual(int lsa) throws IOException, SQLException {
+    public boolean isProcmailManual(int lsa) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -408,12 +450,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readBoolean();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -422,7 +469,7 @@ final public class AOServDaemonConnector {
     /**
      * Gets the total size of a mounted filesystem in bytes.
      */
-    public long getDiskDeviceTotalSize(String path) throws IOException, SQLException {
+    public long getDiskDeviceTotalSize(String path) throws RemoteException {
         AOServDaemonConnection conn=getConnection(2);
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -432,13 +479,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readLong();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readLong();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -447,7 +499,7 @@ final public class AOServDaemonConnector {
     /**
      * Gets the used size of a mounted filesystem in bytes.
      */
-    public long getDiskDeviceUsedSize(String path) throws IOException, SQLException {
+    public long getDiskDeviceUsedSize(String path) throws RemoteException {
         AOServDaemonConnection conn=getConnection(2);
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -457,13 +509,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readLong();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readLong();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -472,7 +529,7 @@ final public class AOServDaemonConnector {
     /**
      * Gets the file used by an email list.
      */
-    public String getEmailListFile(String path) throws IOException, SQLException {
+    public String getEmailListFile(String path) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -482,13 +539,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readUTF();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readUTF();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -497,7 +559,7 @@ final public class AOServDaemonConnector {
     /**
      * Gets the encrypted password for a linux account as found in the /etc/shadow file.
      */
-    public String getEncryptedLinuxAccountPassword(String username) throws IOException, SQLException {
+    public String getEncryptedLinuxAccountPassword(String username) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -507,19 +569,24 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readUTF();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readUTF();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public long[] getImapFolderSizes(String username, String[] folderNames) throws IOException, SQLException {
+    public long[] getImapFolderSizes(String username, String[] folderNames) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -541,18 +608,23 @@ final public class AOServDaemonConnector {
                 }
                 return sizes;
             }
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public InboxAttributes getInboxAttributes(String username) throws IOException, SQLException {
+    public InboxAttributes getInboxAttributes(String username) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -566,18 +638,23 @@ final public class AOServDaemonConnector {
             if(code==AOServDaemonProtocol.DONE) {
                 return new InboxAttributes(in.readLong(), in.readLong());
             }
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void getMrtgFile(String filename, CompressedDataOutputStream out) throws IOException, SQLException {
+    public void getMrtgFile(String filename, CompressedDataOutputStream out) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -597,21 +674,28 @@ final public class AOServDaemonConnector {
                     out.writeShort(len);
                     out.write(buff, 0, len);
                 }
-                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-                if (code != AOServDaemonProtocol.DONE) throw new IOException("Unknown result: " + code);
+                if(code!=AOServDaemonProtocol.DONE) {
+                    if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+                    throw new RemoteException("Unknown result: " + code);
+                }
             } finally {
                 BufferManager.release(buff);
             }
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public MySQLServer.MasterStatus getMySQLMasterStatus(int mysqlServer) throws IOException, SQLException {
+    public MySQLServer.MasterStatus getMySQLMasterStatus(int mysqlServer) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -629,16 +713,18 @@ final public class AOServDaemonConnector {
                 );
             } else if(code==AOServDaemonProtocol.DONE) {
                 return null;
-            } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
-                throw new IOException(in.readUTF());
-            } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
-                throw new SQLException(in.readUTF());
-            } else {
-                throw new IOException("Unknown result: " + code);
             }
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -647,8 +733,8 @@ final public class AOServDaemonConnector {
     public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(
         String failoverRoot,
         int nestedOperatingSystemVersion,
-        int port
-    ) throws IOException, SQLException {
+        NetPort port
+    ) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -656,7 +742,7 @@ final public class AOServDaemonConnector {
             daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS);
             daemonOut.writeUTF(failoverRoot);
             daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
-            daemonOut.writeCompressedInt(port);
+            daemonOut.writeCompressedInt(port.getPort());
             daemonOut.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
@@ -678,18 +764,19 @@ final public class AOServDaemonConnector {
                     in.readNullUTF(),
                     in.readNullUTF()
                 );
-            } else if(code==AOServDaemonProtocol.DONE) {
-                return null;
-            } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
-                throw new IOException(in.readUTF());
-            } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
-                throw new SQLException(in.readUTF());
-            } else {
-                throw new IOException("Unknown result: " + code);
             }
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.DONE) return null;
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -698,9 +785,9 @@ final public class AOServDaemonConnector {
     public List<MySQLDatabase.TableStatus> getMySQLTableStatus(
         String failoverRoot,
         int nestedOperatingSystemVersion,
-        int port,
+        NetPort port,
         String databaseName
-    ) throws IOException, SQLException {
+    ) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -708,7 +795,7 @@ final public class AOServDaemonConnector {
             daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
             daemonOut.writeUTF(failoverRoot);
             daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
-            daemonOut.writeCompressedInt(port);
+            daemonOut.writeCompressedInt(port.getPort());
             daemonOut.writeUTF(databaseName);
             daemonOut.flush();
 
@@ -742,16 +829,18 @@ final public class AOServDaemonConnector {
                     );
                 }
                 return tableStatuses;
-            } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
-                throw new IOException(in.readUTF());
-            } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
-                throw new SQLException(in.readUTF());
-            } else {
-                throw new IOException("Unknown result: " + code);
             }
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -760,10 +849,10 @@ final public class AOServDaemonConnector {
     public List<MySQLDatabase.CheckTableResult> checkMySQLTables(
         String failoverRoot,
         int nestedOperatingSystemVersion,
-        int port,
+        NetPort port,
         String databaseName,
         List<String> tableNames
-    ) throws IOException, SQLException {
+    ) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -771,7 +860,7 @@ final public class AOServDaemonConnector {
             daemonOut.writeCompressedInt(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
             daemonOut.writeUTF(failoverRoot);
             daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
-            daemonOut.writeCompressedInt(port);
+            daemonOut.writeCompressedInt(port.getPort());
             daemonOut.writeUTF(databaseName);
             int numTables = tableNames.size();
             daemonOut.writeCompressedInt(numTables);
@@ -794,22 +883,24 @@ final public class AOServDaemonConnector {
                     );
                 }
                 return checkTableResults;
-            } else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
-                throw new IOException(in.readUTF());
-            } else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
-                throw new SQLException(in.readUTF());
-            } else {
-                throw new IOException("Unknown result: " + code);
             }
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void getAWStatsFile(String siteName, String path, String queryString, CompressedDataOutputStream out) throws IOException, SQLException {
+    public void getAWStatsFile(String siteName, String path, String queryString, CompressedDataOutputStream out) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -831,15 +922,22 @@ final public class AOServDaemonConnector {
                     out.writeShort(len);
                     out.write(buff, 0, len);
                 }
-                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-                if (code != AOServDaemonProtocol.DONE) throw new IOException("Unknown result: " + code);
+                if(code!=AOServDaemonProtocol.DONE) {
+                    if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+                    throw new RemoteException("Unknown result: " + code);
+                }
             } finally {
                 BufferManager.release(buff);
             }
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -848,7 +946,7 @@ final public class AOServDaemonConnector {
     /**
      * Compares to the password list on the server.
      */
-    public boolean compareLinuxAccountPassword(String username, String password) throws IOException, SQLException {
+    public boolean compareLinuxAccountPassword(String username, String password) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -859,13 +957,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readBoolean();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readBoolean();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -874,7 +977,7 @@ final public class AOServDaemonConnector {
     /**
      * Gets the encrypted password for a MySQL user as found in user table.
      */
-    public String getEncryptedMySQLUserPassword(int mysqlServer, String username) throws IOException, SQLException {
+    public String getEncryptedMySQLUserPassword(int mysqlServer, String username) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -885,13 +988,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readUTF();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readUTF();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -900,14 +1008,14 @@ final public class AOServDaemonConnector {
     /**
      * Gets the hostname that is connected to.
      */
-    public String getHostname() {
+    public Hostname getHostname() {
         return hostname;
     }
 
     /**
      * Gets the local IP address that connections are established from.
      */
-    public String getLocalIp() {
+    public InetAddress getLocalIp() {
         return local_ip;
     }
 
@@ -926,14 +1034,14 @@ final public class AOServDaemonConnector {
     /**
      * Gets the port that is connected to.
      */
-    public int getPort() {
+    public NetPort getPort() {
         return port;
     }
 
     /**
      * Gets the password for a PostgreSQL user as found in pg_shadow or pg_authid table.
      */
-    public String getPostgresUserPassword(int pkey) throws IOException, SQLException {
+    public String getPostgresUserPassword(int pkey) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -943,13 +1051,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return in.readUTF();
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return in.readUTF();
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -969,7 +1082,7 @@ final public class AOServDaemonConnector {
         String param1,
         String param2,
         String param3
-    ) throws IOException, SQLException {
+    ) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -985,19 +1098,24 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code!=AOServDaemonProtocol.DONE) {
-                if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-                if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-                throw new IOException("Unknown result: " + code);
+                if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+                throw new RemoteException("Unknown result: " + code);
             }
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    /*public void initializeHttpdSitePasswdFile(int sitePKey, String username, String encPassword) throws IOException, SQLException {
+    /*public void initializeHttpdSitePasswdFile(int sitePKey, String username, String encPassword) {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1009,11 +1127,13 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return;
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
+            conn.close();
+            throw err;
+        } catch(RemoteException err) {
             conn.close();
             throw err;
         } finally {
@@ -1021,8 +1141,12 @@ final public class AOServDaemonConnector {
         }
     }*/
 
-    public void printConnectionStatsHTML(Appendable out) throws IOException {
-        pool.printConnectionStats(out);
+    public void printConnectionStatsHTML(Appendable out) throws RemoteException {
+        try {
+            pool.printConnectionStats(out);
+        } catch(IOException err) {
+            throw new RemoteException(err.getMessage(), err);
+        }
     }
 
     /**
@@ -1030,14 +1154,18 @@ final public class AOServDaemonConnector {
      * to use the connection.  Connections may be of any protocol, so each
      * connection must be released after every transaction.
      */
-    public void releaseConnection(AOServDaemonConnection connection) throws IOException {
-        pool.releaseConnection(connection);
+    public void releaseConnection(AOServDaemonConnection connection) throws RemoteException {
+        try {
+            pool.releaseConnection(connection);
+        } catch(IOException err) {
+            throw new RemoteException(err.getMessage(), err);
+        }
     }
 
     /**
      * Deletes the contents of an email list
      */
-    public void removeEmailList(String listPath) throws IOException, SQLException {
+    public void removeEmailList(String listPath) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1047,13 +1175,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return;
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1062,7 +1195,7 @@ final public class AOServDaemonConnector {
     /**
      * Controls a process.
      */
-    private void controlProcess(int command) throws IOException, SQLException {
+    private void controlProcess(int command) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1071,13 +1204,18 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return;
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1086,7 +1224,7 @@ final public class AOServDaemonConnector {
     /**
      * Controls a process.
      */
-    private void controlProcess(int command, int param1) throws IOException, SQLException {
+    private void controlProcess(int command, int param1) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1096,43 +1234,48 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.DONE) return;
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void restartApache() throws IOException, SQLException {
+    public void restartApache() throws RemoteException {
         controlProcess(AOServDaemonProtocol.RESTART_APACHE);
     }
 
-    public void restartCron() throws IOException, SQLException {
+    public void restartCron() throws RemoteException {
         controlProcess(AOServDaemonProtocol.RESTART_CRON);
     }
 
-    public void restartMySQL(int mysqlServer) throws IOException, SQLException {
+    public void restartMySQL(int mysqlServer) throws RemoteException {
         controlProcess(AOServDaemonProtocol.RESTART_MYSQL, mysqlServer);
     }
 
-    public void restartPostgres(int pkey) throws IOException, SQLException {
+    public void restartPostgres(int pkey) throws RemoteException {
         controlProcess(AOServDaemonProtocol.RESTART_POSTGRES, pkey);
     }
 
-    public void restartXfs() throws IOException, SQLException {
+    public void restartXfs() throws RemoteException {
         controlProcess(AOServDaemonProtocol.RESTART_XFS);
     }
 
-    public void restartXvfb() throws IOException, SQLException {
+    public void restartXvfb() throws RemoteException {
         controlProcess(AOServDaemonProtocol.RESTART_XVFB);
     }
 
-    public void setAutoresponderContent(String path, String content, int uid, int gid) throws IOException, SQLException {
+    public void setAutoresponderContent(String path, String content, int uid, int gid) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1148,12 +1291,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return;
-            if(code==AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if(code==AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1165,7 +1313,7 @@ final public class AOServDaemonConnector {
      * @param  username  the username to copy the home directory of
      * @param  cronTable  the new cron table
      */
-    public void setCronTable(String username, String cronTable) throws IOException, SQLException {
+    public void setCronTable(String username, String cronTable) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1178,12 +1326,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return;
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1192,7 +1345,7 @@ final public class AOServDaemonConnector {
     /**
      * Sets the file used by an email list.
      */
-    public void setEmailListFile(String path, String file, int uid, int gid, int mode) throws IOException, SQLException {
+    public void setEmailListFile(String path, String file, int uid, int gid, int mode) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1207,12 +1360,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1221,7 +1379,7 @@ final public class AOServDaemonConnector {
     /**
      * Sets the encrypted password for a Linux account.
      */
-    public void setEncryptedLinuxAccountPassword(String username, String encryptedPassword) throws IOException, SQLException {
+    public void setEncryptedLinuxAccountPassword(String username, String encryptedPassword) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1233,12 +1391,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1247,7 +1410,7 @@ final public class AOServDaemonConnector {
     /**
      * Sets the password for a <code>LinuxServerAccount</code>.
      */
-    public void setLinuxServerAccountPassword(String username, String plain_password) throws IOException, SQLException {
+    public void setLinuxServerAccountPassword(String username, String plain_password) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1259,12 +1422,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1277,7 +1445,7 @@ final public class AOServDaemonConnector {
      * @param  folderName  the folderName, should include a trailing / for a folder that holds folders
      * @param  subscribed  the new subscribes state
      */
-    public void setImapFolderSubscribed(String username, String folderName, boolean subscribed) throws IOException, SQLException {
+    public void setImapFolderSubscribed(String username, String folderName, boolean subscribed) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1291,12 +1459,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return;
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1305,7 +1478,7 @@ final public class AOServDaemonConnector {
     /**
      * Sets the password for a <code>MySQLUser</code>.
      */
-    public void setMySQLUserPassword(int mysqlServer, String username, String password) throws IOException, SQLException {
+    public void setMySQLUserPassword(int mysqlServer, String username, String password) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1318,12 +1491,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1332,7 +1510,7 @@ final public class AOServDaemonConnector {
     /**
      * Sets the password for a <code>PostgresServerUser</code>.
      */
-    public void setPostgresUserPassword(int pkey, String password) throws IOException, SQLException {
+    public void setPostgresUserPassword(int pkey, String password) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1344,29 +1522,34 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void startApache() throws IOException, SQLException {
+    public void startApache() throws RemoteException {
         controlProcess(AOServDaemonProtocol.START_APACHE);
     }
 
-    public void startCron() throws IOException, SQLException {
+    public void startCron() throws RemoteException {
         controlProcess(AOServDaemonProtocol.START_CRON);
     }
 
     /**
      * Starts a distribution verification.
      */
-    public void startDistro(boolean includeUser) throws IOException, SQLException {
+    public void startDistro(boolean includeUser) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1377,12 +1560,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1391,7 +1579,7 @@ final public class AOServDaemonConnector {
     /**
      * Starts a Java VM.
      */
-    public String startJVM(int httpdSite) throws IOException, SQLException {
+    public String startJVM(int httpdSite) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1402,45 +1590,50 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return in.readBoolean()?in.readUTF():null;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void startMySQL() throws IOException, SQLException {
+    public void startMySQL() throws RemoteException {
         controlProcess(AOServDaemonProtocol.START_MYSQL);
     }
 
-    public void startPostgreSQL(int pkey) throws IOException, SQLException {
+    public void startPostgreSQL(int pkey) throws RemoteException {
         controlProcess(AOServDaemonProtocol.START_POSTGRESQL, pkey);
     }
 
-    public void startXfs() throws IOException, SQLException {
+    public void startXfs() throws RemoteException {
         controlProcess(AOServDaemonProtocol.START_XFS);
     }
 
-    public void startXvfb() throws IOException, SQLException {
+    public void startXvfb() throws RemoteException {
         controlProcess(AOServDaemonProtocol.START_XVFB);
     }
 
-    public void stopApache() throws IOException, SQLException {
+    public void stopApache() throws RemoteException {
         controlProcess(AOServDaemonProtocol.STOP_APACHE);
     }
 
-    public void stopCron() throws IOException, SQLException {
+    public void stopCron() throws RemoteException {
         controlProcess(AOServDaemonProtocol.STOP_CRON);
     }
 
     /**
      * Stops a Java VM.
      */
-    public String stopJVM(int httpdSite) throws IOException, SQLException {
+    public String stopJVM(int httpdSite) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1451,30 +1644,35 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return in.readBoolean()?in.readUTF():null;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void stopMySQL() throws IOException, SQLException {
+    public void stopMySQL() throws RemoteException {
         controlProcess(AOServDaemonProtocol.STOP_MYSQL);
     }
 
-    public void stopPostgreSQL(int pkey) throws IOException, SQLException {
+    public void stopPostgreSQL(int pkey) throws RemoteException {
         controlProcess(AOServDaemonProtocol.STOP_POSTGRESQL, pkey);
     }
 
-    public void stopXfs() throws IOException, SQLException {
+    public void stopXfs() throws RemoteException {
         controlProcess(AOServDaemonProtocol.STOP_XFS);
     }
 
-    public void stopXvfb() throws IOException, SQLException {
+    public void stopXvfb() throws RemoteException {
         controlProcess(AOServDaemonProtocol.STOP_XVFB);
     }
 
@@ -1487,7 +1685,7 @@ final public class AOServDaemonConnector {
         int command,
         int param1,
         CompressedDataOutputStream masterOut
-    ) throws IOException, SQLException {
+    ) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1496,9 +1694,15 @@ final public class AOServDaemonConnector {
             out.flush();
 
             transferStream0(conn, masterOut);
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1509,7 +1713,7 @@ final public class AOServDaemonConnector {
         int command,
         String param1,
         CompressedDataOutputStream masterOut
-    ) throws IOException, SQLException {
+    ) {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1518,9 +1722,15 @@ final public class AOServDaemonConnector {
             out.flush();
 
             transferStream0(conn, masterOut);
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1531,7 +1741,7 @@ final public class AOServDaemonConnector {
         String param1,
         CompressedDataOutputStream masterOut,
         long skipBytes
-    ) throws IOException, SQLException {
+    ) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1546,9 +1756,15 @@ final public class AOServDaemonConnector {
                 reporter.setFinishedSize(skipBytes);
             }*/
             transferStream0(conn, masterOut);
-        } catch(IOException err) {
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1557,29 +1773,32 @@ final public class AOServDaemonConnector {
     private void transferStream0(
         AOServDaemonConnection conn,
         CompressedDataOutputStream masterOut
-    ) throws IOException, SQLException {
-        CompressedDataInputStream in=conn.getInputStream();
-        int code;
-        byte[] buff=BufferManager.getBytes();
+    ) throws RemoteException {
         try {
-            while((code=in.read())==AOServDaemonProtocol.NEXT) {
-                int len=in.readShort();
-                in.readFully(buff, 0, len);
-                masterOut.writeByte(AOServDaemonProtocol.NEXT);
-                masterOut.writeShort(len);
-                masterOut.write(buff, 0, len);
-                //if(reporter!=null) reporter.addFinishedSize(len);
+            CompressedDataInputStream in=conn.getInputStream();
+            int code;
+            byte[] buff=BufferManager.getBytes();
+            try {
+                while((code=in.read())==AOServDaemonProtocol.NEXT) {
+                    int len=in.readShort();
+                    in.readFully(buff, 0, len);
+                    masterOut.writeByte(AOServDaemonProtocol.NEXT);
+                    masterOut.writeShort(len);
+                    masterOut.write(buff, 0, len);
+                    //if(reporter!=null) reporter.addFinishedSize(len);
+                }
+            } finally {
+                BufferManager.release(buff);
             }
-        } finally {
-            BufferManager.release(buff);
+            if (code == AOServDaemonProtocol.DONE) return;
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(IOException err) {
+            throw new RemoteException(err.getMessage(), err);
         }
-        if (code == AOServDaemonProtocol.DONE) return;
-        else if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-        else if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-        else throw new IOException("Unknown result: " + code);
     }
 
-    private void waitFor(ServiceName serviceName) throws IOException, SQLException {
+    private void waitFor(ServiceName serviceName) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
@@ -1590,46 +1809,51 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
             if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
-        } catch(IOException err) {
+            if(result==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + result);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
     }
 
-    public void waitForHttpdSiteRebuild() throws IOException, SQLException {
+    public void waitForHttpdSiteRebuild() throws RemoteException {
         waitFor(ServiceName.httpd_sites);
     }
 
-    public void waitForLinuxAccountRebuild() throws IOException, SQLException {
+    public void waitForLinuxAccountRebuild() throws RemoteException {
         waitFor(ServiceName.linux_accounts);
     }
 
-    public void waitForMySQLDatabaseRebuild() throws IOException, SQLException {
+    public void waitForMySQLDatabaseRebuild() throws RemoteException {
         waitFor(ServiceName.mysql_databases);
     }
 
-    public void waitForMySQLDBUserRebuild() throws IOException, SQLException {
+    public void waitForMySQLDBUserRebuild() throws RemoteException {
         waitFor(ServiceName.mysql_db_users);
     }
 
-    public void waitForMySQLUserRebuild() throws IOException, SQLException {
+    public void waitForMySQLUserRebuild() throws RemoteException {
         waitFor(ServiceName.mysql_users);
     }
 
-    public void waitForPostgresDatabaseRebuild() throws IOException, SQLException {
+    public void waitForPostgresDatabaseRebuild() throws RemoteException {
         waitFor(ServiceName.postgres_databases);
     }
 
-    public void waitForPostgresServerRebuild() throws IOException, SQLException {
+    public void waitForPostgresServerRebuild() throws RemoteException {
         waitFor(ServiceName.postgres_servers);
     }
 
-    public void waitForPostgresUserRebuild() throws IOException, SQLException {
+    public void waitForPostgresUserRebuild() throws RemoteException {
         waitFor(ServiceName.postgres_users);
     }
 
@@ -1645,7 +1869,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String get3wareRaidReport() throws IOException, SQLException {
+    public String get3wareRaidReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1656,12 +1880,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1672,7 +1901,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getMdRaidReport() throws IOException, SQLException {
+    public String getMdRaidReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1683,12 +1912,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1699,7 +1933,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getDrbdReport() throws IOException, SQLException {
+    public String getDrbdReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1710,12 +1944,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1726,7 +1965,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String[] getLvmReport() throws IOException, SQLException {
+    public String[] getLvmReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1743,12 +1982,17 @@ final public class AOServDaemonConnector {
                     in.readUTF()
                 };
             }
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1759,7 +2003,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getHddTempReport() throws IOException, SQLException {
+    public String getHddTempReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1770,12 +2014,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1786,7 +2035,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getHddModelReport() throws IOException, SQLException {
+    public String getHddModelReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1797,12 +2046,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1813,7 +2067,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getFilesystemsCsvReport() throws IOException, SQLException {
+    public String getFilesystemsCsvReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1824,12 +2078,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1840,7 +2099,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getLoadAvgReport() throws IOException, SQLException {
+    public String getLoadAvgReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1851,12 +2110,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1867,7 +2131,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public String getMemInfoReport() throws IOException, SQLException {
+    public String getMemInfoReport() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1878,12 +2142,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1894,14 +2163,15 @@ final public class AOServDaemonConnector {
      *
      * @return  the result
      */
-    public String checkPort(String ipAddress, int port, String netProtocol, String appProtocol, String monitoringParameters) throws IOException, SQLException {
+    public String checkPort(InetAddress ipAddress, NetPort port, String netProtocol, String appProtocol, String monitoringParameters) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
             out.writeCompressedInt(AOServDaemonProtocol.CHECK_PORT);
-            out.writeUTF(ipAddress);
-            out.writeCompressedInt(port);
+            out.writeLong(ipAddress.getIp().getHigh());
+            out.writeLong(ipAddress.getIp().getLow());
+            out.writeCompressedInt(port.getPort());
             out.writeUTF(netProtocol);
             out.writeUTF(appProtocol);
             out.writeUTF(monitoringParameters);
@@ -1910,12 +2180,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1926,7 +2201,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the status line
      */
-    public String checkSmtpBlacklist(String sourceIp, String connectIp) throws IOException, SQLException {
+    public String checkSmtpBlacklist(String sourceIp, String connectIp) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1939,12 +2214,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readUTF();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }
@@ -1955,7 +2235,7 @@ final public class AOServDaemonConnector {
      *
      * @return  the report
      */
-    public long getSystemTimeMillis() throws IOException, SQLException {
+    public long getSystemTimeMillis() throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -1966,12 +2246,17 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readLong();
-            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            throw new IOException("Unknown result: " + code);
-        } catch(IOException err) {
+            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
+            throw new RemoteException("Unknown result: " + code);
+        } catch(RuntimeException err) {
             conn.close();
             throw err;
+        } catch(RemoteException err) {
+            conn.close();
+            throw err;
+        } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
         } finally {
             releaseConnection(conn);
         }

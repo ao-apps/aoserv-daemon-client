@@ -118,8 +118,7 @@ final public class AOServDaemonProtocol {
         DONE=0,
         NEXT=DONE+1,
         NEXT_CHUNK=NEXT+1,
-        IO_EXCEPTION=NEXT_CHUNK+1,
-        SQL_EXCEPTION=IO_EXCEPTION+1
+        REMOTE_EXCEPTION=NEXT_CHUNK+1
     ;
 
     public static final int
