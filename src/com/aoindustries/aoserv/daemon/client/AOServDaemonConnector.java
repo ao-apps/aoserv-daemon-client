@@ -12,7 +12,9 @@ import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.ServiceName;
 import com.aoindustries.aoserv.client.validator.Hostname;
 import com.aoindustries.aoserv.client.validator.InetAddress;
+import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.aoserv.client.validator.NetPort;
+import com.aoindustries.aoserv.client.validator.ValidationException;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.util.BufferManager;
@@ -875,7 +877,7 @@ final public class AOServDaemonConnector {
                 for(int c=0;c<size;c++) {
                     checkTableResults.add(
                         new MySQLDatabase.CheckTableResult(
-                            in.readUTF(), // table
+                            MySQLTableName.valueOf(in.readUTF()), // table
                             in.readLong(), // duration
                             in.readNullEnum(MySQLDatabase.CheckTableResult.MsgType.class), // msgType
                             in.readNullUTF() // msgText
@@ -893,6 +895,9 @@ final public class AOServDaemonConnector {
             conn.close();
             throw err;
         } catch(IOException err) {
+            conn.close();
+            throw new RemoteException(err.getMessage(), err);
+        } catch(ValidationException err) {
             conn.close();
             throw new RemoteException(err.getMessage(), err);
         } finally {
