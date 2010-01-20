@@ -18,6 +18,7 @@ import com.aoindustries.aoserv.client.validator.ValidationException;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.util.BufferManager;
+import com.aoindustries.util.StringUtility;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
@@ -48,9 +49,9 @@ final public class AOServDaemonConnector {
     final Hostname hostname;
     
     /**
-     * The local IP address to connect from.
+     * The local IP address to connect from or <code>null</code> for system default.
      */
-    final InetAddress local_ip;
+    private final InetAddress local_ip;
 
     /**
      * The port to connect to.
@@ -294,7 +295,6 @@ final public class AOServDaemonConnector {
         Logger logger
     ) {
         if(hostname==null) throw new NullPointerException("hostname is null");
-        if(local_ip==null) throw new NullPointerException("local_ip is null");
         if(protocol==null) throw new NullPointerException("protocol is null");
 
         int size=connectors.size();
@@ -302,7 +302,7 @@ final public class AOServDaemonConnector {
             AOServDaemonConnector connector=connectors.get(c);
             if(
                 connector.hostname.equals(hostname)
-                && connector.local_ip.equals(local_ip)
+                && StringUtility.equals(local_ip, connector.local_ip)
                 && connector.port.equals(port)
                 && connector.protocol.equals(protocol)
                 && (key==null?connector.key==null:key.equals(connector.key))
@@ -982,13 +982,12 @@ final public class AOServDaemonConnector {
     /**
      * Gets the encrypted password for a MySQL user as found in user table.
      */
-    public String getEncryptedMySQLUserPassword(int mysqlServer, String username) throws RemoteException {
+    public String getEncryptedMySQLUserPassword(int mysqlUser) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
             out.writeCompressedInt(AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD);
-            out.writeCompressedInt(mysqlServer);
-            out.writeUTF(username);
+            out.writeCompressedInt(mysqlUser);
             out.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
@@ -1018,7 +1017,7 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Gets the local IP address that connections are established from.
+     * Gets the local IP address that connections are established from or <code>null</code> to use system default.
      */
     public InetAddress getLocalIp() {
         return local_ip;
@@ -1444,52 +1443,14 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Subscribes/unsubscribes to an IMAP folder.
-     *
-     * @param  username  the username to copy the home directory of
-     * @param  folderName  the folderName, should include a trailing / for a folder that holds folders
-     * @param  subscribed  the new subscribes state
-     */
-    public void setImapFolderSubscribed(String username, String folderName, boolean subscribed) throws RemoteException {
-        // Establish the connection to the server
-        AOServDaemonConnection conn=getConnection();
-        try {
-            CompressedDataOutputStream out=conn.getOutputStream();
-            out.writeCompressedInt(AOServDaemonProtocol.SET_IMAP_FOLDER_SUBSCRIBED);
-            out.writeUTF(username);
-            out.writeUTF(folderName);
-            out.writeBoolean(subscribed);
-            out.flush();
-
-            CompressedDataInputStream in=conn.getInputStream();
-            int code=in.read();
-            if(code==AOServDaemonProtocol.DONE) return;
-            if(code==AOServDaemonProtocol.REMOTE_EXCEPTION) throw new RemoteException(in.readUTF());
-            throw new RemoteException("Unknown result: " + code);
-        } catch(RuntimeException err) {
-            conn.close();
-            throw err;
-        } catch(RemoteException err) {
-            conn.close();
-            throw err;
-        } catch(IOException err) {
-            conn.close();
-            throw new RemoteException(err.getMessage(), err);
-        } finally {
-            releaseConnection(conn);
-        }
-    }
-
-    /**
      * Sets the password for a <code>MySQLUser</code>.
      */
-    public void setMySQLUserPassword(int mysqlServer, String username, String password) throws RemoteException {
+    public void setMySQLUserPassword(int mysqlUser, String password) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
             out.writeCompressedInt(AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD);
-            out.writeCompressedInt(mysqlServer);
-            out.writeUTF(username);
+            out.writeCompressedInt(mysqlUser);
             out.writeBoolean(password!=null); if(password!=null) out.writeUTF(password);
             out.flush();
 

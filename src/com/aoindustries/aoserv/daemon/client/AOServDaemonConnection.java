@@ -6,6 +6,7 @@ package com.aoindustries.aoserv.daemon.client;
  * All rights reserved.
  */
 import com.aoindustries.aoserv.client.Protocol;
+import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
@@ -63,8 +64,9 @@ final public class AOServDaemonConnection {
                 socket=new Socket();
                 socket.setKeepAlive(true);
                 socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
-                //socket.setTcpNoDelay(true);
-                socket.bind(new InetSocketAddress(connector.local_ip.getAddress(), 0));
+                socket.setTcpNoDelay(true);
+                InetAddress local_ip = connector.getLocalIp();
+                socket.bind(local_ip==null ? new InetSocketAddress(0) : new InetSocketAddress(local_ip.getAddress(), 0));
                 socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
             } else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
                 if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
@@ -72,11 +74,12 @@ final public class AOServDaemonConnection {
                 SSLSocketFactory sslFact=(SSLSocketFactory)SSLSocketFactory.getDefault();
                 if(Thread.interrupted()) throw new InterruptedIOException();
                 Socket regSocket = new Socket();
-                regSocket.bind(new InetSocketAddress(connector.local_ip.getAddress(), 0));
+                InetAddress local_ip = connector.getLocalIp();
+                regSocket.bind(local_ip==null ? new InetSocketAddress(0) : new InetSocketAddress(local_ip.getAddress(), 0));
                 regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
                 regSocket.setKeepAlive(true);
                 regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
-                //regSocket.setTcpNoDelay(true);
+                regSocket.setTcpNoDelay(true);
                 socket=sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port.getPort(), true);
             } else throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
 
