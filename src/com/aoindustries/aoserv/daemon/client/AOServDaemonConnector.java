@@ -5,11 +5,11 @@ package com.aoindustries.aoserv.daemon.client;
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
-import com.aoindustries.aoserv.client.FailoverMySQLReplication;
 import com.aoindustries.aoserv.client.InboxAttributes;
 import com.aoindustries.aoserv.client.MySQLDatabase;
-import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.ServiceName;
+import com.aoindustries.aoserv.client.command.GetMySQLMasterStatusCommand;
+import com.aoindustries.aoserv.client.command.GetMySQLSlaveStatusCommand;
 import com.aoindustries.aoserv.client.validator.Hostname;
 import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
@@ -697,7 +697,7 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public MySQLServer.MasterStatus getMySQLMasterStatus(int mysqlServer) throws RemoteException {
+    public GetMySQLMasterStatusCommand.MasterStatus getMySQLMasterStatus(int mysqlServer) throws RemoteException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
@@ -709,7 +709,7 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.NEXT) {
-                return new MySQLServer.MasterStatus(
+                return new GetMySQLMasterStatusCommand.MasterStatus(
                     in.readNullUTF(),
                     in.readNullUTF()
                 );
@@ -732,7 +732,7 @@ final public class AOServDaemonConnector {
         }
     }
 
-    public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(
+    public GetMySQLSlaveStatusCommand.SlaveStatus getMySQLSlaveStatus(
         String failoverRoot,
         int nestedOperatingSystemVersion,
         NetPort port
@@ -750,7 +750,7 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.NEXT) {
-                return new FailoverMySQLReplication.SlaveStatus(
+                return new GetMySQLSlaveStatusCommand.SlaveStatus(
                     in.readNullUTF(),
                     in.readNullUTF(),
                     in.readNullUTF(),
