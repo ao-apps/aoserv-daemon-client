@@ -66,7 +66,7 @@ final public class AOServDaemonConnection {
                 socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
                 socket.setTcpNoDelay(true);
                 InetAddress local_ip = connector.getLocalIp();
-                socket.bind(local_ip==null ? new InetSocketAddress(0) : new InetSocketAddress(local_ip.getAddress(), 0));
+                socket.bind(local_ip==null ? new InetSocketAddress(0) : new InetSocketAddress(local_ip.toString(), 0));
                 socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
             } else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
                 if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
@@ -75,7 +75,7 @@ final public class AOServDaemonConnection {
                 if(Thread.interrupted()) throw new InterruptedIOException();
                 Socket regSocket = new Socket();
                 InetAddress local_ip = connector.getLocalIp();
-                regSocket.bind(local_ip==null ? new InetSocketAddress(0) : new InetSocketAddress(local_ip.getAddress(), 0));
+                regSocket.bind(local_ip==null ? new InetSocketAddress(0) : new InetSocketAddress(local_ip.toString(), 0));
                 regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
                 regSocket.setKeepAlive(true);
                 regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
