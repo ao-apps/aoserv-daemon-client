@@ -14,6 +14,7 @@ import com.aoindustries.aoserv.client.validator.Hostname;
 import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.aoserv.client.validator.NetPort;
+import com.aoindustries.aoserv.client.validator.UserId;
 import com.aoindustries.aoserv.client.validator.ValidationException;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
@@ -1414,12 +1415,12 @@ final public class AOServDaemonConnector {
     /**
      * Sets the password for a <code>LinuxServerAccount</code>.
      */
-    public void setLinuxServerAccountPassword(String username, String plain_password) throws RemoteException {
+    public void setLinuxAccountPassword(UserId username, String plain_password) throws RemoteException {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
-            out.writeCompressedInt(AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD);
-            out.writeUTF(username);
+            out.writeCompressedInt(AOServDaemonProtocol.SET_LINUX_ACCOUNT_PASSWORD);
+            out.writeUTF(username.toString());
             out.writeUTF(plain_password);
             out.flush();
 
