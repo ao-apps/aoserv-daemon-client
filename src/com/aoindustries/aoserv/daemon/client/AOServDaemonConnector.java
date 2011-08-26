@@ -1,10 +1,10 @@
-package com.aoindustries.aoserv.daemon.client;
-
 /*
  * Copyright 2001-2011 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
+package com.aoindustries.aoserv.daemon.client;
+
 import com.aoindustries.aoserv.client.InboxAttributes;
 import com.aoindustries.aoserv.client.MySQLDatabase;
 import com.aoindustries.aoserv.client.ServiceName;
@@ -141,6 +141,7 @@ final public class AOServDaemonConnector {
                         byteCount+=len;
                         sourceIn.readFully(buff, 0, len);
                         destOut.writeByte(AOServDaemonProtocol.NEXT);
+                        assert len <= Short.MAX_VALUE;
                         destOut.writeShort(len);
                         destOut.write(buff, 0, len);
                     }
@@ -674,6 +675,7 @@ final public class AOServDaemonConnector {
                     int len=in.readShort();
                     in.readFully(buff, 0, len);
                     out.writeByte(AOServDaemonProtocol.NEXT);
+                    assert len <= Short.MAX_VALUE;
                     out.writeShort(len);
                     out.write(buff, 0, len);
                 }
@@ -925,6 +927,7 @@ final public class AOServDaemonConnector {
                     int len=in.readShort();
                     in.readFully(buff, 0, len);
                     out.writeByte(AOServDaemonProtocol.NEXT);
+                    assert len <= Short.MAX_VALUE;
                     out.writeShort(len);
                     out.write(buff, 0, len);
                 }
@@ -1644,7 +1647,7 @@ final public class AOServDaemonConnector {
     }
 
     @Override
-    final public String toString() {
+    public String toString() {
         return getClass().getName()+"?hostname="+hostname+"&local_ip="+local_ip+"&port="+port+"&protocol="+protocol;
     }
 
@@ -1750,6 +1753,7 @@ final public class AOServDaemonConnector {
                     int len=in.readShort();
                     in.readFully(buff, 0, len);
                     masterOut.writeByte(AOServDaemonProtocol.NEXT);
+                    assert len <= Short.MAX_VALUE;
                     masterOut.writeShort(len);
                     masterOut.write(buff, 0, len);
                     //if(reporter!=null) reporter.addFinishedSize(len);
