@@ -1,10 +1,10 @@
+package com.aoindustries.aoserv.daemon.client;
+
 /*
- * Copyright 2000-2011 by AO Industries, Inc.,
+ * Copyright 2000-2009 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
-package com.aoindustries.aoserv.daemon.client;
-
 /**
  * Codes used in communication between the <code>AOServServer</code> and
  * the <code>SimpleAOClient</code>.
@@ -35,8 +35,8 @@ final public class AOServDaemonProtocol {
     public static final String VERSION_1_31="1.31";
     public static final String VERSION_1_35="1.35";
     public static final String VERSION_1_60="1.60";
-    public static final String VERSION_2_0="2.0";
-    public static final String CURRENT_VERSION=VERSION_2_0;
+    public static final String VERSION_1_63="1.63";
+    public static final String CURRENT_VERSION=VERSION_1_63;
 
     /**
      * The protocol codes used between the AOServ Master and the AOServ Daemons
@@ -48,7 +48,8 @@ final public class AOServDaemonProtocol {
         FAILOVER_FILE_REPLICATION=DUMP_POSTGRES_DATABASE+1,
         GET_AUTORESPONDER_CONTENT=FAILOVER_FILE_REPLICATION+1,
         GET_CRON_TABLE=GET_AUTORESPONDER_CONTENT+1,
-        GET_DISK_DEVICE_TOTAL_SIZE=GET_CRON_TABLE+1,
+        GET_DAEMON_PROFILE=GET_CRON_TABLE+1,
+        GET_DISK_DEVICE_TOTAL_SIZE=GET_DAEMON_PROFILE+1,
         GET_DISK_DEVICE_USED_SIZE=GET_DISK_DEVICE_TOTAL_SIZE+1,
         GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD=GET_DISK_DEVICE_USED_SIZE+1,
         GET_ENCRYPTED_MYSQL_USER_PASSWORD=GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD+1,
@@ -72,8 +73,9 @@ final public class AOServDaemonProtocol {
         SET_CRON_TABLE=SET_AUTORESPONDER_CONTENT+1,
         SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD=SET_CRON_TABLE+1,
         SET_EMAIL_LIST_FILE=SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD+1,
-        SET_LINUX_ACCOUNT_PASSWORD=SET_EMAIL_LIST_FILE+1,
-        SET_MYSQL_USER_PASSWORD=SET_LINUX_ACCOUNT_PASSWORD+1,
+        SET_IMAP_FOLDER_SUBSCRIBED=SET_EMAIL_LIST_FILE+1,
+        SET_LINUX_SERVER_ACCOUNT_PASSWORD=SET_IMAP_FOLDER_SUBSCRIBED+1,
+        SET_MYSQL_USER_PASSWORD=SET_LINUX_SERVER_ACCOUNT_PASSWORD+1,
         SET_POSTGRES_USER_PASSWORD=SET_MYSQL_USER_PASSWORD+1,
         START_APACHE=SET_POSTGRES_USER_PASSWORD+1,
         START_CRON=START_APACHE+1,
@@ -113,11 +115,13 @@ final public class AOServDaemonProtocol {
         CHECK_MYSQL_TABLES = GET_MYSQL_TABLE_STATUS+1,
         CHECK_PORT = CHECK_MYSQL_TABLES+1,
         CHECK_SMTP_BLACKLIST = CHECK_PORT+1,
+        GET_UPS_STATUS = CHECK_SMTP_BLACKLIST+1,
 
         DONE=0,
         NEXT=DONE+1,
         NEXT_CHUNK=NEXT+1,
-        REMOTE_EXCEPTION=NEXT_CHUNK+1
+        IO_EXCEPTION=NEXT_CHUNK+1,
+        SQL_EXCEPTION=IO_EXCEPTION+1
     ;
 
     public static final int
