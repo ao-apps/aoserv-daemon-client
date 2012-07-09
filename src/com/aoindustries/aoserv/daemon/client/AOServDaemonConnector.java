@@ -2201,7 +2201,7 @@ final public class AOServDaemonConnector {
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
-            out.writeCompressedInt(AOServDaemonProtocol.CREATE_VIRTUAL_SERVER);
+            out.writeCompressedInt(AOServDaemonProtocol.GET_VIRTUAL_SERVER_STATUS);
             out.writeUTF(virtualServer);
             out.flush();
 
