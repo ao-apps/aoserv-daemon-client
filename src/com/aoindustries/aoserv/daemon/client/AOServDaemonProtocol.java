@@ -1,10 +1,10 @@
-package com.aoindustries.aoserv.daemon.client;
-
 /*
- * Copyright 2000-2009 by AO Industries, Inc.,
+ * Copyright 2000-2012 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
+package com.aoindustries.aoserv.daemon.client;
+
 /**
  * Codes used in communication between the <code>AOServServer</code> and
  * the <code>SimpleAOClient</code>.
@@ -116,6 +116,13 @@ final public class AOServDaemonProtocol {
         CHECK_PORT = CHECK_MYSQL_TABLES+1,
         CHECK_SMTP_BLACKLIST = CHECK_PORT+1,
         GET_UPS_STATUS = CHECK_SMTP_BLACKLIST+1,
+        CREATE_VIRTUAL_SERVER = GET_UPS_STATUS+1,
+        REBOOT_VIRTUAL_SERVER = CREATE_VIRTUAL_SERVER+1,
+        SHUTDOWN_VIRTUAL_SERVER = REBOOT_VIRTUAL_SERVER+1,
+        DESTROY_VIRTUAL_SERVER = SHUTDOWN_VIRTUAL_SERVER+1,
+        PAUSE_VIRTUAL_SERVER = DESTROY_VIRTUAL_SERVER+1,
+        UNPAUSE_VIRTUAL_SERVER = PAUSE_VIRTUAL_SERVER+1,
+        GET_VIRTUAL_SERVER_STATUS = UNPAUSE_VIRTUAL_SERVER+1,
 
         DONE=0,
         NEXT=DONE+1,

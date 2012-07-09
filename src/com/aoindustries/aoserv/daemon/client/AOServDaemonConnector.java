@@ -14,6 +14,7 @@ import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
+import com.aoindustries.aoserv.client.VirtualServer;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.util.BufferManager;
@@ -2025,6 +2026,188 @@ final public class AOServDaemonConnector {
             CompressedDataInputStream in=conn.getInputStream();
             int code=in.read();
             if(code==AOServDaemonProtocol.DONE) return in.readLong();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#create()
+     */
+    public String createVirtualServer(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.CREATE_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#reboot()
+     */
+    public String rebootVirtualServer(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.REBOOT_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#shutdown()
+     */
+    public String shutdownVirtualServer(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.SHUTDOWN_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#destroy()
+     */
+    public String destroyVirtualServer(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.DESTROY_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#pause()
+     */
+    public String pauseVirtualServer(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.PAUSE_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#unpause()
+     */
+    public String unpauseVirtualServer(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.UNPAUSE_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+    /**
+     * @see  VirtualServer#getStatus()
+     */
+    public int getVirtualServerStatus(String virtualServer) throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.CREATE_VIRTUAL_SERVER);
+            out.writeUTF(virtualServer);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readCompressedInt();
             if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
             if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
             throw new IOException("Unknown result: " + code);
