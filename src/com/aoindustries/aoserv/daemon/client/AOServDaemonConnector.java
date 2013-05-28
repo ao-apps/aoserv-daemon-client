@@ -1,10 +1,10 @@
-package com.aoindustries.aoserv.daemon.client;
-
 /*
- * Copyright 2001-2009 by AO Industries, Inc.,
+ * Copyright 2001-20139 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
+package com.aoindustries.aoserv.daemon.client;
+
 import com.aoindustries.aoserv.client.AOServProtocol;
 import com.aoindustries.aoserv.client.DaemonProfile;
 import com.aoindustries.aoserv.client.FailoverMySQLReplication;
@@ -15,8 +15,11 @@ import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
 import com.aoindustries.aoserv.client.VirtualServer;
+import com.aoindustries.aoserv.client.validator.HostAddress;
+import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
+import com.aoindustries.lang.NullArgumentException;
 import com.aoindustries.util.BufferManager;
 import java.io.IOException;
 import java.sql.SQLException;
@@ -45,12 +48,12 @@ final public class AOServDaemonConnector {
     /**
      * The hostname to connect to.
      */
-    final String hostname;
+    final HostAddress hostname;
     
     /**
      * The local IP address to connect from.
      */
-    final String local_ip;
+    final InetAddress local_ip;
 
     /**
      * The port to connect to.
@@ -81,8 +84,8 @@ final public class AOServDaemonConnector {
      * Creates a new <code>AOServConnector</code>.
      */
     private AOServDaemonConnector(
-        String hostname,
-        String local_ip,
+        HostAddress hostname,
+        InetAddress local_ip,
         int port,
         String protocol,
         String key,
@@ -258,8 +261,8 @@ final public class AOServDaemonConnector {
      * is thrown.
      */
     public synchronized static AOServDaemonConnector getConnector(
-        String hostname,
-        String local_ip,
+        HostAddress hostname,
+        InetAddress local_ip,
         int port,
         String protocol,
         String key,
@@ -269,9 +272,9 @@ final public class AOServDaemonConnector {
         String trustStorePassword,
         Logger logger
     ) throws IOException {
-        if(hostname==null) throw new NullPointerException("hostname is null");
-        if(local_ip==null) throw new NullPointerException("local_ip is null");
-        if(protocol==null) throw new NullPointerException("protocol is null");
+        NullArgumentException.checkNotNull(hostname, "hostname");
+        NullArgumentException.checkNotNull(local_ip, "local_ip");
+        NullArgumentException.checkNotNull(protocol, "protocol");
 
         int size=connectors.size();
         for(int c=0;c<size;c++) {
@@ -934,14 +937,14 @@ final public class AOServDaemonConnector {
     /**
      * Gets the hostname that is connected to.
      */
-    public String getHostname() {
+    public HostAddress getHostname() {
         return hostname;
     }
 
     /**
      * Gets the local IP address that connections are established from.
      */
-    public String getLocalIp() {
+    public InetAddress getLocalIp() {
         return local_ip;
     }
 

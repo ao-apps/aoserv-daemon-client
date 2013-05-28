@@ -1,11 +1,10 @@
 package com.aoindustries.aoserv.daemon.client;
 
 /*
- * Copyright 2001-2011 by AO Industries, Inc.,
+ * Copyright 2001-2009 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
-import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.util.EncodingUtils;
 import java.io.IOException;
@@ -24,7 +23,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 
     AOServDaemonConnectionPool(AOServDaemonConnector connector, Logger logger) {
         super(
-            AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.getLocalIp()+"&port="+connector.port+"&protocol="+connector.protocol,
+            AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol,
             connector.poolSize,
             connector.maxConnectionAge,
             logger
@@ -48,14 +47,12 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
         out.append("<table>\n"
                 + "  <tr><th colspan='2'><span style='font-size:large;'>AOServ Daemon Connection Pool</span></th></tr>\n"
                 + "  <tr><td>Local IP:</td><td>");
-        InetAddress local_ip = connector.getLocalIp();
-        if(local_ip==null) out.append('*');
-        else EncodingUtils.encodeHtml(local_ip.toString(), out);
+        EncodingUtils.encodeHtml(connector.local_ip.toString(), out);
         out.append("</td></tr>\n"
                 + "  <tr><td>Host:</td><td>");
         EncodingUtils.encodeHtml(connector.hostname.toString(), out);
         out.append("</td></tr>\n"
-                + "  <tr><td>Port:</td><td>").append(connector.port.toString()).append("</td></tr>\n"
+                + "  <tr><td>Port:</td><td>").append(Integer.toString(connector.port)).append("</td></tr>\n"
                 + "  <tr><td>Protocol:</td><td>");
         EncodingUtils.encodeHtml(connector.protocol, out);
         out.append("</td></tr>\n"
