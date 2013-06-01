@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-20139 by AO Industries, Inc.,
+ * Copyright 2001-2013 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
@@ -14,7 +14,6 @@ import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
-import com.aoindustries.aoserv.client.VirtualServer;
 import com.aoindustries.aoserv.client.validator.HostAddress;
 import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.io.CompressedDataInputStream;
@@ -146,7 +145,7 @@ final public class AOServDaemonConnector {
                         destOut.write(buff, 0, len);
                     }
                 } finally {
-                    BufferManager.release(buff);
+                    BufferManager.release(buff, false);
                 }
                 if (sourceCode != AOServDaemonProtocol.DONE) {
                     if (sourceCode == AOServDaemonProtocol.IO_EXCEPTION) {
@@ -638,7 +637,7 @@ final public class AOServDaemonConnector {
                 if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
                 if (code != AOServDaemonProtocol.DONE) throw new IOException("Unknown result: " + code);
             } finally {
-                BufferManager.release(buff);
+                BufferManager.release(buff, false);
             }
         } catch(IOException err) {
             conn.close();
@@ -872,7 +871,7 @@ final public class AOServDaemonConnector {
                 if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
                 if (code != AOServDaemonProtocol.DONE) throw new IOException("Unknown result: " + code);
             } finally {
-                BufferManager.release(buff);
+                BufferManager.release(buff, false);
             }
         } catch(IOException err) {
             conn.close();
@@ -1607,7 +1606,7 @@ final public class AOServDaemonConnector {
                 //if(reporter!=null) reporter.addFinishedSize(len);
             }
         } finally {
-            BufferManager.release(buff);
+            BufferManager.release(buff, false);
         }
         if (code == AOServDaemonProtocol.DONE) return;
         else if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
