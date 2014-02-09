@@ -1769,16 +1769,16 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Gets a MD mismatch_cnt report.
+     * Gets a MD mismatch report.
      *
      * @return  the report
      */
-    public String getMdMismatchCntReport() throws IOException, SQLException {
+    public String getMdMismatchReport() throws IOException, SQLException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
-            out.writeCompressedInt(AOServDaemonProtocol.GET_MD_MISMATCH_CNT_REPORT);
+            out.writeCompressedInt(AOServDaemonProtocol.GET_MD_MISMATCH_REPORT);
             out.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
