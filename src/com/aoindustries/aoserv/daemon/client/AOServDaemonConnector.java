@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2013 by AO Industries, Inc.,
+ * Copyright 2001-2014 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
@@ -443,10 +443,11 @@ final public class AOServDaemonConnector {
                 dp.read(in);
                 objs.add(dp);
             }
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -563,8 +564,8 @@ final public class AOServDaemonConnector {
             out.writeCompressedInt(AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES);
             out.writeUTF(username);
             out.writeCompressedInt(folderNames.length);
-            for(int c=0;c<folderNames.length;c++) {
-                out.writeUTF(folderNames[c]);
+            for(String folderName : folderNames) {
+                out.writeUTF(folderName);
             }
             out.flush();
 
@@ -1083,10 +1084,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1107,10 +1109,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1132,10 +1135,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1242,10 +1246,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1268,10 +1273,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1294,10 +1300,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1353,10 +1360,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1379,10 +1387,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1412,10 +1421,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1608,10 +1618,11 @@ final public class AOServDaemonConnector {
         } finally {
             BufferManager.release(buff, false);
         }
-        if (code == AOServDaemonProtocol.DONE) return;
-        else if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-        else if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-        else throw new IOException("Unknown result: " + code);
+        if (code != AOServDaemonProtocol.DONE) {
+			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+			else if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+			else throw new IOException("Unknown result: " + code);
+		}
     }
 
     private void waitFor(SchemaTable.TableID tableID) throws IOException, SQLException {
@@ -1624,10 +1635,11 @@ final public class AOServDaemonConnector {
 
             CompressedDataInputStream in=conn.getInputStream();
             int result = in.read();
-            if (result == AOServDaemonProtocol.DONE) return;
-            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-            else throw new IOException("Unknown result: " + result);
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;
@@ -1730,16 +1742,16 @@ final public class AOServDaemonConnector {
     }
 
     /**
-     * Gets a MD RAID report.
+     * Gets a /proc/mdstat report.
      *
      * @return  the report
      */
-    public String getMdRaidReport() throws IOException, SQLException {
+    public String getMdStatReport() throws IOException, SQLException {
         // Establish the connection to the server
         AOServDaemonConnection conn=getConnection();
         try {
             CompressedDataOutputStream out=conn.getOutputStream();
-            out.writeCompressedInt(AOServDaemonProtocol.GET_MD_RAID_REPORT);
+            out.writeCompressedInt(AOServDaemonProtocol.GET_MD_STAT_REPORT);
             out.flush();
 
             CompressedDataInputStream in=conn.getInputStream();
@@ -1757,6 +1769,33 @@ final public class AOServDaemonConnector {
     }
 
     /**
+     * Gets a MD mismatch_cnt report.
+     *
+     * @return  the report
+     */
+    public String getMdMismatchCntReport() throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.GET_MD_MISMATCH_CNT_REPORT);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) return in.readUTF();
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+	/**
      * Gets a DRBD report.
      *
      * @return  the report
