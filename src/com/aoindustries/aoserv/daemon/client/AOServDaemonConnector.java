@@ -1,5 +1,5 @@
 /*
- * Copyright 2001-2014 by AO Industries, Inc.,
+ * Copyright 2001-2013, 2014 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
@@ -2287,6 +2287,60 @@ final public class AOServDaemonConnector {
             if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
             if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
             throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+	/**
+     * Begins verification of a virtual disk, returns the Unix time in seconds since Epoch.
+     */
+    public long verifyVirtualDisk(String virtualServerName, String device) throws IOException, SQLException {
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.VERIFY_VIRTUAL_DISK);
+            out.writeUTF(virtualServerName);
+            out.writeUTF(device);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int result = in.read();
+            if (result == AOServDaemonProtocol.DONE) return in.readLong();
+            else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            else throw new IOException("Unknown result: " + result);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+	/**
+     * Updates the record of when a virtual disk was last verified
+     */
+    public void updateVirtualDiskLastVerified(String virtualServerName, String device, long lastVerified) throws IOException, SQLException {
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.UPDATE_VIRTUAL_DISK_LAST_UPDATED);
+			out.writeUTF(virtualServerName);
+			out.writeUTF(device);
+			out.writeLong(lastVerified);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int result = in.read();
+            if (result != AOServDaemonProtocol.DONE) {
+				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + result);
+			}
         } catch(IOException err) {
             conn.close();
             throw err;

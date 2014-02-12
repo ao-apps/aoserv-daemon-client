@@ -1,5 +1,5 @@
 /*
- * Copyright 2000-2014 by AO Industries, Inc.,
+ * Copyright 2000-2013, 2014 by AO Industries, Inc.,
  * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
  * All rights reserved.
  */
@@ -125,6 +125,8 @@ final public class AOServDaemonProtocol {
         GET_VIRTUAL_SERVER_STATUS = UNPAUSE_VIRTUAL_SERVER+1,
         GET_MD_MISMATCH_REPORT = GET_VIRTUAL_SERVER_STATUS+1,
 		GET_XEN_AUTO_START_LINKS = GET_MD_MISMATCH_REPORT+1,
+		VERIFY_VIRTUAL_DISK = GET_XEN_AUTO_START_LINKS+1,
+		UPDATE_VIRTUAL_DISK_LAST_UPDATED = VERIFY_VIRTUAL_DISK+1,
 
         DONE=0,
         NEXT=DONE+1,
