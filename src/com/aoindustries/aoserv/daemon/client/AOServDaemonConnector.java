@@ -23,7 +23,10 @@ import com.aoindustries.util.BufferManager;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -2079,6 +2082,38 @@ final public class AOServDaemonConnector {
     }
 
     /**
+     * Gets the list of servers configured to auto-start in /etc/xen/auto.
+     */
+    public Set<String> getXenAutoStartLinks() throws IOException, SQLException {
+        // Establish the connection to the server
+        AOServDaemonConnection conn=getConnection();
+        try {
+            CompressedDataOutputStream out=conn.getOutputStream();
+            out.writeCompressedInt(AOServDaemonProtocol.GET_XEN_AUTO_START_LINKS);
+            out.flush();
+
+            CompressedDataInputStream in=conn.getInputStream();
+            int code=in.read();
+            if(code==AOServDaemonProtocol.DONE) {
+				int numLinks = in.readCompressedInt();
+				Set<String> links = new LinkedHashSet<String>(numLinks*4/3+1);
+				for(int i=0; i<numLinks; i++) {
+					links.add(in.readUTF());
+				}
+				return Collections.unmodifiableSet(links);
+            }
+            if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+            if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+            throw new IOException("Unknown result: " + code);
+        } catch(IOException err) {
+            conn.close();
+            throw err;
+        } finally {
+            releaseConnection(conn);
+        }
+    }
+
+	/**
      * @see  VirtualServer#create()
      */
     public String createVirtualServer(String virtualServer) throws IOException, SQLException {
