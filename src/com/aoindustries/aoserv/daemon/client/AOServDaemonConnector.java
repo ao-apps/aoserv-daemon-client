@@ -6,7 +6,6 @@
 package com.aoindustries.aoserv.daemon.client;
 
 import com.aoindustries.aoserv.client.AOServProtocol;
-import com.aoindustries.aoserv.client.DaemonProfile;
 import com.aoindustries.aoserv.client.FailoverMySQLReplication;
 import com.aoindustries.aoserv.client.InboxAttributes;
 import com.aoindustries.aoserv.client.MySQLDatabase.CheckTableResult;
@@ -422,36 +421,6 @@ final public class AOServDaemonConnector {
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
 			if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
 			throw new IOException("Unknown result: " + code);
-		} catch(IOException err) {
-			conn.close();
-			throw err;
-		} finally {
-			releaseConnection(conn);
-		}
-	}
-
-	/**
-	 * Gets the profiling information for the daemon
-	 */
-	public void getDaemonProfile(List<DaemonProfile> objs) throws IOException, SQLException {
-		AOServDaemonConnection conn=getConnection();
-		try {
-			CompressedDataOutputStream out=conn.getOutputStream();
-			out.writeCompressedInt(AOServDaemonProtocol.GET_DAEMON_PROFILE);
-			out.flush();
-
-			CompressedDataInputStream in=conn.getInputStream();
-			int result;
-			while((result=in.read())==AOServDaemonProtocol.NEXT) {
-				DaemonProfile dp=new DaemonProfile();
-				dp.read(in);
-				objs.add(dp);
-			}
-			if (result != AOServDaemonProtocol.DONE) {
-				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-				else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-				else throw new IOException("Unknown result: " + result);
-			}
 		} catch(IOException err) {
 			conn.close();
 			throw err;
