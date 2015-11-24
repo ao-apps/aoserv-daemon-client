@@ -148,7 +148,8 @@ final public class AOServDaemonProtocol {
 	/**
 	 * The number of bytes per block when using chunked transfers.
 	 */
-	public static final int FAILOVER_FILE_REPLICATION_CHUNK_SIZE = 1024 * 1024;
+	public static final int FAILOVER_FILE_REPLICATION_CHUNK_SIZE_BITS = 20;
+	public static final int FAILOVER_FILE_REPLICATION_CHUNK_SIZE = 1 << FAILOVER_FILE_REPLICATION_CHUNK_SIZE_BITS; // 1 MiB
 
 	private AOServDaemonProtocol() {}
 }
