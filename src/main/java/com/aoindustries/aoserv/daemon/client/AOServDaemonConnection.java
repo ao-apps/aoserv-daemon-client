@@ -36,8 +36,8 @@ import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
- * A <code>AOServConnector</code> provides the
- * connection between the object layer and the data.
+ * A <code>AOServDaemonConnection</code> provides the
+ * connection between a client and a server-control daemon.
  *
  * @author  AO Industries, Inc.
  */
