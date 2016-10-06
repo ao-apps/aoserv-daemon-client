@@ -1,7 +1,24 @@
 /*
- * Copyright 2000-2013, 2014, 2015 by AO Industries, Inc.,
- * 7262 Bull Pen Cir, Mobile, Alabama, 36695, U.S.A.
- * All rights reserved.
+ * aoserv-daemon-client - Java client for the AOServ Daemon.
+ * Copyright (C) 2000-2013, 2014, 2015, 2016  AO Industries, Inc.
+ *     support@aoindustries.com
+ *     7262 Bull Pen Cir
+ *     Mobile, AL 36695
+ *
+ * This file is part of aoserv-daemon-client.
+ *
+ * aoserv-daemon-client is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * aoserv-daemon-client is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses/>.
  */
 package com.aoindustries.aoserv.daemon.client;
 
