@@ -48,12 +48,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * A <code>AOServConnector</code> provides the connection
- * between the object layer and the data.  This connection
- * may be persistent over TCP sockets, or it may be request
- * based like HTTP.  The implementing class is responsible
- * for getting the cache updates to <code>cacheInvalidated</code>
- * by any means possible.
+ * A <code>AOServDaemonConnector</code> provides the
+ * connections between a client and a server-control daemon.
  *
  * @author  AO Industries, Inc.
  */
