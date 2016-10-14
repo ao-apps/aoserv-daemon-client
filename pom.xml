@@ -252,12 +252,12 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<dependency>
 			<groupId>com.aoindustries</groupId>
 			<artifactId>aocode-public</artifactId>
-			<version>1.7.0</version>
+			<version>1.8.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>com.aoindustries</groupId>
 			<artifactId>aoserv-client</artifactId>
-			<version>1.79.4</version>
+			<version>1.79.5-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
