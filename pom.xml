@@ -217,7 +217,9 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 							<keywords>true</keywords><!-- Help internal search systems -->
 							<quiet>true</quiet>
 							<docfilessubdirs>true</docfilessubdirs>
+							<detectJavaApiLink>false</detectJavaApiLink>
 							<links>
+								<link>https://docs.oracle.com/javase/6/docs/api/</link>
 								<link>https://www.aoindustries.com/aocode-public/apidocs/</link>
 								<link>https://www.aoindustries.com/aoserv/client/apidocs/</link>
 							</links>
