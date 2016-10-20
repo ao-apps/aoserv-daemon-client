@@ -30,7 +30,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 
 	<groupId>com.aoindustries</groupId>
 	<artifactId>aoserv-daemon-client</artifactId>
-	<version>1.77.1-SNAPSHOT</version>
+	<version>1.77.1</version>
 	<packaging>jar</packaging>
 
 	<name>AOServ Daemon Client</name>
@@ -63,7 +63,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<connection>scm:git:git://github.com/aoindustries/aoserv-daemon-client.git</connection>
 		<developerConnection>scm:git:git@github.com:aoindustries/aoserv-daemon-client.git</developerConnection>
 		<url>http://github.com/aoindustries/aoserv-daemon-client</url>
-		<tag>HEAD</tag>
+		<tag>aoserv-daemon-client-1.77.1</tag>
 	</scm>
 
 	<repositories>
