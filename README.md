@@ -4,7 +4,7 @@ Java client for the [AOServ Daemon](https://www.aoindustries.com/aoserv/daemon/)
 ## Project Links
 * [Project Home](https://www.aoindustries.com/aoserv/daemon/client/)
 * [API Docs](https://www.aoindustries.com/aoserv/daemon/client/apidocs/)
-* [Maven Central Repository](https://search.maven.org/#search|gav|1|g:%22com.aoindustries%22%20AND%20a:%22aoserv-daemon-client%22)
+* [Maven Central Repository](https://search.maven.org/#search%7Cgav%7C1%7Cg:%22com.aoindustries%22%20AND%20a:%22aoserv-daemon-client%22)
 * [GitHub](https://github.com/aoindustries/aoserv-daemon-client)
 
 ## Contact Us
