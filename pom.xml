@@ -37,7 +37,6 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 	<packaging>jar</packaging>
 
 	<properties>
-		<bookPath>/aoserv/daemon/client</bookPath>
 		<shortTitle>Client</shortTitle>
 		<javadoc.breadcrumbs><![CDATA[<a target="_top" href="https://aoindustries.com/aoserv/">AOServ</a>
 / <a target="_top" href="https://aoindustries.com/aoserv/daemon/">Daemon</a>
@@ -46,7 +45,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 	</properties>
 
 	<name>AOServ Daemon Client</name>
-	<url>https://aoindustries.com${bookPath}/</url><!-- Can't inherit due to multi-module -->
+	<url>https://aoindustries.com/aoserv/daemon/client/</url>
 	<description>Java client for the AOServ Daemon.</description>
 	<inceptionYear>2001</inceptionYear>
 
