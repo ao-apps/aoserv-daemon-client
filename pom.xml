@@ -37,10 +37,10 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 	<packaging>jar</packaging>
 
 	<properties>
-		<shortTitle>Client</shortTitle>
 		<javadoc.breadcrumbs><![CDATA[<a target="_top" href="https://aoindustries.com/aoserv/">AOServ</a>
 / <a target="_top" href="https://aoindustries.com/aoserv/daemon/">Daemon</a>
 / <a target="_top" href="${project.url}">${shortTitle}</a>]]></javadoc.breadcrumbs>
+		<shortTitle>Client</shortTitle>
 		<description.html><![CDATA[Java client for the <a target="_top" href="https://aoindustries.com/aoserv/daemon/">AOServ Daemon</a>.]]></description.html>
 	</properties>
 
