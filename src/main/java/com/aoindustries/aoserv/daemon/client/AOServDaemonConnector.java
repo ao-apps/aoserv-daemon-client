@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2013, 2014, 2015, 2016  AO Industries, Inc.
+ * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -30,11 +30,11 @@ import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
-import com.aoindustries.aoserv.client.validator.HostAddress;
-import com.aoindustries.aoserv.client.validator.InetAddress;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.lang.NullArgumentException;
+import com.aoindustries.net.HostAddress;
+import com.aoindustries.net.InetAddress;
 import com.aoindustries.util.BufferManager;
 import com.aoindustries.util.Tuple2;
 import java.io.IOException;
