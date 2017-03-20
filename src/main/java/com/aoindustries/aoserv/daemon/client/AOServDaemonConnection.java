@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -76,25 +76,27 @@ final public class AOServDaemonConnection {
 		boolean successful = false;
 		try {
 			if(connector.protocol.equals(Protocol.AOSERV_DAEMON)) {
+				assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
 				if(Thread.interrupted()) throw new InterruptedIOException();
 				socket=new Socket();
 				socket.setKeepAlive(true);
 				socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
 				//socket.setTcpNoDelay(true);
 				socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
-				socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
+				socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
 			} else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
+				assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
 				if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
 				if(connector.trustStorePassword!=null && connector.trustStorePassword.length()>0) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
 				SSLSocketFactory sslFact=(SSLSocketFactory)SSLSocketFactory.getDefault();
 				if(Thread.interrupted()) throw new InterruptedIOException();
 				Socket regSocket = new Socket();
 				regSocket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
-				regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port), AOPool.DEFAULT_CONNECT_TIMEOUT);
+				regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
 				regSocket.setKeepAlive(true);
 				regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
 				//regSocket.setTcpNoDelay(true);
-				socket=sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port, true);
+				socket=sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port.getPort(), true);
 			} else throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
 
 			if(Thread.interrupted()) throw new InterruptedIOException();

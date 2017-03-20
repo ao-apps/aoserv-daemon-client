@@ -30,12 +30,17 @@ import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
+import com.aoindustries.aoserv.client.validator.MySQLDatabaseName;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
+import com.aoindustries.aoserv.client.validator.MySQLUserId;
+import com.aoindustries.aoserv.client.validator.UnixPath;
+import com.aoindustries.aoserv.client.validator.UserId;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.lang.NullArgumentException;
 import com.aoindustries.net.HostAddress;
 import com.aoindustries.net.InetAddress;
+import com.aoindustries.net.Port;
 import com.aoindustries.util.BufferManager;
 import com.aoindustries.util.Tuple2;
 import com.aoindustries.validation.ValidationException;
@@ -45,6 +50,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,7 +81,7 @@ final public class AOServDaemonConnector {
 	/**
 	 * The port to connect to.
 	 */
-	final int port;
+	final Port port;
 
 	/**
 	 * The protocol used.
@@ -103,7 +109,7 @@ final public class AOServDaemonConnector {
 	private AOServDaemonConnector(
 		HostAddress hostname,
 		InetAddress local_ip,
-		int port,
+		Port port,
 		String protocol,
 		String key,
 		int poolSize,
@@ -112,6 +118,7 @@ final public class AOServDaemonConnector {
 		String trustStorePassword,
 		Logger logger
 	) throws IOException {
+		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		this.hostname=hostname;
 		this.local_ip=local_ip;
 		this.port=port;
@@ -132,13 +139,13 @@ final public class AOServDaemonConnector {
 	 *
 	 * @return  the number of bytes transferred
 	 */
-	public long copyHomeDirectory(String username, AOServDaemonConnector to_connector) throws IOException, SQLException {
+	public long copyHomeDirectory(UserId username, AOServDaemonConnector to_connector) throws IOException, SQLException {
 		// Establish the connection to the source
 		AOServDaemonConnection sourceConn=getConnection();
 		try {
 			CompressedDataOutputStream sourceOut=sourceConn.getOutputStream();
 			sourceOut.writeCompressedInt(AOServDaemonProtocol.TAR_HOME_DIRECTORY);
-			sourceOut.writeUTF(username);
+			sourceOut.writeUTF(username.toString());
 			sourceOut.flush();
 
 			CompressedDataInputStream sourceIn=sourceConn.getInputStream();
@@ -148,7 +155,7 @@ final public class AOServDaemonConnector {
 			try {
 				CompressedDataOutputStream destOut=destConn.getOutputStream();
 				destOut.writeCompressedInt(AOServDaemonProtocol.UNTAR_HOME_DIRECTORY);
-				destOut.writeUTF(username);
+				destOut.writeUTF(username.toString());
 
 				long byteCount=0;
 				int sourceCode;
@@ -214,13 +221,13 @@ final public class AOServDaemonConnector {
 		transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, masterOut);
 	}
 
-	public String getAutoresponderContent(String path) throws IOException, SQLException {
+	public String getAutoresponderContent(UnixPath path) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_AUTORESPONDER_CONTENT);
-			out.writeUTF(path);
+			out.writeUTF(path.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -280,7 +287,7 @@ final public class AOServDaemonConnector {
 	public synchronized static AOServDaemonConnector getConnector(
 		HostAddress hostname,
 		InetAddress local_ip,
-		int port,
+		Port port,
 		String protocol,
 		String key,
 		int poolSize,
@@ -333,13 +340,13 @@ final public class AOServDaemonConnector {
 	 *
 	 * @return  the cron table
 	 */
-	public String getCronTable(String username) throws IOException, SQLException {
+	public String getCronTable(UserId username) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_CRON_TABLE);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -447,12 +454,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the total size of a mounted filesystem in bytes.
 	 */
-	public long getDiskDeviceTotalSize(String path) throws IOException, SQLException {
+	public long getDiskDeviceTotalSize(UnixPath path) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection(2);
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_DISK_DEVICE_TOTAL_SIZE);
-			out.writeUTF(path);
+			out.writeUTF(path.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -472,12 +479,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the used size of a mounted filesystem in bytes.
 	 */
-	public long getDiskDeviceUsedSize(String path) throws IOException, SQLException {
+	public long getDiskDeviceUsedSize(UnixPath path) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection(2);
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_DISK_DEVICE_USED_SIZE);
-			out.writeUTF(path);
+			out.writeUTF(path.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -497,12 +504,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the file used by an email list.
 	 */
-	public String getEmailListFile(String path) throws IOException, SQLException {
+	public String getEmailListFile(UnixPath path) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_EMAIL_LIST_FILE);
-			out.writeUTF(path);
+			out.writeUTF(path.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -522,12 +529,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the encrypted password for a linux account as found in the /etc/shadow file.
 	 */
-	public String getEncryptedLinuxAccountPassword(String username) throws IOException, SQLException {
+	public String getEncryptedLinuxAccountPassword(UserId username) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -544,13 +551,13 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public long[] getImapFolderSizes(String username, String[] folderNames) throws IOException, SQLException {
+	public long[] getImapFolderSizes(UserId username, String[] folderNames) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeCompressedInt(folderNames.length);
 			for(String folderName : folderNames) {
 				out.writeUTF(folderName);
@@ -577,13 +584,13 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public InboxAttributes getInboxAttributes(String username) throws IOException, SQLException {
+	public InboxAttributes getInboxAttributes(UserId username) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_INBOX_ATTRIBUTES);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -670,18 +677,19 @@ final public class AOServDaemonConnector {
 	}
 
 	public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(
-		String failoverRoot,
+		UnixPath failoverRoot,
 		int nestedOperatingSystemVersion,
-		int port
+		Port port
 	) throws IOException, SQLException {
+		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream daemonOut=conn.getOutputStream();
 			daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS);
-			daemonOut.writeUTF(failoverRoot);
+			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
-			daemonOut.writeCompressedInt(port);
+			daemonOut.writeCompressedInt(port.getPort());
 			daemonOut.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -721,20 +729,21 @@ final public class AOServDaemonConnector {
 	}
 
 	public List<TableStatus> getMySQLTableStatus(
-		String failoverRoot,
+		UnixPath failoverRoot,
 		int nestedOperatingSystemVersion,
-		int port,
-		String databaseName
+		Port port,
+		MySQLDatabaseName databaseName
 	) throws IOException, SQLException {
+		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream daemonOut=conn.getOutputStream();
 			daemonOut.writeCompressedInt(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
-			daemonOut.writeUTF(failoverRoot);
+			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
-			daemonOut.writeCompressedInt(port);
-			daemonOut.writeUTF(databaseName);
+			daemonOut.writeCompressedInt(port.getPort());
+			daemonOut.writeUTF(databaseName.toString());
 			daemonOut.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -787,24 +796,25 @@ final public class AOServDaemonConnector {
 	}
 
 	public List<CheckTableResult> checkMySQLTables(
-		String failoverRoot,
+		UnixPath failoverRoot,
 		int nestedOperatingSystemVersion,
-		int port,
-		String databaseName,
-		List<String> tableNames
+		Port port,
+		MySQLDatabaseName databaseName,
+		List<? extends MySQLTableName> tableNames
 	) throws IOException, SQLException {
+		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream daemonOut=conn.getOutputStream();
 			daemonOut.writeCompressedInt(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
-			daemonOut.writeUTF(failoverRoot);
+			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
-			daemonOut.writeCompressedInt(port);
-			daemonOut.writeUTF(databaseName);
+			daemonOut.writeCompressedInt(port.getPort());
+			daemonOut.writeUTF(databaseName.toString());
 			int numTables = tableNames.size();
 			daemonOut.writeCompressedInt(numTables);
-			for(int c=0;c<numTables;c++) daemonOut.writeUTF(tableNames.get(c));
+			for(int c=0;c<numTables;c++) daemonOut.writeUTF(tableNames.get(c).toString());
 			daemonOut.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -881,12 +891,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Compares to the password list on the server.
 	 */
-	public boolean compareLinuxAccountPassword(String username, String password) throws IOException, SQLException {
+	public boolean compareLinuxAccountPassword(UserId username, String password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.COMPARE_LINUX_ACCOUNT_PASSWORD);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeUTF(password);
 			out.flush();
 
@@ -907,13 +917,13 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the encrypted password for a MySQL user as found in user table.
 	 */
-	public String getEncryptedMySQLUserPassword(int mysqlServer, String username) throws IOException, SQLException {
+	public String getEncryptedMySQLUserPassword(int mysqlServer, MySQLUserId username) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD);
 			out.writeCompressedInt(mysqlServer);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -959,7 +969,7 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the port that is connected to.
 	 */
-	public int getPort() {
+	public Port getPort() {
 		return port;
 	}
 
@@ -1072,12 +1082,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Deletes the contents of an email list
 	 */
-	public void removeEmailList(String listPath) throws IOException, SQLException {
+	public void removeEmailList(UnixPath listPath) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.REMOVE_EMAIL_LIST);
-			out.writeUTF(listPath);
+			out.writeUTF(listPath.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -1170,13 +1180,13 @@ final public class AOServDaemonConnector {
 		controlProcess(AOServDaemonProtocol.RESTART_XVFB);
 	}
 
-	public void setAutoresponderContent(String path, String content, int uid, int gid) throws IOException, SQLException {
+	public void setAutoresponderContent(UnixPath path, String content, int uid, int gid) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_AUTORESPONDER_CONTENT);
-			out.writeUTF(path);
+			out.writeUTF(path.toString());
 			out.writeBoolean(content!=null);
 			if(content!=null) out.writeUTF(content);
 			out.writeCompressedInt(uid);
@@ -1203,13 +1213,13 @@ final public class AOServDaemonConnector {
 	 * @param  username  the username to copy the home directory of
 	 * @param  cronTable  the new cron table
 	 */
-	public void setCronTable(String username, String cronTable) throws IOException, SQLException {
+	public void setCronTable(UserId username, String cronTable) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_CRON_TABLE);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeUTF(cronTable);
 			out.flush();
 
@@ -1230,12 +1240,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Sets the file used by an email list.
 	 */
-	public void setEmailListFile(String path, String file, int uid, int gid, int mode) throws IOException, SQLException {
+	public void setEmailListFile(UnixPath path, String file, int uid, int gid, int mode) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_EMAIL_LIST_FILE);
-			out.writeUTF(path);
+			out.writeUTF(path.toString());
 			out.writeUTF(file);
 			out.writeCompressedInt(uid);
 			out.writeCompressedInt(gid);
@@ -1260,12 +1270,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Sets the encrypted password for a Linux account.
 	 */
-	public void setEncryptedLinuxAccountPassword(String username, String encryptedPassword) throws IOException, SQLException {
+	public void setEncryptedLinuxAccountPassword(UserId username, String encryptedPassword) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeUTF(encryptedPassword);
 			out.flush();
 
@@ -1287,12 +1297,12 @@ final public class AOServDaemonConnector {
 	/**
 	 * Sets the password for a <code>LinuxServerAccount</code>.
 	 */
-	public void setLinuxServerAccountPassword(String username, String plain_password) throws IOException, SQLException {
+	public void setLinuxServerAccountPassword(UserId username, String plain_password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeUTF(plain_password);
 			out.flush();
 
@@ -1318,13 +1328,13 @@ final public class AOServDaemonConnector {
 	 * @param  folderName  the folderName, should include a trailing / for a folder that holds folders
 	 * @param  subscribed  the new subscribes state
 	 */
-	public void setImapFolderSubscribed(String username, String folderName, boolean subscribed) throws IOException, SQLException {
+	public void setImapFolderSubscribed(UserId username, String folderName, boolean subscribed) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_IMAP_FOLDER_SUBSCRIBED);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeUTF(folderName);
 			out.writeBoolean(subscribed);
 			out.flush();
@@ -1346,13 +1356,13 @@ final public class AOServDaemonConnector {
 	/**
 	 * Sets the password for a <code>MySQLServerUser</code>.
 	 */
-	public void setMySQLUserPassword(int mysqlServer, String username, String password) throws IOException, SQLException {
+	public void setMySQLUserPassword(int mysqlServer, MySQLUserId username, String password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD);
 			out.writeCompressedInt(mysqlServer);
-			out.writeUTF(username);
+			out.writeUTF(username.toString());
 			out.writeBoolean(password!=null); if(password!=null) out.writeUTF(password);
 			out.flush();
 
@@ -1548,6 +1558,7 @@ final public class AOServDaemonConnector {
 		}
 	}
 
+	/* Unused 2017-03-20
 	private void transferStream(
 		int command,
 		String param1,
@@ -1568,7 +1579,9 @@ final public class AOServDaemonConnector {
 			releaseConnection(conn);
 		}
 	}
+	 */
 
+	/* Unused 2017-03-20
 	private void transferStream(
 		int command,
 		String param1,
@@ -1587,7 +1600,7 @@ final public class AOServDaemonConnector {
 				long fileSize=conn.getInputStream().readLong();
 				reporter.setTotalSize(fileSize);
 				reporter.setFinishedSize(skipBytes);
-			}*/
+			}* /
 			transferStream0(conn, masterOut);
 		} catch(IOException err) {
 			conn.close();
@@ -1596,6 +1609,7 @@ final public class AOServDaemonConnector {
 			releaseConnection(conn);
 		}
 	}
+	 */
 
 	private void transferStream0(
 		AOServDaemonConnection conn,
@@ -1628,6 +1642,8 @@ final public class AOServDaemonConnector {
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.WAIT_FOR_REBUILD);
+			// TODO: table ordinal might not match when daemon running older version of client protocol.
+			//       In next protocol version, send table name instead of ordinal, or some other daemon-specified protocol value.
 			out.writeCompressedInt(tableID.ordinal());
 			out.flush();
 
@@ -2016,15 +2032,20 @@ final public class AOServDaemonConnector {
 	 *
 	 * @return  the result
 	 */
-	public String checkPort(String ipAddress, int port, String netProtocol, String appProtocol, String monitoringParameters) throws IOException, SQLException {
+	public String checkPort(
+		InetAddress ipAddress,
+		Port port,
+		String appProtocol,
+		String monitoringParameters
+	) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.CHECK_PORT);
-			out.writeUTF(ipAddress);
-			out.writeCompressedInt(port);
-			out.writeUTF(netProtocol);
+			out.writeUTF(ipAddress.toString());
+			out.writeCompressedInt(port.getPort());
+			out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
 			out.writeUTF(appProtocol);
 			out.writeUTF(monitoringParameters);
 			out.flush();
@@ -2048,14 +2069,14 @@ final public class AOServDaemonConnector {
 	 *
 	 * @return  the status line
 	 */
-	public String checkSmtpBlacklist(String sourceIp, String connectIp) throws IOException, SQLException {
+	public String checkSmtpBlacklist(InetAddress sourceIp, InetAddress connectIp) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.CHECK_SMTP_BLACKLIST);
-			out.writeUTF(sourceIp);
-			out.writeUTF(connectIp);
+			out.writeUTF(sourceIp.toString());
+			out.writeUTF(connectIp.toString());
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
