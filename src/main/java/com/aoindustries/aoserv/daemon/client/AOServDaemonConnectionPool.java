@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -73,7 +73,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 				+ "  <tr><td>Host:</td><td>");
 		com.aoindustries.util.EncodingUtils.encodeHtml(connector.hostname.toString(), out);
 		out.append("</td></tr>\n"
-				+ "  <tr><td>Port:</td><td>").append(Integer.toString(connector.port)).append("</td></tr>\n"
+				+ "  <tr><td>Port:</td><td>").append(Integer.toString(connector.port.getPort())).append("</td></tr>\n"
 				+ "  <tr><td>Protocol:</td><td>");
 		com.aoindustries.util.EncodingUtils.encodeHtml(connector.protocol, out);
 		out.append("</td></tr>\n"
