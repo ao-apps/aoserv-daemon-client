@@ -30,6 +30,7 @@ import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
 import com.aoindustries.aoserv.client.SchemaTable;
+import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
 import com.aoindustries.lang.NullArgumentException;
@@ -37,6 +38,7 @@ import com.aoindustries.net.HostAddress;
 import com.aoindustries.net.InetAddress;
 import com.aoindustries.util.BufferManager;
 import com.aoindustries.util.Tuple2;
+import com.aoindustries.validation.ValidationException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -738,33 +740,37 @@ final public class AOServDaemonConnector {
 			CompressedDataInputStream in=conn.getInputStream();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
-				int size = in.readCompressedInt();
-				List<TableStatus> tableStatuses = new ArrayList<TableStatus>(size);
-				for(int c=0;c<size;c++) {
-					tableStatuses.add(
-						new TableStatus(
-							in.readUTF(), // name
-							in.readNullEnum(Engine.class), // engine
-							in.readNullInteger(), // version
-							in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
-							in.readNullLong(), // rows
-							in.readNullLong(), // avgRowLength
-							in.readNullLong(), // dataLength
-							in.readNullLong(), // maxDataLength
-							in.readNullLong(), // indexLength
-							in.readNullLong(), // dataFree
-							in.readNullLong(), // autoIncrement
-							in.readNullUTF(), // createTime
-							in.readNullUTF(), // updateTime
-							in.readNullUTF(), // checkTime
-							in.readNullEnum(TableStatus.Collation.class), // collation
-							in.readNullUTF(), // checksum
-							in.readNullUTF(), // createOptions
-							in.readNullUTF() // comment
-						)
-					);
+				try {
+					int size = in.readCompressedInt();
+					List<TableStatus> tableStatuses = new ArrayList<TableStatus>(size);
+					for(int c=0;c<size;c++) {
+						tableStatuses.add(
+							new TableStatus(
+								MySQLTableName.valueOf(in.readUTF()), // name
+								in.readNullEnum(Engine.class), // engine
+								in.readNullInteger(), // version
+								in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
+								in.readNullLong(), // rows
+								in.readNullLong(), // avgRowLength
+								in.readNullLong(), // dataLength
+								in.readNullLong(), // maxDataLength
+								in.readNullLong(), // indexLength
+								in.readNullLong(), // dataFree
+								in.readNullLong(), // autoIncrement
+								in.readNullUTF(), // createTime
+								in.readNullUTF(), // updateTime
+								in.readNullUTF(), // checkTime
+								in.readNullEnum(TableStatus.Collation.class), // collation
+								in.readNullUTF(), // checksum
+								in.readNullUTF(), // createOptions
+								in.readNullUTF() // comment
+							)
+						);
+					}
+					return tableStatuses;
+				} catch(ValidationException e) {
+					throw new IOException(e);
 				}
-				return tableStatuses;
 			} else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
 				throw new IOException(in.readUTF());
 			} else if (code == AOServDaemonProtocol.SQL_EXCEPTION) {
