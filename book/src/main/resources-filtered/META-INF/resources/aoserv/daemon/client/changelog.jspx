@@ -36,7 +36,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2017-03-17T16:56:19-0500"
+		dateModified="2017-03-20T04:33:57-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -54,6 +54,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 			>
 				<ul>
 					<li>Updated for new <core:link book="/ao-net-types" page="/index.jspx" /> project pulled out of <core:link book="/aoserv/client" page="/index.jspx" />.</li>
+					<li>Making more extensive use of self-validating types.</li>
 				</ul>
 			</changelog:release>
 		</c:if>
