@@ -813,14 +813,18 @@ final public class AOServDaemonConnector {
 				int size = in.readCompressedInt();
 				List<CheckTableResult> checkTableResults = new ArrayList<CheckTableResult>(size);
 				for(int c=0;c<size;c++) {
-					checkTableResults.add(
-						new CheckTableResult(
-							in.readUTF(), // table
-							in.readLong(), // duration
-							in.readNullEnum(CheckTableResult.MsgType.class), // msgType
-							in.readNullUTF() // msgText
-						)
-					);
+					try {
+						checkTableResults.add(
+							new CheckTableResult(
+								MySQLTableName.valueOf(in.readUTF()), // table
+								in.readLong(), // duration
+								in.readNullEnum(CheckTableResult.MsgType.class), // msgType
+								in.readNullUTF() // msgText
+							)
+						);
+					} catch(ValidationException e) {
+						throw new IOException(e);
+					}
 				}
 				return checkTableResults;
 			} else if(code == AOServDaemonProtocol.IO_EXCEPTION) {
