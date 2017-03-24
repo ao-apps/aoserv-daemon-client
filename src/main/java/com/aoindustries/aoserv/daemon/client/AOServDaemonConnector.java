@@ -213,12 +213,12 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public void dumpMySQLDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
-		transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, masterOut);
+	public void dumpMySQLDatabase(int pkey, boolean gzip, CompressedDataOutputStream masterOut) throws IOException, SQLException {
+		transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, gzip, masterOut);
 	}
 
-	public void dumpPostgresDatabase(int pkey, CompressedDataOutputStream masterOut) throws IOException, SQLException {
-		transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, masterOut);
+	public void dumpPostgresDatabase(int pkey, boolean gzip, CompressedDataOutputStream masterOut) throws IOException, SQLException {
+		transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, gzip, masterOut);
 	}
 
 	public String getAutoresponderContent(UnixPath path) throws IOException, SQLException {
@@ -1540,6 +1540,7 @@ final public class AOServDaemonConnector {
 	private void transferStream(
 		int command,
 		int param1,
+		boolean param2,
 		CompressedDataOutputStream masterOut
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
@@ -1547,6 +1548,7 @@ final public class AOServDaemonConnector {
 			CompressedDataOutputStream out=conn.getOutputStream();
 			out.writeCompressedInt(command);
 			out.writeCompressedInt(param1);
+			out.writeBoolean(param2);
 			out.flush();
 
 			transferStream0(conn, masterOut);

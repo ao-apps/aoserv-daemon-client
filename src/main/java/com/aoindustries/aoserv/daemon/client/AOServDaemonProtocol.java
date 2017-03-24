@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2000-2013, 2014, 2015, 2016  AO Industries, Inc.
+ * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -22,6 +22,10 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
+import com.aoindustries.aoserv.client.AOServProtocol;
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * Codes used in communication between the <code>AOServServer</code> and
  * the <code>SimpleAOClient</code>.
@@ -33,29 +37,68 @@ final public class AOServDaemonProtocol {
 	/**
 	 * Each time the protocols are changed in a way that is not backwards-compatible, please increase this number
 	 * so that older clients will not be allowed to connect, rather than get undefined erroneous behavior.
-	 * These versions roughly match the version of AOServProtocol at the time they were first used.
+	 * <p>
+	 * These versions roughly match the version of {@link AOServProtocol.Version#CURRENT_VERSION} at the time they were first used.
+	 * </p>
 	 */
-	public static final String VERSION_1_1="1.1";
-	public static final String VERSION_1_2="1.2";
-	public static final String VERSION_1_6="1.6";
-	public static final String VERSION_1_6_1="1.6.1";
-	public static final String VERSION_1_6_2="1.6.2";
-	public static final String VERSION_1_8="1.8";
-	public static final String VERSION_1_9="1.9";
-	public static final String VERSION_1_13="1.13";
-	public static final String VERSION_1_18="1.18";
-	public static final String VERSION_1_18_1="1.18.1";
-	public static final String VERSION_1_28="1.28";
-	public static final String VERSION_1_28_1="1.28.1";
-	public static final String VERSION_1_29="1.29";
-	public static final String VERSION_1_30="1.30";
-	public static final String VERSION_1_31="1.31";
-	public static final String VERSION_1_35="1.35";
-	public static final String VERSION_1_60="1.60";
-	public static final String VERSION_1_63="1.63";
-	public static final String VERSION_1_76="1.76";
-	public static final String VERSION_1_77="1.77";
-	public static final String CURRENT_VERSION=VERSION_1_77;
+	public enum Version {
+		VERSION_1_1("1.1"),
+		VERSION_1_2("1.2"),
+		VERSION_1_6("1.6"),
+		VERSION_1_6_1("1.6.1"),
+		VERSION_1_6_2("1.6.2"),
+		VERSION_1_8("1.8"),
+		VERSION_1_9("1.9"),
+		VERSION_1_13("1.13"),
+		VERSION_1_18("1.18"),
+		VERSION_1_18_1("1.18.1"),
+		VERSION_1_28("1.28"),
+		VERSION_1_28_1("1.28.1"),
+		VERSION_1_29("1.29"),
+		VERSION_1_30("1.30"),
+		VERSION_1_31("1.31"),
+		VERSION_1_35("1.35"),
+		VERSION_1_60("1.60"),
+		VERSION_1_63("1.63"),
+		VERSION_1_76("1.76"),
+		VERSION_1_77("1.77"),
+		VERSION_1_80_0_SNAPSHOT("1.80.0-SNAPSHOT");
+
+		public static final Version CURRENT_VERSION = VERSION_1_80_0_SNAPSHOT;
+
+		private static final Map<String,Version> versionMap = new HashMap<String,Version>();
+		static {
+			for(Version version : values()) versionMap.put(version.getVersion(), version);
+		}
+
+		/**
+		 * Gets a specific version given its unique version string.
+		 *
+		 * @see  #getVersion()
+		 *
+		 * @throws  IllegalArgumentException if version not found
+		 */
+		public static Version getVersion(String version) {
+			Version versionEnum = versionMap.get(version);
+			if(versionEnum == null) throw new IllegalArgumentException("Version not found: " + version);
+			return versionEnum;
+		}
+
+		private final String version;
+
+		private Version(String version) {
+			this.version = version;
+		}
+
+		public String getVersion() {
+			return version;
+		}
+
+		@Override
+		public String toString() {
+			return version;
+		}
+	}
 
 	/**
 	 * The protocol codes used between the AOServ Master and the AOServ Daemons
