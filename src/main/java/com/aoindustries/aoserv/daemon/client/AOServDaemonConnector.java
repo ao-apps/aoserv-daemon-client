@@ -213,12 +213,30 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public void dumpMySQLDatabase(int pkey, boolean gzip, CompressedDataOutputStream masterOut) throws IOException, SQLException {
-		transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, gzip, masterOut);
+	public static interface DumpSizeCallback {
+		/**
+		 * Called once the dump size is known and before
+		 * the stream is written to.
+		 */
+		void onDumpSize(long dumpSize) throws IOException;
 	}
 
-	public void dumpPostgresDatabase(int pkey, boolean gzip, CompressedDataOutputStream masterOut) throws IOException, SQLException {
-		transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, gzip, masterOut);
+	public void dumpMySQLDatabase(
+		int pkey,
+		boolean gzip,
+		DumpSizeCallback onDumpSize,
+		CompressedDataOutputStream masterOut
+	) throws IOException, SQLException {
+		transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, gzip, onDumpSize, masterOut);
+	}
+
+	public void dumpPostgresDatabase(
+		int pkey,
+		boolean gzip,
+		DumpSizeCallback onDumpSize,
+		CompressedDataOutputStream masterOut
+	) throws IOException, SQLException {
+		transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, gzip, onDumpSize, masterOut);
 	}
 
 	public String getAutoresponderContent(UnixPath path) throws IOException, SQLException {
@@ -1541,6 +1559,7 @@ final public class AOServDaemonConnector {
 		int command,
 		int param1,
 		boolean param2,
+		DumpSizeCallback onDumpSize,
 		CompressedDataOutputStream masterOut
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
@@ -1551,7 +1570,7 @@ final public class AOServDaemonConnector {
 			out.writeBoolean(param2);
 			out.flush();
 
-			transferStream0(conn, masterOut);
+			transferStream0(conn, onDumpSize, masterOut);
 		} catch(IOException err) {
 			conn.close();
 			throw err;
@@ -1615,28 +1634,38 @@ final public class AOServDaemonConnector {
 
 	private void transferStream0(
 		AOServDaemonConnection conn,
+		DumpSizeCallback onDumpSize,
 		CompressedDataOutputStream masterOut
 	) throws IOException, SQLException {
 		CompressedDataInputStream in=conn.getInputStream();
-		int code;
-		byte[] buff=BufferManager.getBytes();
-		try {
-			while((code=in.read())==AOServDaemonProtocol.NEXT) {
-				int len=in.readShort();
-				in.readFully(buff, 0, len);
-				masterOut.writeByte(AOServProtocol.NEXT);
-				masterOut.writeShort(len);
-				masterOut.write(buff, 0, len);
-				//if(reporter!=null) reporter.addFinishedSize(len);
+		long dumpSize = in.readLong();
+		if(dumpSize < 0) throw new IOException("dumpSize < 0: " + dumpSize);
+		if(onDumpSize != null) onDumpSize.onDumpSize(dumpSize);
+		long bytesRead = 0;
+		{
+			int code;
+			byte[] buff=BufferManager.getBytes();
+			try {
+				while((code=in.read())==AOServDaemonProtocol.NEXT) {
+					int len=in.readShort();
+					bytesRead += len;
+					if(bytesRead > dumpSize) throw new IOException("Too many bytes read: " + bytesRead + " > " + dumpSize);
+					in.readFully(buff, 0, len);
+					masterOut.writeByte(AOServProtocol.NEXT);
+					masterOut.writeShort(len);
+					masterOut.write(buff, 0, len);
+					//if(reporter!=null) reporter.addFinishedSize(len);
+				}
+			} finally {
+				BufferManager.release(buff, false);
 			}
-		} finally {
-			BufferManager.release(buff, false);
+			if (code != AOServDaemonProtocol.DONE) {
+				if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				else if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				else throw new IOException("Unknown result: " + code);
+			}
 		}
-		if (code != AOServDaemonProtocol.DONE) {
-			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-			else if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-			else throw new IOException("Unknown result: " + code);
-		}
+		if(bytesRead < dumpSize) throw new IOException("Too few bytes read: " + bytesRead + " < " + dumpSize);
 	}
 
 	private void waitFor(SchemaTable.TableID tableID) throws IOException, SQLException {
