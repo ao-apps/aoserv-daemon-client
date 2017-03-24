@@ -106,7 +106,7 @@ final public class AOServDaemonConnection {
 			in=new CompressedDataInputStream(new BufferedInputStream(socket.getInputStream()));
 
 			// Write the version, then connector key
-			out.writeUTF(AOServDaemonProtocol.CURRENT_VERSION);
+			out.writeUTF(AOServDaemonProtocol.Version.CURRENT_VERSION.getVersion());
 			out.writeBoolean(connector.key!=null);
 			if(connector.key!=null) out.writeUTF(connector.key);
 			out.flush();
@@ -114,8 +114,14 @@ final public class AOServDaemonConnection {
 			// The first boolean will tell if the version is now allowed
 			if(!in.readBoolean()) {
 				// When not allowed, the server will write the version that is required
-				String requiredVersion=in.readUTF();
-				throw new IOException("Unsupported protocol version requested.  Requested version "+AOServDaemonProtocol.CURRENT_VERSION+", server requires version "+requiredVersion);
+				String requiredVersion = in.readUTF();
+				throw new IOException(
+					"Unsupported protocol version requested.  Requested version "
+						+ AOServDaemonProtocol.Version.CURRENT_VERSION.getVersion()
+						+ ", server requires version "
+						+ requiredVersion
+						+ " or higher."
+				);
 			}
 			// Read if the connection is allowed
 			if(!in.readBoolean()) throw new IOException("Connection not allowed.");
