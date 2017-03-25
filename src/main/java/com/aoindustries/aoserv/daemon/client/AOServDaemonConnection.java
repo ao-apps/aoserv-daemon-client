@@ -154,7 +154,7 @@ final public class AOServDaemonConnection {
 	/**
 	 * The next command sequence that will be sent.
 	 */
-	final AtomicLong seq;
+	private final AtomicLong seq;
 
 	/**
 	 * Creates a new <code>AOServConnection</code>.
