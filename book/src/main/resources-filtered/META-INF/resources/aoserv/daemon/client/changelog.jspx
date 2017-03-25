@@ -36,7 +36,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2017-03-23T23:21:20-0500"
+		dateModified="2017-03-24T19:28:30-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -59,6 +59,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 					<li>Added <code>gzip</code> option to <code>dumpMySQLDatabase</code>.</li>
 					<li>Added <code>gzip</code> option to <code>dumpPostgresDatabase</code>.</li>
 					<li>Database dumps now provide the size of the dumps in bytes.</li>
+					<li>Added protocol version negotiation support, with a reconnect strategy to achieve compatibility with version 1.77.</li>
 				</ul>
 			</changelog:release>
 		</c:if>

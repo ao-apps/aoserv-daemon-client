@@ -217,6 +217,8 @@ final public class AOServDaemonConnector {
 		/**
 		 * Called once the dump size is known and before
 		 * the stream is written to.
+		 *
+		 * @param  dumpSize  The number of bytes that will be transferred or {@code -1} if unknown
 		 */
 		void onDumpSize(long dumpSize) throws IOException;
 	}
@@ -1558,16 +1560,24 @@ final public class AOServDaemonConnector {
 	private void transferStream(
 		int command,
 		int param1,
-		boolean param2,
+		boolean gzip,
 		DumpSizeCallback onDumpSize,
 		CompressedDataOutputStream masterOut
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out=conn.getOutputStream();
+			if(gzip && conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) < 0) {
+				throw new IOException(
+					"Gzip compression requires AOServ Daemon version "
+						+ AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT
+						+ " or higher.  Current version is " + conn.protocolVersion + '.');
+			}
+			CompressedDataOutputStream out = conn.getOutputStream();
 			out.writeCompressedInt(command);
 			out.writeCompressedInt(param1);
-			out.writeBoolean(param2);
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) >= 0) {
+				out.writeBoolean(gzip);
+			}
 			out.flush();
 
 			transferStream0(conn, onDumpSize, masterOut);
@@ -1638,8 +1648,13 @@ final public class AOServDaemonConnector {
 		CompressedDataOutputStream masterOut
 	) throws IOException, SQLException {
 		CompressedDataInputStream in=conn.getInputStream();
-		long dumpSize = in.readLong();
-		if(dumpSize < 0) throw new IOException("dumpSize < 0: " + dumpSize);
+		long dumpSize;
+		if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) >= 0) {
+			dumpSize = in.readLong();
+		} else {
+			dumpSize = -1;
+		}
+		if(dumpSize < -1) throw new IOException("dumpSize < -1: " + dumpSize);
 		if(onDumpSize != null) onDumpSize.onDumpSize(dumpSize);
 		long bytesRead = 0;
 		{
@@ -1649,7 +1664,7 @@ final public class AOServDaemonConnector {
 				while((code=in.read())==AOServDaemonProtocol.NEXT) {
 					int len=in.readShort();
 					bytesRead += len;
-					if(bytesRead > dumpSize) throw new IOException("Too many bytes read: " + bytesRead + " > " + dumpSize);
+					if(dumpSize != -1 && bytesRead > dumpSize) throw new IOException("Too many bytes read: " + bytesRead + " > " + dumpSize);
 					in.readFully(buff, 0, len);
 					masterOut.writeByte(AOServProtocol.NEXT);
 					masterOut.writeShort(len);
