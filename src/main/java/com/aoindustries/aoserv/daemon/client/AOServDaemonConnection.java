@@ -35,6 +35,7 @@ import java.io.InterruptedIOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 
@@ -146,6 +147,16 @@ final public class AOServDaemonConnection {
 	final AOServDaemonProtocol.Version protocolVersion;
 
 	/**
+	 * The first command sequence for this connection.
+	 */
+	//private final long startSeq;
+
+	/**
+	 * The next command sequence that will be sent.
+	 */
+	final AtomicLong seq;
+
+	/**
 	 * Creates a new <code>AOServConnection</code>.
 	 *
 	 * // TODO: Once all daemons are running > version 1.77, can simplify this considerably
@@ -155,6 +166,7 @@ final public class AOServDaemonConnection {
 		CompressedDataOutputStream newOut = null;
 		CompressedDataInputStream newIn = null;
 		AOServDaemonProtocol.Version selectedVersion = null;
+		long newStartSeq = 0;
 		boolean successful = false;
 		try {
 			newSocket = connect(connector);
@@ -183,6 +195,7 @@ final public class AOServDaemonConnection {
 				// Read the selected protocol version
 				selectedVersion = AOServDaemonProtocol.Version.valueOf(newIn.readUTF());
 				assert selectedVersion != AOServDaemonProtocol.Version.VERSION_1_77;
+				newStartSeq = newIn.readLong();
 			} else {
 				// When not allowed, the server will write the set of supported versions
 				String preferredVersion = newIn.readUTF();
@@ -223,6 +236,7 @@ final public class AOServDaemonConnection {
 					if(!newIn.readBoolean()) throw new IOException("Connection not allowed.");
 					// Selected protocol version is forced 1.77 for this reconnect
 					selectedVersion = AOServDaemonProtocol.Version.VERSION_1_77;
+					newStartSeq = 0;
 				} else {
 					StringBuilder message = new StringBuilder();
 					message.append("No compatible protocol versions.  Client prefers version ");
@@ -266,6 +280,8 @@ final public class AOServDaemonConnection {
 		this.out = newOut;
 		this.in = newIn;
 		this.protocolVersion = selectedVersion;
+		//this.startSeq = newStartSeq;
+		this.seq = new AtomicLong(newStartSeq);
 	}
 
 	/**
@@ -286,9 +302,16 @@ final public class AOServDaemonConnection {
 	}
 
 	/**
-	 * Gets the stream to write to the server.
+	 * Begins a task and gets the stream to write to the server.
 	 */
-	public CompressedDataOutputStream getOutputStream() {
+	public CompressedDataOutputStream getOutputStream(int taskCode) throws IOException {
+		// Increment sequence
+		long currentSeq = seq.getAndIncrement();
+		// Send command sequence
+		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) >= 0) {
+			out.writeLong(currentSeq);
+		}
+		out.writeCompressedInt(taskCode);
 		return out;
 	}
 
