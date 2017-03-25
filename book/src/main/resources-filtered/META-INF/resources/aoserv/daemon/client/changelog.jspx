@@ -36,7 +36,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2017-03-25T09:15:43-0500"
+		dateModified="2017-03-25T11:25:22-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -61,6 +61,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 					<li>Database dumps now provide the size of the dumps in bytes.</li>
 					<li>Added protocol version negotiation support, with a reconnect strategy to achieve compatibility with version 1.77.</li>
 					<li>Extended network protocol to send randomized command sequences to help ensure stream integrity.</li>
+					<li>Added distinct wait command IDs to not rely on table IDs that can change over time.</li>
 				</ul>
 			</changelog:release>
 		</c:if>
