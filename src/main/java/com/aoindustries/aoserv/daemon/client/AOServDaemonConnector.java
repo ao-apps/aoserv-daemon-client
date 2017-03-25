@@ -2078,8 +2078,12 @@ final public class AOServDaemonConnector {
 			CompressedDataOutputStream out = conn.getOutputStream(AOServDaemonProtocol.CHECK_PORT);
 			out.writeUTF(ipAddress.toString());
 			out.writeCompressedInt(port.getPort());
-			// TODO: current protocol no longer toLowerCase/toUpperCase all over since now using enum
-			out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) < 0) {
+				// Old protocol transferred lowercase
+				out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
+			} else {
+				out.writeEnum(port.getProtocol());
+			}
 			out.writeUTF(appProtocol);
 			out.writeUTF(monitoringParameters);
 			out.flush();
