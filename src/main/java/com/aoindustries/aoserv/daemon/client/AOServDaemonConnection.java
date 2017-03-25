@@ -26,22 +26,94 @@ import com.aoindustries.aoserv.client.Protocol;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
+import com.aoindustries.util.AoArrays;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InterruptedIOException;
+import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
- * A <code>AOServDaemonConnection</code> provides the
- * connection between a client and a server-control daemon.
+ * A connection between an AOServ Daemon Client and an AOServ Daemon.
  *
  * @author  AO Industries, Inc.
  */
 final public class AOServDaemonConnection {
+
+	/**
+	 * The set of supported versions, with the most preferred versions first.
+	 */
+	private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
+		AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT,
+		AOServDaemonProtocol.Version.VERSION_1_77
+	};
+
+	private static Socket connect(AOServDaemonConnector connector) throws IOException {
+		if(connector.protocol.equals(Protocol.AOSERV_DAEMON)) {
+			assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
+			Socket socket = new Socket();
+			socket.setKeepAlive(true);
+			socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
+			//socket.setTcpNoDelay(true);
+			socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
+			socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
+			if(Thread.interrupted()) throw new InterruptedIOException();
+			return socket;
+		} else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
+			assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
+			if(connector.trustStore != null && !connector.trustStore.isEmpty()) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
+			if(connector.trustStorePassword != null && !connector.trustStorePassword.isEmpty()) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
+			SSLSocketFactory sslFact = (SSLSocketFactory)SSLSocketFactory.getDefault();
+			if(Thread.interrupted()) throw new InterruptedIOException();
+			Socket regSocket = new Socket();
+			regSocket.setKeepAlive(true);
+			regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
+			//regSocket.setTcpNoDelay(true);
+			regSocket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
+			regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
+			if(Thread.interrupted()) throw new InterruptedIOException();
+			Socket socket = sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port.getPort(), true);
+			if(Thread.interrupted()) throw new InterruptedIOException();
+			return socket;
+		} else throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
+	}
+
+	/**
+	 * Closes a socket while logging any {@link IOException} as a warning.
+	 */
+	private static void close(
+		AOServDaemonConnector connector,
+		InputStream i,
+		OutputStream o,
+		Socket s
+	) {
+		if(i != null) {
+			try {
+				i.close();
+			} catch(IOException err) {
+				connector.getLogger().log(Level.WARNING, null, err);
+			}
+		}
+		if(o != null) {
+			try {
+				o.close();
+			} catch(IOException err) {
+				connector.getLogger().log(Level.WARNING, null, err);
+			}
+		}
+		if(s != null) {
+			try {
+				s.close();
+			} catch(IOException err) {
+				connector.getLogger().log(Level.WARNING, null, err);
+			}
+		}
+	}
 
 	/**
 	 * The connector that this connection is part of.
@@ -69,66 +141,131 @@ final public class AOServDaemonConnection {
 	private final CompressedDataInputStream in;
 
 	/**
+	 * The negotiated protocol version.
+	 */
+	final AOServDaemonProtocol.Version protocolVersion;
+
+	/**
 	 * Creates a new <code>AOServConnection</code>.
+	 *
+	 * // TODO: Once all daemons are running > version 1.77, can simplify this considerably
 	 */
 	protected AOServDaemonConnection(AOServDaemonConnector connector) throws InterruptedIOException, IOException {
-		this.connector=connector;
+		Socket newSocket = null;
+		CompressedDataOutputStream newOut = null;
+		CompressedDataInputStream newIn = null;
+		AOServDaemonProtocol.Version selectedVersion = null;
 		boolean successful = false;
 		try {
-			if(connector.protocol.equals(Protocol.AOSERV_DAEMON)) {
-				assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
-				if(Thread.interrupted()) throw new InterruptedIOException();
-				socket=new Socket();
-				socket.setKeepAlive(true);
-				socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
-				//socket.setTcpNoDelay(true);
-				socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
-				socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
-			} else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
-				assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
-				if(connector.trustStore!=null && connector.trustStore.length()>0) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
-				if(connector.trustStorePassword!=null && connector.trustStorePassword.length()>0) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
-				SSLSocketFactory sslFact=(SSLSocketFactory)SSLSocketFactory.getDefault();
-				if(Thread.interrupted()) throw new InterruptedIOException();
-				Socket regSocket = new Socket();
-				regSocket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
-				regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
-				regSocket.setKeepAlive(true);
-				regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
-				//regSocket.setTcpNoDelay(true);
-				socket=sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port.getPort(), true);
-			} else throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
+			newSocket = connect(connector);
+			newOut = new CompressedDataOutputStream(new BufferedOutputStream(newSocket.getOutputStream()));
+			newIn = new CompressedDataInputStream(new BufferedInputStream(newSocket.getInputStream()));
 
-			if(Thread.interrupted()) throw new InterruptedIOException();
-
-			isClosed=false;
-			out=new CompressedDataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-			in=new CompressedDataInputStream(new BufferedInputStream(socket.getInputStream()));
-
-			// Write the version, then connector key
-			out.writeUTF(AOServDaemonProtocol.Version.CURRENT_VERSION.getVersion());
-			out.writeBoolean(connector.key!=null);
-			if(connector.key!=null) out.writeUTF(connector.key);
-			out.flush();
+			// Write the most preferred version
+			newOut.writeUTF(SUPPORTED_VERSIONS[0].getVersion());
+			// Then connector key
+			newOut.writeNullUTF(connector.key);
+			// Now write additional versions.
+			// This is done in this order for backwards compatibility to protocol 1.77 that only supported a single version.
+			{
+				newOut.writeCompressedInt(SUPPORTED_VERSIONS.length - 1);
+				for(int i = 1; i < SUPPORTED_VERSIONS.length; i++) {
+					newOut.writeUTF(SUPPORTED_VERSIONS[i].getVersion());
+				}
+			}
+			newOut.flush();
 
 			// The first boolean will tell if the version is now allowed
-			if(!in.readBoolean()) {
-				// When not allowed, the server will write the version that is required
-				String requiredVersion = in.readUTF();
-				throw new IOException(
-					"Unsupported protocol version requested.  Requested version "
-						+ AOServDaemonProtocol.Version.CURRENT_VERSION.getVersion()
-						+ ", server requires version "
-						+ requiredVersion
-						+ " or higher."
-				);
+			if(newIn.readBoolean()) {
+				// Protocol > 1.77 accepted
+				// Read if the connection is allowed
+				if(!newIn.readBoolean()) throw new IOException("Connection not allowed.");
+				// Read the selected protocol version
+				selectedVersion = AOServDaemonProtocol.Version.valueOf(newIn.readUTF());
+				assert selectedVersion != AOServDaemonProtocol.Version.VERSION_1_77;
+			} else {
+				// When not allowed, the server will write the set of supported versions
+				String preferredVersion = newIn.readUTF();
+				String[] extraVersions;
+				if(preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())) {
+					// Server 1.77 only sends the single preferred version
+					extraVersions = AoArrays.EMPTY_STRING_ARRAY;
+				} else {
+					int numExtraVersions = newIn.readCompressedInt();
+					extraVersions = new String[numExtraVersions];
+					for(int i = 0; i < numExtraVersions; i++) {
+						extraVersions[i] = newIn.readUTF();
+					}
+				}
+				if(
+					preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())
+					&& AoArrays.indexOf(SUPPORTED_VERSIONS, AOServDaemonProtocol.Version.VERSION_1_77) != -1
+				) {
+					// Reconnect as forced protocol 1.77, since we already sent extra output incompatible with 1.77
+					close(connector, newIn, newOut, newSocket);
+					newSocket = connect(connector);
+					newOut = new CompressedDataOutputStream(new BufferedOutputStream(newSocket.getOutputStream()));
+					newIn = new CompressedDataInputStream(new BufferedInputStream(newSocket.getInputStream()));
+					newOut.writeUTF(AOServDaemonProtocol.Version.VERSION_1_77.getVersion());
+					newOut.writeNullUTF(connector.key);
+					newOut.flush();
+					if(!newIn.readBoolean()) {
+						String requiredVersion = newIn.readUTF();
+						throw new IOException(
+							"Unsupported protocol version requested.  Requested version "
+								+ AOServDaemonProtocol.Version.VERSION_1_77.getVersion()
+								+ ", server requires version "
+								+ requiredVersion
+								+ "."
+						);
+					}
+					// Read if the connection is allowed
+					if(!newIn.readBoolean()) throw new IOException("Connection not allowed.");
+					// Selected protocol version is forced 1.77 for this reconnect
+					selectedVersion = AOServDaemonProtocol.Version.VERSION_1_77;
+				} else {
+					StringBuilder message = new StringBuilder();
+					message.append("No compatible protocol versions.  Client prefers version ");
+					message.append(SUPPORTED_VERSIONS[0].getVersion());
+					if(SUPPORTED_VERSIONS.length > 1) {
+						message.append(", but also supports versions [");
+						for(int i = 1; i < SUPPORTED_VERSIONS.length; i++) {
+							if(i > 1) message.append(", ");
+							message.append(SUPPORTED_VERSIONS[i].getVersion());
+						}
+						message.append(']');
+					}
+					message.append(".  Server prefers version ");
+					message.append(preferredVersion);
+					if(extraVersions != null && extraVersions.length > 0) {
+						message.append(", but also supports versions [");
+						for(int i = 0; i < extraVersions.length; i++) {
+							if(i > 0) message.append(", ");
+							message.append(extraVersions[i]);
+						}
+						message.append(']');
+					}
+					message.append('.');
+					throw new IOException(message.toString());
+				}
 			}
-			// Read if the connection is allowed
-			if(!in.readBoolean()) throw new IOException("Connection not allowed.");
 			successful = true;
 		} finally {
-			if(!successful) close();
+			if(!successful) {
+				close(connector, newIn, newOut, newSocket);
+			}
 		}
+		assert successful;
+		assert newSocket != null;
+		assert newOut != null;
+		assert newIn != null;
+		assert selectedVersion != null;
+		this.connector = connector;
+		this.isClosed = false;
+		this.socket = newSocket;
+		this.out = newOut;
+		this.in = newIn;
+		this.protocolVersion = selectedVersion;
 	}
 
 	/**
@@ -137,28 +274,8 @@ final public class AOServDaemonConnection {
 	 * future.
 	 */
 	public void close() {
-		if(in!=null) {
-			try {
-				in.close();
-			} catch(IOException err) {
-				connector.getLogger().log(Level.WARNING, null, err);
-			}
-		}
-		if(out!=null) {
-			try {
-				out.close();
-			} catch(IOException err) {
-				connector.getLogger().log(Level.WARNING, null, err);
-			}
-		}
-		if(socket!=null) {
-			try {
-				socket.close();
-			} catch(IOException err) {
-				connector.getLogger().log(Level.WARNING, null, err);
-			}
-		}
-		isClosed=true;
+		close(connector, in, out, socket);
+		isClosed = true;
 	}
 
 	/**

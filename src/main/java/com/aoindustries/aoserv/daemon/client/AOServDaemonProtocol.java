@@ -64,8 +64,6 @@ final public class AOServDaemonProtocol {
 		VERSION_1_77("1.77"),
 		VERSION_1_80_0_SNAPSHOT("1.80.0-SNAPSHOT");
 
-		public static final Version CURRENT_VERSION = VERSION_1_80_0_SNAPSHOT;
-
 		private static final Map<String,Version> versionMap = new HashMap<String,Version>();
 		static {
 			for(Version version : values()) versionMap.put(version.getVersion(), version);
