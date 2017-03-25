@@ -29,7 +29,6 @@ import com.aoindustries.aoserv.client.MySQLDatabase.CheckTableResult;
 import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
-import com.aoindustries.aoserv.client.SchemaTable;
 import com.aoindustries.aoserv.client.validator.MySQLDatabaseName;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.aoserv.client.validator.MySQLUserId;
@@ -1645,13 +1644,49 @@ final public class AOServDaemonConnector {
 		if(dumpSize != -1 && bytesRead < dumpSize) throw new IOException("Too few bytes read: " + bytesRead + " < " + dumpSize);
 	}
 
-	private void waitFor(SchemaTable.TableID tableID) throws IOException, SQLException {
-		AOServDaemonConnection conn=getConnection();
+	private void waitFor(int taskCode) throws IOException, SQLException {
+		AOServDaemonConnection conn = getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getOutputStream(AOServDaemonProtocol.WAIT_FOR_REBUILD);
-			// TODO: table ordinal might not match when daemon running older version of client protocol.
-			//       In next protocol version, send table name instead of ordinal, or some other daemon-specified protocol value.
-			out.writeCompressedInt(tableID.ordinal());
+			CompressedDataOutputStream out;
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) < 0) {
+				// Older protocol use a single WAIT_FOR_REBUILD with a follow-up table ID.
+				// Table IDs can change over time, so the new protocol uses distinct task codes for each type of wait.
+				// Find the table ID consistent with schema version 1.77
+				final int tableId;
+				switch(taskCode) {
+					case AOServDaemonProtocol.WAIT_FOR_HTTPD_SITE_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_HTTPD_SITES_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_LINUX_ACCOUNT_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_LINUX_ACCOUNTS_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_MYSQL_DATABASE_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_MYSQL_DATABASES_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_MYSQL_DB_USER_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_MYSQL_DB_USERS_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_MYSQL_USER_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_MYSQL_USERS_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_POSTGRES_DATABASE_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_POSTGRES_DATABASES_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_POSTGRES_SERVER_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_POSTGRES_SERVERS_TABLE_ID;
+						break;
+					case AOServDaemonProtocol.WAIT_FOR_POSTGRES_USER_REBUILD :
+						tableId = AOServDaemonProtocol.OLD_POSTGRES_USERS_TABLE_ID;
+						break;
+					default :
+						throw new IOException("Unexpected taskCode: " + taskCode);
+
+				}
+				out = conn.getOutputStream(AOServDaemonProtocol.OLD_WAIT_FOR_REBUILD);
+				out.writeCompressedInt(tableId);
+			} else {
+				out = conn.getOutputStream(taskCode);
+			}
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();
@@ -1670,35 +1705,35 @@ final public class AOServDaemonConnector {
 	}
 
 	public void waitForHttpdSiteRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.HTTPD_SITES);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_HTTPD_SITE_REBUILD);
 	}
 
 	public void waitForLinuxAccountRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.LINUX_ACCOUNTS);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_LINUX_ACCOUNT_REBUILD);
 	}
 
 	public void waitForMySQLDatabaseRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.MYSQL_DATABASES);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_MYSQL_DATABASE_REBUILD);
 	}
 
 	public void waitForMySQLDBUserRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.MYSQL_DB_USERS);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_MYSQL_DB_USER_REBUILD);
 	}
 
 	public void waitForMySQLUserRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.MYSQL_USERS);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_MYSQL_USER_REBUILD);
 	}
 
 	public void waitForPostgresDatabaseRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.POSTGRES_DATABASES);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_POSTGRES_DATABASE_REBUILD);
 	}
 
 	public void waitForPostgresServerRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.POSTGRES_SERVERS);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_POSTGRES_SERVER_REBUILD);
 	}
 
 	public void waitForPostgresUserRebuild() throws IOException, SQLException {
-		waitFor(SchemaTable.TableID.POSTGRES_USERS);
+		waitFor(AOServDaemonProtocol.WAIT_FOR_POSTGRES_USER_REBUILD);
 	}
 
 	/**
