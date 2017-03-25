@@ -1680,7 +1680,7 @@ final public class AOServDaemonConnector {
 				else throw new IOException("Unknown result: " + code);
 			}
 		}
-		if(bytesRead < dumpSize) throw new IOException("Too few bytes read: " + bytesRead + " < " + dumpSize);
+		if(dumpSize != -1 && bytesRead < dumpSize) throw new IOException("Too few bytes read: " + bytesRead + " < " + dumpSize);
 	}
 
 	private void waitFor(SchemaTable.TableID tableID) throws IOException, SQLException {
