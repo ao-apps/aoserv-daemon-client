@@ -1720,6 +1720,10 @@ final public class AOServDaemonConnector {
 		waitFor(AOServDaemonProtocol.WAIT_FOR_MYSQL_DB_USER_REBUILD);
 	}
 
+	public void waitForMySQLServerRebuild() throws IOException, SQLException {
+		waitFor(AOServDaemonProtocol.WAIT_FOR_MYSQL_SERVER_REBUILD);
+	}
+
 	public void waitForMySQLUserRebuild() throws IOException, SQLException {
 		waitFor(AOServDaemonProtocol.WAIT_FOR_MYSQL_USER_REBUILD);
 	}
