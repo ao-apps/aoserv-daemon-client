@@ -60,7 +60,7 @@ final public class AOServDaemonConnection {
 			Socket socket = new Socket();
 			socket.setKeepAlive(true);
 			socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
-			//socket.setTcpNoDelay(true);
+			socket.setTcpNoDelay(true);
 			if(!connector.local_ip.isUnspecified()) socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
 			socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
 			if(Thread.interrupted()) throw new InterruptedIOException();
@@ -74,7 +74,7 @@ final public class AOServDaemonConnection {
 			Socket regSocket = new Socket();
 			regSocket.setKeepAlive(true);
 			regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
-			//regSocket.setTcpNoDelay(true);
+			regSocket.setTcpNoDelay(true);
 			if(!connector.local_ip.isUnspecified()) regSocket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
 			regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
 			if(Thread.interrupted()) throw new InterruptedIOException();
