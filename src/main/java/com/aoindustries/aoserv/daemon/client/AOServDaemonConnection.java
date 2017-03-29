@@ -193,7 +193,7 @@ final public class AOServDaemonConnection {
 				// Read if the connection is allowed
 				if(!newIn.readBoolean()) throw new IOException("Connection not allowed.");
 				// Read the selected protocol version
-				selectedVersion = AOServDaemonProtocol.Version.valueOf(newIn.readUTF());
+				selectedVersion = AOServDaemonProtocol.Version.getVersion(newIn.readUTF());
 				assert selectedVersion != AOServDaemonProtocol.Version.VERSION_1_77;
 				newStartSeq = newIn.readLong();
 			} else {
