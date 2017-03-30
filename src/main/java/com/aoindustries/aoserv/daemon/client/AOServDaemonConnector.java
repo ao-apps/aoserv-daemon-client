@@ -1528,15 +1528,15 @@ final public class AOServDaemonConnector {
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			if(gzip && conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) < 0) {
+			if(gzip && conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 				throw new IOException(
 					"Gzip compression requires AOServ Daemon version "
-						+ AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT
+						+ AOServDaemonProtocol.Version.VERSION_1_80_0
 						+ " or higher.  Current version is " + conn.protocolVersion + '.');
 			}
 			CompressedDataOutputStream out = conn.getOutputStream(command);
 			out.writeCompressedInt(param1);
-			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) >= 0) {
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 				out.writeBoolean(gzip);
 			}
 			out.flush();
@@ -1610,7 +1610,7 @@ final public class AOServDaemonConnector {
 	) throws IOException, SQLException {
 		CompressedDataInputStream in=conn.getInputStream();
 		long dumpSize;
-		if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) >= 0) {
+		if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 			dumpSize = in.readLong();
 		} else {
 			dumpSize = -1;
@@ -1648,7 +1648,7 @@ final public class AOServDaemonConnector {
 		AOServDaemonConnection conn = getConnection();
 		try {
 			CompressedDataOutputStream out;
-			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) < 0) {
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 				// Older protocol use a single WAIT_FOR_REBUILD with a follow-up table ID.
 				// Table IDs can change over time, so the new protocol uses distinct task codes for each type of wait.
 				// Find the table ID consistent with schema version 1.77
@@ -2078,7 +2078,7 @@ final public class AOServDaemonConnector {
 			CompressedDataOutputStream out = conn.getOutputStream(AOServDaemonProtocol.CHECK_PORT);
 			out.writeUTF(ipAddress.toString());
 			out.writeCompressedInt(port.getPort());
-			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) < 0) {
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 				// Old protocol transferred lowercase
 				out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
 			} else {

@@ -50,7 +50,7 @@ final public class AOServDaemonConnection {
 	 * The set of supported versions, with the most preferred versions first.
 	 */
 	private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
-		AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT,
+		AOServDaemonProtocol.Version.VERSION_1_80_0,
 		AOServDaemonProtocol.Version.VERSION_1_77
 	};
 
@@ -308,7 +308,7 @@ final public class AOServDaemonConnection {
 		// Increment sequence
 		long currentSeq = seq.getAndIncrement();
 		// Send command sequence
-		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0_SNAPSHOT) >= 0) {
+		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 			out.writeLong(currentSeq);
 		}
 		out.writeCompressedInt(taskCode);
