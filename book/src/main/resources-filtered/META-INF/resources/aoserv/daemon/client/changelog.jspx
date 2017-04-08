@@ -36,7 +36,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2017-03-25T11:25:22-0500"
+		dateModified="2017-04-08T11:31:05-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -62,6 +62,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 					<li>Added protocol version negotiation support, with a reconnect strategy to achieve compatibility with version 1.77.</li>
 					<li>Extended network protocol to send randomized command sequences to help ensure stream integrity.</li>
 					<li>Added distinct wait command IDs to not rely on table IDs that can change over time.</li>
+					<li>Copying encrypted passwords now maintains the <code>changedDate</code>, instead of reseting it to the current date.</li>
 				</ul>
 			</changelog:release>
 		</c:if>

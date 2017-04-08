@@ -538,7 +538,7 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the encrypted password for a linux account as found in the /etc/shadow file.
 	 */
-	public String getEncryptedLinuxAccountPassword(UserId username) throws IOException, SQLException {
+	public Tuple2<String,Integer> getEncryptedLinuxAccountPassword(UserId username) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out = conn.getOutputStream(AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
@@ -547,7 +547,17 @@ final public class AOServDaemonConnector {
 
 			CompressedDataInputStream in=conn.getInputStream();
 			int result = in.read();
-			if (result == AOServDaemonProtocol.DONE) return in.readUTF();
+			if (result == AOServDaemonProtocol.DONE) {
+				String encryptedPassword = in.readUTF();
+				Integer changedDate;
+				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT) >= 0) {
+					int i = in.readCompressedInt();
+					changedDate = i==-1 ? null : i;
+				} else {
+					changedDate = null;
+				}
+				return new Tuple2<String,Integer>(encryptedPassword, changedDate);
+			}
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
 			else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
 			else throw new IOException("Unknown result: " + result);
@@ -1260,12 +1270,15 @@ final public class AOServDaemonConnector {
 	/**
 	 * Sets the encrypted password for a Linux account.
 	 */
-	public void setEncryptedLinuxAccountPassword(UserId username, String encryptedPassword) throws IOException, SQLException {
+	public void setEncryptedLinuxAccountPassword(UserId username, String encryptedPassword, Integer changedDate) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
 			CompressedDataOutputStream out = conn.getOutputStream(AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
 			out.writeUTF(username.toString());
 			out.writeUTF(encryptedPassword);
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT) >= 0) {
+				out.writeCompressedInt(changedDate==null ? -1 : changedDate);
+			}
 			out.flush();
 
 			CompressedDataInputStream in=conn.getInputStream();

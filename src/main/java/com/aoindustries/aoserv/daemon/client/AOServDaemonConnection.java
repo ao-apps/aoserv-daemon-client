@@ -50,6 +50,7 @@ final public class AOServDaemonConnection {
 	 * The set of supported versions, with the most preferred versions first.
 	 */
 	private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
+		AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT,
 		AOServDaemonProtocol.Version.VERSION_1_80_0,
 		AOServDaemonProtocol.Version.VERSION_1_77
 	};
