@@ -295,25 +295,32 @@ final public class AOServDaemonConnection {
 		isClosed = true;
 	}
 
-	/**
-	 * Gets the stream to read from the server.
-	 */
-	public CompressedDataInputStream getInputStream() {
-		return in;
-	}
+	private long currentSeq;
 
 	/**
 	 * Begins a task and gets the stream to write to the server.
 	 */
-	public CompressedDataOutputStream getOutputStream(int taskCode) throws IOException {
+	public CompressedDataOutputStream getRequestOut(int taskCode) throws IOException {
 		// Increment sequence
-		long currentSeq = seq.getAndIncrement();
+		currentSeq = seq.getAndIncrement();
 		// Send command sequence
 		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 			out.writeLong(currentSeq);
 		}
 		out.writeCompressedInt(taskCode);
 		return out;
+	}
+
+	/**
+	 * Gets the stream to read from the server.
+	 */
+	public CompressedDataInputStream getResponseIn() throws IOException {
+		// Verify server sends matching sequence
+		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT) >= 0) {
+			long serverSeq = in.readLong();
+			if(serverSeq != currentSeq) throw new IOException("Sequence mismatch: " + serverSeq + " != " + currentSeq);
+		}
+		return in;
 	}
 
 	/**
