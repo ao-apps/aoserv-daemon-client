@@ -50,7 +50,7 @@ final public class AOServDaemonConnection {
 	 * The set of supported versions, with the most preferred versions first.
 	 */
 	private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
-		AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT,
+		AOServDaemonProtocol.Version.VERSION_1_80_1,
 		AOServDaemonProtocol.Version.VERSION_1_80_0,
 		AOServDaemonProtocol.Version.VERSION_1_77
 	};
@@ -316,7 +316,7 @@ final public class AOServDaemonConnection {
 	 */
 	public CompressedDataInputStream getResponseIn() throws IOException {
 		// Verify server sends matching sequence
-		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT) >= 0) {
+		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
 			long serverSeq = in.readLong();
 			if(serverSeq != currentSeq) throw new IOException("Sequence mismatch: " + serverSeq + " != " + currentSeq);
 		}
