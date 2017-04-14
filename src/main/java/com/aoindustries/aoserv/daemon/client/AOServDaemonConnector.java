@@ -550,7 +550,7 @@ final public class AOServDaemonConnector {
 			if (result == AOServDaemonProtocol.DONE) {
 				String encryptedPassword = in.readUTF();
 				Integer changedDate;
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT) >= 0) {
+				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
 					int i = in.readCompressedInt();
 					changedDate = i==-1 ? null : i;
 				} else {
@@ -1276,7 +1276,7 @@ final public class AOServDaemonConnector {
 			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
 			out.writeUTF(username.toString());
 			out.writeUTF(encryptedPassword);
-			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1_SNAPSHOT) >= 0) {
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
 				out.writeCompressedInt(changedDate==null ? -1 : changedDate);
 			}
 			out.flush();
