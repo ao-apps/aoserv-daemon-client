@@ -36,7 +36,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2017-07-13T18:29:00-0500"
+		dateModified="2017-07-20T09:43:06-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -51,22 +51,31 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 				groupId="@{documented.groupId}"
 				artifactId="@{documented.artifactId}"
 				scmUrl="@{documented.scm.url}"
-			>
-				<ul>
-					<li>Updated for new <core:link book="/ao-net-types" page="/index.jspx" /> project pulled out of <core:link book="/aoserv/client" page="/index.jspx" />.</li>
-					<li>Making more extensive use of self-validating types.</li>
-					<li>Changed versions to an <code>enum</code>.</li>
-					<li>Added <code>gzip</code> option to <code>dumpMySQLDatabase</code>.</li>
-					<li>Added <code>gzip</code> option to <code>dumpPostgresDatabase</code>.</li>
-					<li>Database dumps now provide the size of the dumps in bytes.</li>
-					<li>Added protocol version negotiation support, with a reconnect strategy to achieve compatibility with version 1.77.</li>
-					<li>Extended network protocol to send randomized command sequences to help ensure stream integrity.</li>
-					<li>Added distinct wait command IDs to not rely on table IDs that can change over time.</li>
-					<li>Copying encrypted passwords now maintains the <code>changedDate</code>, instead of reseting it to the current date.</li>
-					<li>Updated dependencies.</li>
-				</ul>
-			</changelog:release>
+			/>
 		</c:if>
+
+		<changelog:release
+			projectName="@{documented.name}"
+			version="1.80.1"
+			datePublished="2017-07-20T09:43:06-0500"
+			groupId="@{documented.groupId}"
+			artifactId="@{documented.artifactId}"
+			scmUrl="@{documented.scm.url}"
+		>
+			<ul>
+				<li>Updated for new <core:link book="/ao-net-types" page="/index.jspx" /> project pulled out of <core:link book="/aoserv/client" page="/index.jspx" />.</li>
+				<li>Making more extensive use of self-validating types.</li>
+				<li>Changed versions to an <code>enum</code>.</li>
+				<li>Added <code>gzip</code> option to <code>dumpMySQLDatabase</code>.</li>
+				<li>Added <code>gzip</code> option to <code>dumpPostgresDatabase</code>.</li>
+				<li>Database dumps now provide the size of the dumps in bytes.</li>
+				<li>Added protocol version negotiation support, with a reconnect strategy to achieve compatibility with version 1.77.</li>
+				<li>Extended network protocol to send randomized command sequences to help ensure stream integrity.</li>
+				<li>Added distinct wait command IDs to not rely on table IDs that can change over time.</li>
+				<li>Copying encrypted passwords now maintains the <code>changedDate</code>, instead of reseting it to the current date.</li>
+				<li>Updated dependencies.</li>
+			</ul>
+		</changelog:release>
 
 		<changelog:release
 			projectName="@{documented.name}"
