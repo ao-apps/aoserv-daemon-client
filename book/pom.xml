@@ -33,7 +33,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 
 	<groupId>com.aoindustries</groupId>
 	<artifactId>aoserv-daemon-client-book</artifactId>
-	<version>1.80.1</version>
+	<version>1.80.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -62,7 +62,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<connection>scm:git:git://github.com/aoindustries/${documented.artifactId}.git</connection>
 		<developerConnection>scm:git:git@github.com:aoindustries/${documented.artifactId}.git</developerConnection>
 		<url>${documented.scm.url}</url>
-		<tag>aoserv-daemon-client-book-1.80.1</tag>
+		<tag>HEAD</tag>
 	</scm>
 
 	<dependencies>
