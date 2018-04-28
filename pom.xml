@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 aoserv-daemon-client - Java client for the AOServ Daemon.
-Copyright (C) 2016, 2017  AO Industries, Inc.
+Copyright (C) 2016, 2017, 2018  AO Industries, Inc.
     support@aoindustries.com
     7262 Bull Pen Cir
     Mobile, AL 36695
@@ -101,7 +101,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<dependency>
 			<groupId>com.aoindustries</groupId>
 			<artifactId>aoserv-client</artifactId>
-			<version>1.81.7-SNAPSHOT</version>
+			<version>1.81.8-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 </project>
