@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017  AO Industries, Inc.
+ * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -1463,8 +1463,8 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public void startMySQL() throws IOException, SQLException {
-		controlProcess(AOServDaemonProtocol.START_MYSQL);
+	public void startMySQL(int mysqlServer) throws IOException, SQLException {
+		controlProcess(AOServDaemonProtocol.START_MYSQL, mysqlServer);
 	}
 
 	public void startPostgreSQL(int pkey) throws IOException, SQLException {
@@ -1511,8 +1511,8 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public void stopMySQL() throws IOException, SQLException {
-		controlProcess(AOServDaemonProtocol.STOP_MYSQL);
+	public void stopMySQL(int mysqlServer) throws IOException, SQLException {
+		controlProcess(AOServDaemonProtocol.STOP_MYSQL, mysqlServer);
 	}
 
 	public void stopPostgreSQL(int pkey) throws IOException, SQLException {

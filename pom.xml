@@ -33,7 +33,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 
 	<groupId>com.aoindustries</groupId>
 	<artifactId>aoserv-daemon-client</artifactId>
-	<version>1.80.2-validation-SNAPSHOT</version>
+	<version>1.81.8-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<properties>
