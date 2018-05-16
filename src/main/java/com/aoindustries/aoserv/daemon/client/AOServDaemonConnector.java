@@ -1323,37 +1323,6 @@ final public class AOServDaemonConnector {
 	}
 
 	/**
-	 * Subscribes/unsubscribes to an IMAP folder.
-	 *
-	 * @param  username  the username to copy the home directory of
-	 * @param  folderName  the folderName, should include a trailing / for a folder that holds folders
-	 * @param  subscribed  the new subscribes state
-	 */
-	public void setImapFolderSubscribed(UserId username, String folderName, boolean subscribed) throws IOException, SQLException {
-		// Establish the connection to the server
-		AOServDaemonConnection conn=getConnection();
-		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_IMAP_FOLDER_SUBSCRIBED);
-			out.writeUTF(username.toString());
-			out.writeUTF(folderName);
-			out.writeBoolean(subscribed);
-			out.flush();
-
-			CompressedDataInputStream in=conn.getResponseIn();
-			int code=in.read();
-			if(code==AOServDaemonProtocol.DONE) return;
-			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
-			if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
-			throw new IOException("Unknown result: " + code);
-		} catch(IOException err) {
-			conn.close();
-			throw err;
-		} finally {
-			releaseConnection(conn);
-		}
-	}
-
-	/**
 	 * Sets the password for a <code>MySQLServerUser</code>.
 	 */
 	public void setMySQLUserPassword(int mysqlServer, MySQLUserId username, String password) throws IOException, SQLException {
