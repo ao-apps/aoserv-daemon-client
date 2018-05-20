@@ -23,12 +23,14 @@
 package com.aoindustries.aoserv.daemon.client;
 
 import com.aoindustries.aoserv.client.AOServProtocol;
+import com.aoindustries.aoserv.client.AlertLevel;
 import com.aoindustries.aoserv.client.FailoverMySQLReplication;
 import com.aoindustries.aoserv.client.InboxAttributes;
 import com.aoindustries.aoserv.client.MySQLDatabase.CheckTableResult;
 import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
 import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
 import com.aoindustries.aoserv.client.MySQLServer;
+import com.aoindustries.aoserv.client.SslCertificate;
 import com.aoindustries.aoserv.client.validator.MySQLDatabaseName;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.aoserv.client.validator.MySQLUserId;
@@ -2104,6 +2106,47 @@ final public class AOServDaemonConnector {
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
 			if (code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
 			throw new IOException("Unknown result: " + code);
+		} catch(IOException err) {
+			conn.close();
+			throw err;
+		} finally {
+			releaseConnection(conn);
+		}
+	}
+
+	public List<SslCertificate.Check> checkSslCertificate(int sslCertificate) throws IOException, SQLException {
+		// Establish the connection to the server
+		AOServDaemonConnection conn = getConnection();
+		try {
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
+				return Collections.singletonList(
+					new SslCertificate.Check("Daemon Protocol", "Version not supported, please installed latest AOServ Daemon: " + conn.protocolVersion, AlertLevel.UNKNOWN)
+				);
+			} else {
+				CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SSL_CERTIFICATE);
+				out.writeCompressedInt(sslCertificate);
+				out.flush();
+
+				CompressedDataInputStream in = conn.getResponseIn();
+				int code = in.read();
+				if(code == AOServDaemonProtocol.NEXT) {
+					int size = in.readCompressedInt();
+					List<SslCertificate.Check> results = new ArrayList<SslCertificate.Check>(size);
+					for(int i = 0; i < size; i++) {
+						results.add(
+							new SslCertificate.Check(
+								in.readUTF(),
+								in.readUTF(),
+								AlertLevel.valueOf(in.readUTF())
+							)
+						);
+					}
+					return results;
+				}
+				if(code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+				if(code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+				throw new IOException("Unknown result: " + code);
+			}
 		} catch(IOException err) {
 			conn.close();
 			throw err;

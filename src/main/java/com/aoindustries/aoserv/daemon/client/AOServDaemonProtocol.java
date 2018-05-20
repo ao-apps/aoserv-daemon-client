@@ -63,7 +63,8 @@ final public class AOServDaemonProtocol {
 		VERSION_1_76("1.76"),
 		VERSION_1_77("1.77"),
 		VERSION_1_80_0("1.80.0"),
-		VERSION_1_80_1("1.80.1");
+		VERSION_1_80_1("1.80.1"),
+		VERSION_1_81_10("1.81.10");
 
 		private static final Map<String,Version> versionMap = new HashMap<String,Version>();
 		static {
@@ -198,6 +199,7 @@ final public class AOServDaemonProtocol {
 		WAIT_FOR_POSTGRES_DATABASE_REBUILD = WAIT_FOR_MYSQL_USER_REBUILD + 1,
 		WAIT_FOR_POSTGRES_SERVER_REBUILD = WAIT_FOR_POSTGRES_DATABASE_REBUILD + 1,
 		WAIT_FOR_POSTGRES_USER_REBUILD = WAIT_FOR_POSTGRES_SERVER_REBUILD + 1,
+		CHECK_SSL_CERTIFICATE = WAIT_FOR_POSTGRES_USER_REBUILD + 1,
 
 		DONE=0,
 		NEXT=DONE+1,

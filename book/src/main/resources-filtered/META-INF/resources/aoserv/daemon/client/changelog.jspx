@@ -37,7 +37,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2018-05-15T15:39:22-0500"
+		dateModified="2018-05-19T23:14:06-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -61,6 +61,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 							<li>Removed <code>set_imap_folder_subscribed</code> AOSH command</li>
 						</ul>
 					</li>
+					<li>Added <code>check_ssl_certificate</code> AOSH command</li>
 				</ul>
 			</changelog:release>
 		</c:if>
