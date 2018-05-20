@@ -2120,7 +2120,12 @@ final public class AOServDaemonConnector {
 		try {
 			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
 				return Collections.singletonList(
-					new SslCertificate.Check("Daemon Protocol", "Version not supported, please installed latest AOServ Daemon: " + conn.protocolVersion, AlertLevel.UNKNOWN)
+					new SslCertificate.Check(
+						"Daemon Protocol",
+						conn.protocolVersion.toString(),
+						AlertLevel.UNKNOWN,
+						"Protocol version does not support checking SSL certificates, please installed AOServ Daemon >= " + AOServDaemonProtocol.Version.VERSION_1_81_10
+					)
 				);
 			} else {
 				CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SSL_CERTIFICATE);
@@ -2137,7 +2142,8 @@ final public class AOServDaemonConnector {
 							new SslCertificate.Check(
 								in.readUTF(),
 								in.readUTF(),
-								AlertLevel.valueOf(in.readUTF())
+								AlertLevel.valueOf(in.readUTF()),
+								in.readNullUTF()
 							)
 						);
 					}
