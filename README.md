@@ -1,4 +1,4 @@
-# [<img src="ao-logo.png" alt="AO Logo" width="35" height="40">](https://aoindustries.com/) [AOServ](https://aoindustries.com/aoserv/) / [Daemon](https://aoindustries.com/aoserv/daemon/) / [Client](https://aoindustries.com/aoserv/daemon/client/)
+# [<img src="ao-logo.png" alt="AO Logo" width="35" height="40">](https://github.com/aoindustries) [AOServ](https://aoindustries.com/aoserv/) / [Daemon](https://aoindustries.com/aoserv/daemon/) / [Client](https://github.com/aoindustries/aoserv-daemon-client)
 <p>
 	<a href="https://aoindustries.com/life-cycle#project-current-stable">
 		<img src="https://aoindustries.com/ao-badges/project-current-stable.svg" alt="project: current stable" />
