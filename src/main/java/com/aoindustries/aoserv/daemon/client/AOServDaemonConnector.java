@@ -2444,4 +2444,31 @@ final public class AOServDaemonConnector {
 			releaseConnection(conn);
 		}
 	}
+
+	/**
+	 * Gets the current concurrency for a HTTP server.
+	 *
+	 * @return  the concurrency
+	 */
+	public int getHttpdServerConcurrency(int httpdServer) throws IOException, SQLException {
+		// Establish the connection to the server
+		AOServDaemonConnection conn=getConnection();
+		try {
+			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_HTTPD_SERVER_CONCURRENCY);
+			out.writeCompressedInt(httpdServer);
+			out.flush();
+
+			CompressedDataInputStream in=conn.getResponseIn();
+			int code=in.read();
+			if(code == AOServDaemonProtocol.DONE) return in.readCompressedInt();
+			if(code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
+			if(code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
+			throw new IOException("Unknown result: " + code);
+		} catch(IOException err) {
+			conn.close();
+			throw err;
+		} finally {
+			releaseConnection(conn);
+		}
+	}
 }
