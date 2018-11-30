@@ -22,15 +22,15 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
-import com.aoindustries.aoserv.client.AOServProtocol;
-import com.aoindustries.aoserv.client.AlertLevel;
-import com.aoindustries.aoserv.client.FailoverMySQLReplication;
-import com.aoindustries.aoserv.client.InboxAttributes;
-import com.aoindustries.aoserv.client.MySQLDatabase.CheckTableResult;
-import com.aoindustries.aoserv.client.MySQLDatabase.Engine;
-import com.aoindustries.aoserv.client.MySQLDatabase.TableStatus;
-import com.aoindustries.aoserv.client.MySQLServer;
-import com.aoindustries.aoserv.client.SslCertificate;
+import com.aoindustries.aoserv.client.backup.FailoverMySQLReplication;
+import com.aoindustries.aoserv.client.email.InboxAttributes;
+import com.aoindustries.aoserv.client.monitoring.AlertLevel;
+import com.aoindustries.aoserv.client.mysql.MySQLDatabase.CheckTableResult;
+import com.aoindustries.aoserv.client.mysql.MySQLDatabase.Engine;
+import com.aoindustries.aoserv.client.mysql.MySQLDatabase.TableStatus;
+import com.aoindustries.aoserv.client.mysql.MySQLServer;
+import com.aoindustries.aoserv.client.pki.SslCertificate;
+import com.aoindustries.aoserv.client.schema.AOServProtocol;
 import com.aoindustries.aoserv.client.validator.MySQLDatabaseName;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.aoserv.client.validator.MySQLUserId;
