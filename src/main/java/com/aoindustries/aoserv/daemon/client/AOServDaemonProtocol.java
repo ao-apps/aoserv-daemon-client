@@ -22,7 +22,6 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
-import com.aoindustries.aoserv.client.schema.AOServProtocol;
 import java.util.HashMap;
 import java.util.Map;
 

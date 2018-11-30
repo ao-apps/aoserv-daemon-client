@@ -22,7 +22,7 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
-import com.aoindustries.aoserv.client.net.Protocol;
+import com.aoindustries.aoserv.client.net.AppProtocol;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
@@ -57,7 +57,7 @@ final public class AOServDaemonConnection {
 	};
 
 	private static Socket connect(AOServDaemonConnector connector) throws IOException {
-		if(connector.protocol.equals(Protocol.AOSERV_DAEMON)) {
+		if(connector.protocol.equals(AppProtocol.AOSERV_DAEMON)) {
 			assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
 			Socket socket = new Socket();
 			socket.setKeepAlive(true);
@@ -67,7 +67,7 @@ final public class AOServDaemonConnection {
 			socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
 			if(Thread.interrupted()) throw new InterruptedIOException();
 			return socket;
-		} else if(connector.protocol.equals(Protocol.AOSERV_DAEMON_SSL)) {
+		} else if(connector.protocol.equals(AppProtocol.AOSERV_DAEMON_SSL)) {
 			assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
 			if(connector.trustStore != null && !connector.trustStore.isEmpty()) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
 			if(connector.trustStorePassword != null && !connector.trustStorePassword.isEmpty()) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
