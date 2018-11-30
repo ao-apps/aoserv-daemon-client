@@ -22,7 +22,7 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
-import com.aoindustries.aoserv.client.Protocol;
+import com.aoindustries.aoserv.client.net.Protocol;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.io.CompressedDataInputStream;
 import com.aoindustries.io.CompressedDataOutputStream;
