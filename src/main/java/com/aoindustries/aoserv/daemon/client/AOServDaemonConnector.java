@@ -22,15 +22,15 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
-import com.aoindustries.aoserv.client.backup.FailoverMySQLReplication;
+import com.aoindustries.aoserv.client.backup.MysqlReplication;
 import com.aoindustries.aoserv.client.email.InboxAttributes;
 import com.aoindustries.aoserv.client.monitoring.AlertLevel;
-import com.aoindustries.aoserv.client.mysql.MySQLDatabase.CheckTableResult;
-import com.aoindustries.aoserv.client.mysql.MySQLDatabase.Engine;
-import com.aoindustries.aoserv.client.mysql.MySQLDatabase.TableStatus;
-import com.aoindustries.aoserv.client.mysql.MySQLServer;
-import com.aoindustries.aoserv.client.pki.SslCertificate;
-import com.aoindustries.aoserv.client.schema.AOServProtocol;
+import com.aoindustries.aoserv.client.mysql.Database.CheckTableResult;
+import com.aoindustries.aoserv.client.mysql.Database.Engine;
+import com.aoindustries.aoserv.client.mysql.Database.TableStatus;
+import com.aoindustries.aoserv.client.mysql.Server;
+import com.aoindustries.aoserv.client.pki.Certificate;
+import com.aoindustries.aoserv.client.schema.AoservProtocol;
 import com.aoindustries.aoserv.client.validator.MySQLDatabaseName;
 import com.aoindustries.aoserv.client.validator.MySQLTableName;
 import com.aoindustries.aoserv.client.validator.MySQLUserId;
@@ -642,7 +642,7 @@ final public class AOServDaemonConnector {
 				while((code=in.read())==AOServDaemonProtocol.NEXT) {
 					int len=in.readShort();
 					in.readFully(buff, 0, len);
-					out.writeByte(AOServProtocol.NEXT);
+					out.writeByte(AoservProtocol.NEXT);
 					out.writeShort(len);
 					out.write(buff, 0, len);
 				}
@@ -660,7 +660,7 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public MySQLServer.MasterStatus getMySQLMasterStatus(int mysqlServer) throws IOException, SQLException {
+	public Server.MasterStatus getMySQLMasterStatus(int mysqlServer) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
@@ -671,7 +671,7 @@ final public class AOServDaemonConnector {
 			CompressedDataInputStream in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
-				return new MySQLServer.MasterStatus(
+				return new Server.MasterStatus(
 					in.readNullUTF(),
 					in.readNullUTF()
 				);
@@ -692,7 +692,7 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public FailoverMySQLReplication.SlaveStatus getMySQLSlaveStatus(
+	public MysqlReplication.SlaveStatus getMySQLSlaveStatus(
 		UnixPath failoverRoot,
 		int nestedOperatingSystemVersion,
 		Port port
@@ -710,7 +710,7 @@ final public class AOServDaemonConnector {
 			CompressedDataInputStream in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
-				return new FailoverMySQLReplication.SlaveStatus(
+				return new MysqlReplication.SlaveStatus(
 					in.readNullUTF(),
 					in.readNullUTF(),
 					in.readNullUTF(),
@@ -882,7 +882,7 @@ final public class AOServDaemonConnector {
 				while((code=in.read())==AOServDaemonProtocol.NEXT) {
 					int len=in.readShort();
 					in.readFully(buff, 0, len);
-					out.writeByte(AOServProtocol.NEXT);
+					out.writeByte(AoservProtocol.NEXT);
 					out.writeShort(len);
 					out.write(buff, 0, len);
 				}
@@ -1611,7 +1611,7 @@ final public class AOServDaemonConnector {
 					bytesRead += len;
 					if(dumpSize != -1 && bytesRead > dumpSize) throw new IOException("Too many bytes read: " + bytesRead + " > " + dumpSize);
 					in.readFully(buff, 0, len);
-					masterOut.writeByte(AOServProtocol.NEXT);
+					masterOut.writeByte(AoservProtocol.NEXT);
 					masterOut.writeShort(len);
 					masterOut.write(buff, 0, len);
 					//if(reporter!=null) reporter.addFinishedSize(len);
@@ -2114,13 +2114,12 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public List<SslCertificate.Check> checkSslCertificate(int sslCertificate) throws IOException, SQLException {
+	public List<Certificate.Check> checkSslCertificate(int sslCertificate) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn = getConnection();
 		try {
 			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
-				return Collections.singletonList(
-					new SslCertificate.Check(
+				return Collections.singletonList(new Certificate.Check(
 						"Daemon Protocol",
 						conn.protocolVersion.toString(),
 						AlertLevel.UNKNOWN,
@@ -2136,10 +2135,9 @@ final public class AOServDaemonConnector {
 				int code = in.read();
 				if(code == AOServDaemonProtocol.NEXT) {
 					int size = in.readCompressedInt();
-					List<SslCertificate.Check> results = new ArrayList<SslCertificate.Check>(size);
+					List<Certificate.Check> results = new ArrayList<Certificate.Check>(size);
 					for(int i = 0; i < size; i++) {
-						results.add(
-							new SslCertificate.Check(
+						results.add(new Certificate.Check(
 								in.readUTF(),
 								in.readUTF(),
 								AlertLevel.valueOf(in.readUTF()),
