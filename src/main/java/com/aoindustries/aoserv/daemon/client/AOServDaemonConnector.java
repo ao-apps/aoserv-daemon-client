@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018  AO Industries, Inc.
+ * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018, 2019  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -64,7 +64,7 @@ final public class AOServDaemonConnector {
 	/**
 	 * Each unique connector is only created once.
 	 */
-	private static final List<AOServDaemonConnector> connectors=new ArrayList<AOServDaemonConnector>();
+	private static final List<AOServDaemonConnector> connectors = new ArrayList<>();
 
 	/**
 	 * The hostname to connect to.
@@ -555,7 +555,7 @@ final public class AOServDaemonConnector {
 				} else {
 					changedDate = null;
 				}
-				return new Tuple2<String,Integer>(encryptedPassword, changedDate);
+				return new Tuple2<>(encryptedPassword, changedDate);
 			}
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
 			else if (result == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
@@ -762,7 +762,7 @@ final public class AOServDaemonConnector {
 			if(code==AOServDaemonProtocol.NEXT) {
 				try {
 					int size = in.readCompressedInt();
-					List<TableStatus> tableStatuses = new ArrayList<TableStatus>(size);
+					List<TableStatus> tableStatuses = new ArrayList<>(size);
 					for(int c=0;c<size;c++) {
 						tableStatuses.add(new TableStatus(
 								Table_Name.valueOf(in.readUTF()), // name
@@ -830,7 +830,7 @@ final public class AOServDaemonConnector {
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
 				int size = in.readCompressedInt();
-				List<CheckTableResult> checkTableResults = new ArrayList<CheckTableResult>(size);
+				List<CheckTableResult> checkTableResults = new ArrayList<>(size);
 				for(int c=0;c<size;c++) {
 					try {
 						checkTableResults.add(new CheckTableResult(
@@ -1866,7 +1866,7 @@ final public class AOServDaemonConnector {
 
 			CompressedDataInputStream in = conn.getResponseIn();
 			int code=in.read();
-			if(code == AOServDaemonProtocol.DONE)          return new Tuple2<Long,String>(in.readLong(), in.readUTF());
+			if(code == AOServDaemonProtocol.DONE)          return new Tuple2<>(in.readLong(), in.readUTF());
 			if(code == AOServDaemonProtocol.IO_EXCEPTION)  throw new IOException(in.readUTF());
 			if(code == AOServDaemonProtocol.SQL_EXCEPTION) throw new SQLException(in.readUTF());
 			throw new IOException("Unknown result: " + code);
@@ -2130,7 +2130,7 @@ final public class AOServDaemonConnector {
 				int code = in.read();
 				if(code == AOServDaemonProtocol.NEXT) {
 					int size = in.readCompressedInt();
-					List<Certificate.Check> results = new ArrayList<Certificate.Check>(size);
+					List<Certificate.Check> results = new ArrayList<>(size);
 					for(int i = 0; i < size; i++) {
 						results.add(new Certificate.Check(
 								in.readUTF(),
@@ -2194,7 +2194,7 @@ final public class AOServDaemonConnector {
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) {
 				int numLinks = in.readCompressedInt();
-				Set<String> links = new LinkedHashSet<String>(numLinks*4/3+1);
+				Set<String> links = new LinkedHashSet<>(numLinks*4/3+1);
 				for(int i=0; i<numLinks; i++) {
 					links.add(in.readUTF());
 				}
