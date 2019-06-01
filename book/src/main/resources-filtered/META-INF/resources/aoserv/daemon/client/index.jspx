@@ -33,18 +33,20 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		title="@{documented.name}"
 		description="@{documented.description}"
 		datePublished="2016-10-17T00:09:00-0500"
-		dateModified="2017-07-18T19:10:15-0500"
+		dateModified="2019-06-01T00:46:53-0500"
 	>
 		<core:child page="changelog.jspx" />
 		<core:child page="apidocs/index.jspx" />
-		<ao:include
-			page="/ao-badges/badges.inc.jspx"
-			arg.projectStatus="${currentPage.property.projectStatus}"
-			arg.managementStatus="${currentPage.property.managementStatus}"
-			arg.packagingStatus="${currentPage.property.packagingStatus}"
-			arg.javaVersion="${currentPage.property.javaVersion}"
-			arg.license="${currentPage.property.license}"
-		/>
+		<header>
+			<ao:include
+				page="/ao-badges/badges.inc.jspx"
+				arg.projectStatus="${currentPage.property.projectStatus}"
+				arg.managementStatus="${currentPage.property.managementStatus}"
+				arg.packagingStatus="${currentPage.property.packagingStatus}"
+				arg.javaVersion="${currentPage.property.javaVersion}"
+				arg.license="${currentPage.property.license}"
+			/>
+		</header>
 		<p>
 			Java client for the <core:link book="/" page="/aoserv/daemon/index.jspx" />.
 		</p>
