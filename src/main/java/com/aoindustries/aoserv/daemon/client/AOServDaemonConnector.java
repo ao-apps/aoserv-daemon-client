@@ -2109,7 +2109,7 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public List<Certificate.Check> checkSslCertificate(int sslCertificate) throws IOException, SQLException {
+	public List<Certificate.Check> checkSslCertificate(int sslCertificate, boolean allowCached) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn = getConnection();
 		try {
@@ -2124,6 +2124,9 @@ final public class AOServDaemonConnector {
 			} else {
 				CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SSL_CERTIFICATE);
 				out.writeCompressedInt(sslCertificate);
+				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_83_0) >= 0) {
+					out.writeBoolean(allowCached);
+				}
 				out.flush();
 
 				CompressedDataInputStream in = conn.getResponseIn();

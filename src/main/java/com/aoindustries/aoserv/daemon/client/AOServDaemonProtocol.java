@@ -63,7 +63,8 @@ final public class AOServDaemonProtocol {
 		VERSION_1_77("1.77"),
 		VERSION_1_80_0("1.80.0"),
 		VERSION_1_80_1("1.80.1"),
-		VERSION_1_81_10("1.81.10");
+		VERSION_1_81_10("1.81.10"),
+		VERSION_1_83_0("1.83.0");
 
 		private static final Map<String,Version> versionMap = new HashMap<>();
 		static {
