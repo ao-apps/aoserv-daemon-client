@@ -33,8 +33,8 @@ import com.aoindustries.aoserv.client.mysql.Server;
 import com.aoindustries.aoserv.client.mysql.Table_Name;
 import com.aoindustries.aoserv.client.pki.Certificate;
 import com.aoindustries.aoserv.client.schema.AoservProtocol;
-import com.aoindustries.io.CompressedDataInputStream;
-import com.aoindustries.io.CompressedDataOutputStream;
+import com.aoindustries.io.stream.StreamableInput;
+import com.aoindustries.io.stream.StreamableOutput;
 import com.aoindustries.lang.NullArgumentException;
 import com.aoindustries.net.HostAddress;
 import com.aoindustries.net.InetAddress;
@@ -141,16 +141,16 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the source
 		AOServDaemonConnection sourceConn=getConnection();
 		try {
-			CompressedDataOutputStream sourceOut = sourceConn.getRequestOut(AOServDaemonProtocol.TAR_HOME_DIRECTORY);
+			StreamableOutput sourceOut = sourceConn.getRequestOut(AOServDaemonProtocol.TAR_HOME_DIRECTORY);
 			sourceOut.writeUTF(username.toString());
 			sourceOut.flush();
 
-			CompressedDataInputStream sourceIn=sourceConn.getResponseIn();
+			StreamableInput sourceIn=sourceConn.getResponseIn();
 
 			// Establish the connection to the destination
 			AOServDaemonConnection destConn=to_connector.getConnection();
 			try {
-				CompressedDataOutputStream destOut = destConn.getRequestOut(AOServDaemonProtocol.UNTAR_HOME_DIRECTORY);
+				StreamableOutput destOut = destConn.getRequestOut(AOServDaemonProtocol.UNTAR_HOME_DIRECTORY);
 				destOut.writeUTF(username.toString());
 
 				long byteCount=0;
@@ -186,7 +186,7 @@ final public class AOServDaemonConnector {
 				destOut.writeByte(AOServDaemonProtocol.DONE);
 				destOut.flush();
 
-				CompressedDataInputStream destIn=destConn.getResponseIn();
+				StreamableInput destIn=destConn.getResponseIn();
 				int destResult=destIn.read();
 				if(destResult!=AOServDaemonProtocol.DONE) {
 					if (destResult == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(destIn.readUTF());
@@ -223,7 +223,7 @@ final public class AOServDaemonConnector {
 		int pkey,
 		boolean gzip,
 		DumpSizeCallback onDumpSize,
-		CompressedDataOutputStream masterOut
+		StreamableOutput masterOut
 	) throws IOException, SQLException {
 		transferStream(AOServDaemonProtocol.DUMP_MYSQL_DATABASE, pkey, gzip, onDumpSize, masterOut);
 	}
@@ -232,7 +232,7 @@ final public class AOServDaemonConnector {
 		int pkey,
 		boolean gzip,
 		DumpSizeCallback onDumpSize,
-		CompressedDataOutputStream masterOut
+		StreamableOutput masterOut
 	) throws IOException, SQLException {
 		transferStream(AOServDaemonProtocol.DUMP_POSTGRES_DATABASE, pkey, gzip, onDumpSize, masterOut);
 	}
@@ -241,11 +241,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_AUTORESPONDER_CONTENT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_AUTORESPONDER_CONTENT);
 			out.writeUTF(path.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -359,11 +359,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_CRON_TABLE);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_CRON_TABLE);
 			out.writeUTF(username.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -388,11 +388,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_NET_DEVICE_BONDING_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_NET_DEVICE_BONDING_REPORT);
 			out.writeCompressedInt(pkey);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -417,11 +417,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_NET_DEVICE_STATISTICS_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_NET_DEVICE_STATISTICS_REPORT);
 			out.writeCompressedInt(pkey);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -444,11 +444,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.IS_PROCMAIL_MANUAL);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.IS_PROCMAIL_MANUAL);
 			out.writeCompressedInt(lsa);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readBoolean();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -468,11 +468,11 @@ final public class AOServDaemonConnector {
 	public long getDiskDeviceTotalSize(PosixPath path) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection(2);
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_DISK_DEVICE_TOTAL_SIZE);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_DISK_DEVICE_TOTAL_SIZE);
 			out.writeUTF(path.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readLong();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -492,11 +492,11 @@ final public class AOServDaemonConnector {
 	public long getDiskDeviceUsedSize(PosixPath path) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection(2);
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_DISK_DEVICE_USED_SIZE);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_DISK_DEVICE_USED_SIZE);
 			out.writeUTF(path.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readLong();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -516,11 +516,11 @@ final public class AOServDaemonConnector {
 	public String getEmailListFile(PosixPath path) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_EMAIL_LIST_FILE);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_EMAIL_LIST_FILE);
 			out.writeUTF(path.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readUTF();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -540,11 +540,11 @@ final public class AOServDaemonConnector {
 	public Tuple2<String,Integer> getEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
 			out.writeUTF(username.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) {
 				String encryptedPassword = in.readUTF();
@@ -572,7 +572,7 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES);
 			out.writeUTF(username.toString());
 			out.writeCompressedInt(folderNames.length);
 			for(String folderName : folderNames) {
@@ -580,7 +580,7 @@ final public class AOServDaemonConnector {
 			}
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) {
 				long[] sizes=new long[folderNames.length];
@@ -604,11 +604,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_INBOX_ATTRIBUTES);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_INBOX_ATTRIBUTES);
 			out.writeUTF(username.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) {
 				return new InboxAttributes(in.readLong(), in.readLong());
@@ -624,17 +624,17 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public void getMrtgFile(String filename, CompressedDataOutputStream out) throws IOException, SQLException {
+	public void getMrtgFile(String filename, StreamableOutput out) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MRTG_FILE);
+			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MRTG_FILE);
 			daemonOut.writeUTF(filename);
 			daemonOut.flush();
 
 			byte[] buff=BufferManager.getBytes();
 			try {
-				CompressedDataInputStream in=conn.getResponseIn();
+				StreamableInput in=conn.getResponseIn();
 				int code;
 				while((code=in.read())==AOServDaemonProtocol.NEXT) {
 					int len=in.readShort();
@@ -661,11 +661,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_MASTER_STATUS);
+			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_MASTER_STATUS);
 			daemonOut.writeCompressedInt(mysqlServer);
 			daemonOut.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
 				return new Server.MasterStatus(
@@ -698,13 +698,13 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS);
+			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS);
 			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
 			daemonOut.writeCompressedInt(port.getPort());
 			daemonOut.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
 				return new MysqlReplication.SlaveStatus(
@@ -750,14 +750,14 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
+			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
 			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
 			daemonOut.writeCompressedInt(port.getPort());
 			daemonOut.writeUTF(databaseName.toString());
 			daemonOut.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
 				try {
@@ -816,7 +816,7 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream daemonOut = conn.getRequestOut(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
+			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
 			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
 			daemonOut.writeCompressedInt(port.getPort());
@@ -826,7 +826,7 @@ final public class AOServDaemonConnector {
 			for(int c=0;c<numTables;c++) daemonOut.writeUTF(tableNames.get(c).toString());
 			daemonOut.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.NEXT) {
 				int size = in.readCompressedInt();
@@ -860,11 +860,11 @@ final public class AOServDaemonConnector {
 		}
 	}
 
-	public void getAWStatsFile(String siteName, String path, String queryString, CompressedDataOutputStream out) throws IOException, SQLException {
+	public void getAWStatsFile(String siteName, String path, String queryString, StreamableOutput out) throws IOException, SQLException {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_AWSTATS_FILE);
+			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_AWSTATS_FILE);
 			daemonOut.writeUTF(siteName);
 			daemonOut.writeUTF(path);
 			daemonOut.writeUTF(queryString);
@@ -872,7 +872,7 @@ final public class AOServDaemonConnector {
 
 			byte[] buff=BufferManager.getBytes();
 			try {
-				CompressedDataInputStream in=conn.getResponseIn();
+				StreamableInput in=conn.getResponseIn();
 				int code;
 				while((code=in.read())==AOServDaemonProtocol.NEXT) {
 					int len=in.readShort();
@@ -901,12 +901,12 @@ final public class AOServDaemonConnector {
 	public boolean compareLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.COMPARE_LINUX_ACCOUNT_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.COMPARE_LINUX_ACCOUNT_PASSWORD);
 			out.writeUTF(username.toString());
 			out.writeUTF(password);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readBoolean();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -926,12 +926,12 @@ final public class AOServDaemonConnector {
 	public String getEncryptedMySQLUserPassword(int mysqlServer, com.aoindustries.aoserv.client.mysql.User.Name username) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD);
 			out.writeCompressedInt(mysqlServer);
 			out.writeUTF(username.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readUTF();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -984,11 +984,11 @@ final public class AOServDaemonConnector {
 	public String getPostgresUserPassword(int pkey) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_POSTGRES_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_POSTGRES_PASSWORD);
 			out.writeCompressedInt(pkey);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readUTF();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1021,7 +1021,7 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GRANT_DAEMON_ACCESS);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GRANT_DAEMON_ACCESS);
 			out.writeLong(key);
 			out.writeCompressedInt(command);
 			out.writeBoolean(param1!=null); if(param1!=null) out.writeUTF(param1);
@@ -1030,7 +1030,7 @@ final public class AOServDaemonConnector {
 			out.writeBoolean(param4!=null); if(param4!=null) out.writeUTF(param4);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code!=AOServDaemonProtocol.DONE) {
 				if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1048,14 +1048,14 @@ final public class AOServDaemonConnector {
 	/*public void initializeHttpdSitePasswdFile(int sitePKey, String username, String encPassword) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out=conn.getOutputStream();
+			StreamableOutput out=conn.getOutputStream();
 			out.writeCompressedInt(AOServDaemonProtocol.INITIALIZE_HTTPD_SITE_PASSWD_FILE);
 			out.writeCompressedInt(sitePKey);
 			out.writeUTF(username);
 			out.writeUTF(encPassword);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return;
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1088,11 +1088,11 @@ final public class AOServDaemonConnector {
 	public void removeEmailList(PosixPath listPath) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.REMOVE_EMAIL_LIST);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.REMOVE_EMAIL_LIST);
 			out.writeUTF(listPath.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1113,10 +1113,10 @@ final public class AOServDaemonConnector {
 	private void controlProcess(int command) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(command);
+			StreamableOutput out = conn.getRequestOut(command);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1137,11 +1137,11 @@ final public class AOServDaemonConnector {
 	private void controlProcess(int command, int param1) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(command);
+			StreamableOutput out = conn.getRequestOut(command);
 			out.writeCompressedInt(param1);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1184,7 +1184,7 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_AUTORESPONDER_CONTENT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_AUTORESPONDER_CONTENT);
 			out.writeUTF(path.toString());
 			out.writeBoolean(content!=null);
 			if(content!=null) out.writeUTF(content);
@@ -1192,7 +1192,7 @@ final public class AOServDaemonConnector {
 			out.writeCompressedInt(gid);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return;
 			if(code==AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1216,12 +1216,12 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_CRON_TABLE);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_CRON_TABLE);
 			out.writeUTF(username.toString());
 			out.writeUTF(cronTable);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return;
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1241,7 +1241,7 @@ final public class AOServDaemonConnector {
 	public void setEmailListFile(PosixPath path, String file, int uid, int gid, int mode) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_EMAIL_LIST_FILE);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_EMAIL_LIST_FILE);
 			out.writeUTF(path.toString());
 			out.writeUTF(file);
 			out.writeCompressedInt(uid);
@@ -1249,7 +1249,7 @@ final public class AOServDaemonConnector {
 			out.writeCompressedInt(mode);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1270,7 +1270,7 @@ final public class AOServDaemonConnector {
 	public void setEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String encryptedPassword, Integer changedDate) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD);
 			out.writeUTF(username.toString());
 			out.writeUTF(encryptedPassword);
 			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
@@ -1278,7 +1278,7 @@ final public class AOServDaemonConnector {
 			}
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1299,12 +1299,12 @@ final public class AOServDaemonConnector {
 	public void setLinuxServerAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String plain_password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD);
 			out.writeUTF(username.toString());
 			out.writeUTF(plain_password);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1325,13 +1325,13 @@ final public class AOServDaemonConnector {
 	public void setMySQLUserPassword(int mysqlServer, com.aoindustries.aoserv.client.mysql.User.Name username, String password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD);
 			out.writeCompressedInt(mysqlServer);
 			out.writeUTF(username.toString());
 			out.writeBoolean(password!=null); if(password!=null) out.writeUTF(password);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1352,12 +1352,12 @@ final public class AOServDaemonConnector {
 	public void setPostgresUserPassword(int pkey, String password) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SET_POSTGRES_USER_PASSWORD);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SET_POSTGRES_USER_PASSWORD);
 			out.writeCompressedInt(pkey);
 			out.writeBoolean(password!=null); if(password!=null) out.writeUTF(password);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1386,11 +1386,11 @@ final public class AOServDaemonConnector {
 	public void startDistro(boolean includeUser) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.START_DISTRO);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.START_DISTRO);
 			out.writeBoolean(includeUser);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1411,11 +1411,11 @@ final public class AOServDaemonConnector {
 	public String startJVM(int httpdSite) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.START_JVM);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.START_JVM);
 			out.writeCompressedInt(httpdSite);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readBoolean()?in.readUTF():null;
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1459,11 +1459,11 @@ final public class AOServDaemonConnector {
 	public String stopJVM(int httpdSite) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.STOP_JVM);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.STOP_JVM);
 			out.writeCompressedInt(httpdSite);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readBoolean()?in.readUTF():null;
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1503,7 +1503,7 @@ final public class AOServDaemonConnector {
 		int param1,
 		boolean gzip,
 		DumpSizeCallback onDumpSize,
-		CompressedDataOutputStream masterOut
+		StreamableOutput masterOut
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
@@ -1513,7 +1513,7 @@ final public class AOServDaemonConnector {
 						+ AOServDaemonProtocol.Version.VERSION_1_80_0
 						+ " or higher.  Current version is " + conn.protocolVersion + '.');
 			}
-			CompressedDataOutputStream out = conn.getRequestOut(command);
+			StreamableOutput out = conn.getRequestOut(command);
 			out.writeCompressedInt(param1);
 			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 				out.writeBoolean(gzip);
@@ -1533,11 +1533,11 @@ final public class AOServDaemonConnector {
 	private void transferStream(
 		int command,
 		String param1,
-		CompressedDataOutputStream masterOut
+		StreamableOutput masterOut
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out=conn.getOutputStream();
+			StreamableOutput out=conn.getOutputStream();
 			out.writeCompressedInt(command);
 			out.writeUTF(param1);
 			out.flush();
@@ -1556,12 +1556,12 @@ final public class AOServDaemonConnector {
 	private void transferStream(
 		int command,
 		String param1,
-		CompressedDataOutputStream masterOut,
+		StreamableOutput masterOut,
 		long skipBytes
 	) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out=conn.getOutputStream();
+			StreamableOutput out=conn.getOutputStream();
 			out.writeCompressedInt(command);
 			out.writeUTF(param1);
 			out.writeLong(skipBytes);
@@ -1585,9 +1585,9 @@ final public class AOServDaemonConnector {
 	private void transferStream0(
 		AOServDaemonConnection conn,
 		DumpSizeCallback onDumpSize,
-		CompressedDataOutputStream masterOut
+		StreamableOutput masterOut
 	) throws IOException, SQLException {
-		CompressedDataInputStream in=conn.getResponseIn();
+		StreamableInput in=conn.getResponseIn();
 		long dumpSize;
 		if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 			dumpSize = in.readLong();
@@ -1626,7 +1626,7 @@ final public class AOServDaemonConnector {
 	private void waitFor(int taskCode) throws IOException, SQLException {
 		AOServDaemonConnection conn = getConnection();
 		try {
-			CompressedDataOutputStream out;
+			StreamableOutput out;
 			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 				// Older protocol use a single WAIT_FOR_REBUILD with a follow-up table ID.
 				// Table IDs can change over time, so the new protocol uses distinct task codes for each type of wait.
@@ -1668,7 +1668,7 @@ final public class AOServDaemonConnector {
 			}
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1735,10 +1735,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_3WARE_RAID_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_3WARE_RAID_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1761,10 +1761,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_UPS_STATUS);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_UPS_STATUS);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1787,10 +1787,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_MD_STAT_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_MD_STAT_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1813,10 +1813,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_MD_MISMATCH_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_MD_MISMATCH_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1839,10 +1839,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_DRBD_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_DRBD_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1860,11 +1860,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY);
 			out.writeCompressedInt(replication);
 			out.flush();
 
-			CompressedDataInputStream in = conn.getResponseIn();
+			StreamableInput in = conn.getResponseIn();
 			int code=in.read();
 			if(code == AOServDaemonProtocol.DONE)          return new Tuple2<>(in.readLong(), in.readUTF());
 			if(code == AOServDaemonProtocol.IO_EXCEPTION)  throw new IOException(in.readUTF());
@@ -1887,10 +1887,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_LVM_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_LVM_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) {
 				return new String[] {
@@ -1919,10 +1919,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_HDD_TEMP_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_HDD_TEMP_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1945,10 +1945,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_HDD_MODEL_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_HDD_MODEL_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1971,10 +1971,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_FILESYSTEMS_CSV_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_FILESYSTEMS_CSV_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -1997,10 +1997,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_AO_SERVER_LOADAVG_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_AO_SERVER_LOADAVG_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2023,10 +2023,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_AO_SERVER_MEMINFO_REPORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_AO_SERVER_MEMINFO_REPORT);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2054,7 +2054,7 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CHECK_PORT);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.CHECK_PORT);
 			out.writeUTF(ipAddress.toString());
 			out.writeCompressedInt(port.getPort());
 			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
@@ -2067,7 +2067,7 @@ final public class AOServDaemonConnector {
 			out.writeUTF(monitoringParameters);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2090,12 +2090,12 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SMTP_BLACKLIST);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SMTP_BLACKLIST);
 			out.writeUTF(sourceIp.toString());
 			out.writeUTF(connectIp.toString());
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2122,14 +2122,14 @@ final public class AOServDaemonConnector {
 					)
 				);
 			} else {
-				CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SSL_CERTIFICATE);
+				StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.CHECK_SSL_CERTIFICATE);
 				out.writeCompressedInt(sslCertificate);
 				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_83_0) >= 0) {
 					out.writeBoolean(allowCached);
 				}
 				out.flush();
 
-				CompressedDataInputStream in = conn.getResponseIn();
+				StreamableInput in = conn.getResponseIn();
 				int code = in.read();
 				if(code == AOServDaemonProtocol.NEXT) {
 					int size = in.readCompressedInt();
@@ -2166,10 +2166,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_AO_SERVER_SYSTEM_TIME_MILLIS);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_AO_SERVER_SYSTEM_TIME_MILLIS);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readLong();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2190,10 +2190,10 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_XEN_AUTO_START_LINKS);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_XEN_AUTO_START_LINKS);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) {
 				int numLinks = in.readCompressedInt();
@@ -2221,11 +2221,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.CREATE_VIRTUAL_SERVER);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.CREATE_VIRTUAL_SERVER);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2246,11 +2246,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.REBOOT_VIRTUAL_SERVER);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.REBOOT_VIRTUAL_SERVER);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2271,11 +2271,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.SHUTDOWN_VIRTUAL_SERVER);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.SHUTDOWN_VIRTUAL_SERVER);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2296,11 +2296,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.DESTROY_VIRTUAL_SERVER);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.DESTROY_VIRTUAL_SERVER);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2321,11 +2321,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.PAUSE_VIRTUAL_SERVER);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.PAUSE_VIRTUAL_SERVER);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2346,11 +2346,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.UNPAUSE_VIRTUAL_SERVER);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.UNPAUSE_VIRTUAL_SERVER);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readUTF();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2371,11 +2371,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_VIRTUAL_SERVER_STATUS);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_VIRTUAL_SERVER_STATUS);
 			out.writeUTF(virtualServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code==AOServDaemonProtocol.DONE) return in.readCompressedInt();
 			if (code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2395,12 +2395,12 @@ final public class AOServDaemonConnector {
 	public long verifyVirtualDisk(String virtualServerName, String device) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.VERIFY_VIRTUAL_DISK);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.VERIFY_VIRTUAL_DISK);
 			out.writeUTF(virtualServerName);
 			out.writeUTF(device);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result == AOServDaemonProtocol.DONE) return in.readLong();
 			else if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2420,13 +2420,13 @@ final public class AOServDaemonConnector {
 	public void updateVirtualDiskLastVerified(String virtualServerName, String device, long lastVerified) throws IOException, SQLException {
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.UPDATE_VIRTUAL_DISK_LAST_UPDATED);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.UPDATE_VIRTUAL_DISK_LAST_UPDATED);
 			out.writeUTF(virtualServerName);
 			out.writeUTF(device);
 			out.writeLong(lastVerified);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int result = in.read();
 			if (result != AOServDaemonProtocol.DONE) {
 				if (result == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());
@@ -2450,11 +2450,11 @@ final public class AOServDaemonConnector {
 		// Establish the connection to the server
 		AOServDaemonConnection conn=getConnection();
 		try {
-			CompressedDataOutputStream out = conn.getRequestOut(AOServDaemonProtocol.GET_HTTPD_SERVER_CONCURRENCY);
+			StreamableOutput out = conn.getRequestOut(AOServDaemonProtocol.GET_HTTPD_SERVER_CONCURRENCY);
 			out.writeCompressedInt(httpdServer);
 			out.flush();
 
-			CompressedDataInputStream in=conn.getResponseIn();
+			StreamableInput in=conn.getResponseIn();
 			int code=in.read();
 			if(code == AOServDaemonProtocol.DONE) return in.readCompressedInt();
 			if(code == AOServDaemonProtocol.IO_EXCEPTION) throw new IOException(in.readUTF());

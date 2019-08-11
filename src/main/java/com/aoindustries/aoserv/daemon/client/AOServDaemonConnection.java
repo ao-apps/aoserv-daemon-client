@@ -24,8 +24,8 @@ package com.aoindustries.aoserv.daemon.client;
 
 import com.aoindustries.aoserv.client.net.AppProtocol;
 import com.aoindustries.io.AOPool;
-import com.aoindustries.io.CompressedDataInputStream;
-import com.aoindustries.io.CompressedDataOutputStream;
+import com.aoindustries.io.stream.StreamableInput;
+import com.aoindustries.io.stream.StreamableOutput;
 import com.aoindustries.util.AoArrays;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -137,12 +137,12 @@ final public class AOServDaemonConnection {
 	/**
 	 * The output stream to the server.
 	 */
-	private final CompressedDataOutputStream out;
+	private final StreamableOutput out;
 
 	/**
 	 * The input stream from the server.
 	 */
-	private final CompressedDataInputStream in;
+	private final StreamableInput in;
 
 	/**
 	 * The negotiated protocol version.
@@ -166,15 +166,15 @@ final public class AOServDaemonConnection {
 	 */
 	protected AOServDaemonConnection(AOServDaemonConnector connector) throws InterruptedIOException, IOException {
 		Socket newSocket = null;
-		CompressedDataOutputStream newOut = null;
-		CompressedDataInputStream newIn = null;
+		StreamableOutput newOut = null;
+		StreamableInput newIn = null;
 		AOServDaemonProtocol.Version selectedVersion = null;
 		long newStartSeq = 0;
 		boolean successful = false;
 		try {
 			newSocket = connect(connector);
-			newOut = new CompressedDataOutputStream(new BufferedOutputStream(newSocket.getOutputStream()));
-			newIn = new CompressedDataInputStream(new BufferedInputStream(newSocket.getInputStream()));
+			newOut = new StreamableOutput(new BufferedOutputStream(newSocket.getOutputStream()));
+			newIn = new StreamableInput(new BufferedInputStream(newSocket.getInputStream()));
 
 			// Write the most preferred version
 			newOut.writeUTF(SUPPORTED_VERSIONS[0].getVersion());
@@ -220,8 +220,8 @@ final public class AOServDaemonConnection {
 					// Reconnect as forced protocol 1.77, since we already sent extra output incompatible with 1.77
 					close(connector, newIn, newOut, newSocket);
 					newSocket = connect(connector);
-					newOut = new CompressedDataOutputStream(new BufferedOutputStream(newSocket.getOutputStream()));
-					newIn = new CompressedDataInputStream(new BufferedInputStream(newSocket.getInputStream()));
+					newOut = new StreamableOutput(new BufferedOutputStream(newSocket.getOutputStream()));
+					newIn = new StreamableInput(new BufferedInputStream(newSocket.getInputStream()));
 					newOut.writeUTF(AOServDaemonProtocol.Version.VERSION_1_77.getVersion());
 					newOut.writeNullUTF(connector.key);
 					newOut.flush();
@@ -302,7 +302,7 @@ final public class AOServDaemonConnection {
 	/**
 	 * Begins a task and gets the stream to write to the server.
 	 */
-	public CompressedDataOutputStream getRequestOut(int taskCode) throws IOException {
+	public StreamableOutput getRequestOut(int taskCode) throws IOException {
 		// Increment sequence
 		currentSeq = seq.getAndIncrement();
 		// Send command sequence
@@ -316,7 +316,7 @@ final public class AOServDaemonConnection {
 	/**
 	 * Gets the stream to read from the server.
 	 */
-	public CompressedDataInputStream getResponseIn() throws IOException {
+	public StreamableInput getResponseIn() throws IOException {
 		// Verify server sends matching sequence
 		if(protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
 			long serverSeq = in.readLong();
