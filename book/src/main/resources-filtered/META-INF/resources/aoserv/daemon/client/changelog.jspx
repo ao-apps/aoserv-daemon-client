@@ -36,7 +36,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2019-08-18T03:01:13-0500"
+		dateModified="2019-10-11T19:35:26-0500"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -51,24 +51,33 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 				groupId="@{documented.groupId}"
 				artifactId="@{documented.artifactId}"
 				scmUrl="@{documented.scm.url}"
-			>
-				<ul>
-					<li>
-						<p>
-							New parameter <code>allowCached</code> added to <code>checkSslCertificate(…)</code>
-							that sets whether cached values are allowed in the responses.  Cached
-							values are best for background processing like monitoring.  Direct
-							values are best for interactive use, at the expense of additional
-							processing.
-						</p>
-						<p>
-							Communication via older protocols defaults to <code>allowCached = true</code>.
-						</p>
-					</li>
-					<li>Updated for compatibility with <core:link book="/aocode-public" page="/changelog.jspx" element="release-notes-3.1.0">aocode-public-3.1.0</core:link>.</li>
-				</ul>
-			</changelog:release>
+			/>
 		</c:if>
+
+		<changelog:release
+			projectName="@{documented.name}"
+			version="1.83.0"
+			datePublished="2019-10-11T19:35:26-0500"
+			groupId="@{documented.groupId}"
+			artifactId="@{documented.artifactId}"
+			scmUrl="@{documented.scm.url}"
+		>
+			<ul>
+				<li>
+					<p>
+						New parameter <code>allowCached</code> added to <code>checkSslCertificate(…)</code>
+						that sets whether cached values are allowed in the responses.  Cached
+						values are best for background processing like monitoring.  Direct
+						values are best for interactive use, at the expense of additional
+						processing.
+					</p>
+					<p>
+						Communication via older protocols defaults to <code>allowCached = true</code>.
+					</p>
+				</li>
+				<li>Updated for compatibility with <core:link book="/aocode-public" page="/changelog.jspx" element="release-notes-3.1.0">aocode-public-3.1.0</core:link>.</li>
+			</ul>
+		</changelog:release>
 
 		<changelog:release
 			projectName="@{documented.name}"
