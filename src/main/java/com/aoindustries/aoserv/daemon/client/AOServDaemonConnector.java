@@ -209,6 +209,7 @@ final public class AOServDaemonConnector {
 		}
 	}
 
+	@FunctionalInterface
 	public static interface DumpSizeCallback {
 		/**
 		 * Called once the dump size is known and before
