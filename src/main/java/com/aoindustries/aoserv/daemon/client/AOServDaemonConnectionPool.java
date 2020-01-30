@@ -67,9 +67,9 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 	protected void printConnectionStats(Appendable out, boolean isXhtml) throws IOException {
 		out.append("  <thead>\n"
 				+ "    <tr><th colspan=\"2\"><span style=\"font-size:large\">AOServ Daemon Connection Pool</span></th></tr>\n"
-				+ "  </thead>\n"
-				+ "  <tbody>\n"
-				+ "    <tr><td>Local IP:</td><td>");
+				+ "  </thead>\n");
+		super.printConnectionStats(out, isXhtml);
+		out.append("    <tr><td>Local IP:</td><td>");
 		com.aoindustries.util.EncodingUtils.encodeHtml(connector.local_ip.toString(), out, isXhtml);
 		out.append("</td></tr>\n"
 				+ "    <tr><td>Host:</td><td>");
