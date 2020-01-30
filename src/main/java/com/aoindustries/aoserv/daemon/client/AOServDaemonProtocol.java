@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017, 2018, 2019  AO Industries, Inc.
+ * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -22,6 +22,7 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
+import com.aoindustries.aoserv.client.schema.AoservProtocol;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -37,7 +38,7 @@ final public class AOServDaemonProtocol {
 	 * Each time the protocols are changed in a way that is not backwards-compatible, please increase this number
 	 * so that older clients will not be allowed to connect, rather than get undefined erroneous behavior.
 	 * <p>
-	 * These versions roughly match the version of {@link AOServProtocol.Version#CURRENT_VERSION} at the time they were first used.
+	 * These versions roughly match the version of {@link AoservProtocol.Version#CURRENT_VERSION} at the time they were first used.
 	 * </p>
 	 */
 	public enum Version {

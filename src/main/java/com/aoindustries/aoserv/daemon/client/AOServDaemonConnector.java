@@ -24,6 +24,7 @@ package com.aoindustries.aoserv.daemon.client;
 
 import com.aoindustries.aoserv.client.backup.MysqlReplication;
 import com.aoindustries.aoserv.client.email.InboxAttributes;
+import com.aoindustries.aoserv.client.infrastructure.VirtualServer;
 import com.aoindustries.aoserv.client.linux.PosixPath;
 import com.aoindustries.aoserv.client.monitoring.AlertLevel;
 import com.aoindustries.aoserv.client.mysql.Database.CheckTableResult;
