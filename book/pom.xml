@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
 aoserv-daemon-client - Java client for the AOServ Daemon.
-Copyright (C) 2016, 2017, 2018, 2019  AO Industries, Inc.
+Copyright (C) 2016, 2017, 2018, 2019, 2020  AO Industries, Inc.
     support@aoindustries.com
     7262 Bull Pen Cir
     Mobile, AL 36695
@@ -29,7 +29,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<relativePath>../../../ao-oss-parent/pom.xml</relativePath>
 	</parent>
 
-	<groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client-book</artifactId><version>1.83.0-POST-SNAPSHOT</version>
+	<groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client-book</artifactId><version>1.83.2-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<properties>
@@ -105,7 +105,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		</dependency>
 		<!-- Dependency for dependencyversion-maven-plugin only -->
 		<dependency>
-			<groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.83.0-POST-SNAPSHOT</version>
+			<groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.83.2-SNAPSHOT</version>
 			<type>pom</type>
 			<scope>provided</scope>
 			<optional>true</optional>
