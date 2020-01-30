@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016, 2017  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017, 2020  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -64,20 +64,22 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 
 	@Override
 	@SuppressWarnings("deprecation")
-	protected void printConnectionStats(Appendable out) throws IOException {
-		out.append("<table>\n"
-				+ "  <tr><th colspan='2'><span style='font-size:large;'>AOServ Daemon Connection Pool</span></th></tr>\n"
-				+ "  <tr><td>Local IP:</td><td>");
-		com.aoindustries.util.EncodingUtils.encodeHtml(connector.local_ip.toString(), out);
+	protected void printConnectionStats(Appendable out, boolean isXhtml) throws IOException {
+		out.append("  <thead>\n"
+				+ "    <tr><th colspan=\"2\"><span style=\"font-size:large\">AOServ Daemon Connection Pool</span></th></tr>\n"
+				+ "  </thead>\n"
+				+ "  <tbody>\n"
+				+ "    <tr><td>Local IP:</td><td>");
+		com.aoindustries.util.EncodingUtils.encodeHtml(connector.local_ip.toString(), out, isXhtml);
 		out.append("</td></tr>\n"
-				+ "  <tr><td>Host:</td><td>");
-		com.aoindustries.util.EncodingUtils.encodeHtml(connector.hostname.toString(), out);
+				+ "    <tr><td>Host:</td><td>");
+		com.aoindustries.util.EncodingUtils.encodeHtml(connector.hostname.toString(), out, isXhtml);
 		out.append("</td></tr>\n"
-				+ "  <tr><td>Port:</td><td>").append(Integer.toString(connector.port.getPort())).append("</td></tr>\n"
-				+ "  <tr><td>Protocol:</td><td>");
-		com.aoindustries.util.EncodingUtils.encodeHtml(connector.protocol, out);
+				+ "    <tr><td>Port:</td><td>").append(Integer.toString(connector.port.getPort())).append("</td></tr>\n"
+				+ "    <tr><td>Protocol:</td><td>");
+		com.aoindustries.util.EncodingUtils.encodeHtml(connector.protocol, out, isXhtml);
 		out.append("</td></tr>\n"
-				+ "  <tr><td>Key:</td><td>");
+				+ "    <tr><td>Key:</td><td>");
 		String key=connector.key;
 		int len=key.length();
 		for(int c=0;c<len;c++) {
