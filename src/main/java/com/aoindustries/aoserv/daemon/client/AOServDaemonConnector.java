@@ -116,7 +116,7 @@ final public class AOServDaemonConnector {
 		String trustStore,
 		String trustStorePassword,
 		Logger logger
-	) throws IOException {
+	) {
 		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		this.hostname=hostname;
 		this.local_ip=local_ip;
@@ -312,7 +312,7 @@ final public class AOServDaemonConnector {
 		String trustStore,
 		String trustStorePassword,
 		Logger logger
-	) throws IOException {
+	) {
 		NullArgumentException.checkNotNull(hostname, "hostname");
 		NullArgumentException.checkNotNull(local_ip, "local_ip");
 		NullArgumentException.checkNotNull(protocol, "protocol");
