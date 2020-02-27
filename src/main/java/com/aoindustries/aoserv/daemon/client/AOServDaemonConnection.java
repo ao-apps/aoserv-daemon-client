@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -164,7 +164,7 @@ final public class AOServDaemonConnection {
 	 *
 	 * // TODO: Once all daemons are running > version 1.77, can simplify this considerably
 	 */
-	protected AOServDaemonConnection(AOServDaemonConnector connector) throws InterruptedIOException, IOException {
+	protected AOServDaemonConnection(AOServDaemonConnector connector) throws IOException {
 		Socket newSocket = null;
 		StreamableOutput newOut = null;
 		StreamableInput newIn = null;
