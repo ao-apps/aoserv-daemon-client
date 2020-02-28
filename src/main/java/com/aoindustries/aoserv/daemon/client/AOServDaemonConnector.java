@@ -62,6 +62,8 @@ import java.util.logging.Logger;
  */
 final public class AOServDaemonConnector {
 
+	private static final Logger logger = Logger.getLogger(AOServDaemonConnector.class.getName());
+
 	/**
 	 * Each unique connector is only created once.
 	 */
@@ -114,8 +116,7 @@ final public class AOServDaemonConnector {
 		int poolSize,
 		long maxConnectionAge,
 		String trustStore,
-		String trustStorePassword,
-		Logger logger
+		String trustStorePassword
 	) {
 		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		this.hostname=hostname;
@@ -127,7 +128,7 @@ final public class AOServDaemonConnector {
 		this.maxConnectionAge=maxConnectionAge;
 		this.trustStore=trustStore;
 		this.trustStorePassword=trustStorePassword;
-		this.pool=new AOServDaemonConnectionPool(this, logger);
+		this.pool = new AOServDaemonConnectionPool(this, logger);
 	}
 
 	/**
@@ -275,7 +276,7 @@ final public class AOServDaemonConnector {
 		try {
 			return pool.getConnection();
 		} catch(IOException err) {
-			pool.getLogger().log(Level.INFO, "IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+			logger.log(Level.INFO, "IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
 			throw err;
 		}
 	}
@@ -310,8 +311,7 @@ final public class AOServDaemonConnector {
 		int poolSize,
 		long maxConnectionAge,
 		String trustStore,
-		String trustStorePassword,
-		Logger logger
+		String trustStorePassword
 	) {
 		NullArgumentException.checkNotNull(hostname, "hostname");
 		NullArgumentException.checkNotNull(local_ip, "local_ip");
@@ -339,8 +339,7 @@ final public class AOServDaemonConnector {
 			poolSize,
 			maxConnectionAge,
 			trustStore,
-			trustStorePassword,
-			logger
+			trustStorePassword
 		);
 		connectors.add(connector);
 		return connector;
@@ -1725,7 +1724,7 @@ final public class AOServDaemonConnector {
 	 * Gets the error handler for this and its underlying connection pool.
 	 */
 	Logger getLogger() {
-		return pool.getLogger();
+		return logger;
 	}
 
 	/**
