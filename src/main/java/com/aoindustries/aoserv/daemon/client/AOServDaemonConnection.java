@@ -162,7 +162,7 @@ final public class AOServDaemonConnection {
 	/**
 	 * Creates a new <code>AOServConnection</code>.
 	 *
-	 * // TODO: Once all daemons are running > version 1.77, can simplify this considerably
+	 * // TODO: Once all daemons are running &gt; version 1.77, can simplify this considerably
 	 */
 	protected AOServDaemonConnection(AOServDaemonConnector connector) throws IOException {
 		Socket newSocket = null;
