@@ -23,10 +23,11 @@
 package com.aoindustries.aoserv.daemon.client;
 
 import com.aoindustries.aoserv.client.net.AppProtocol;
+import com.aoindustries.collections.AoArrays;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.io.stream.StreamableInput;
 import com.aoindustries.io.stream.StreamableOutput;
-import com.aoindustries.util.AoArrays;
+import com.aoindustries.lang.EmptyArrays;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.IOException;
@@ -205,7 +206,7 @@ final public class AOServDaemonConnection {
 				String[] extraVersions;
 				if(preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())) {
 					// Server 1.77 only sends the single preferred version
-					extraVersions = AoArrays.EMPTY_STRING_ARRAY;
+					extraVersions = EmptyArrays.EMPTY_STRING_ARRAY;
 				} else {
 					int numExtraVersions = newIn.readCompressedInt();
 					extraVersions = new String[numExtraVersions];
