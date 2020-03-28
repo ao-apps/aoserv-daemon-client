@@ -53,6 +53,11 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<tag>HEAD</tag>
 	</scm>
 
+	<issueManagement>
+		<system>GitHub Issues</system>
+		<url>https://github.com/aoindustries/aoserv-daemon-client/issues</url>
+	</issueManagement>
+
 	<profiles>
 		<profile>
 			<id>release</id>
