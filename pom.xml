@@ -46,7 +46,6 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 	<inceptionYear>2001</inceptionYear>
 
 	<scm>
-		<!-- Can't inherit due to multi-module -->
 		<connection>scm:git:git://github.com/aoindustries/aoserv-daemon-client.git</connection>
 		<developerConnection>scm:git:git@github.com:aoindustries/aoserv-daemon-client.git</developerConnection>
 		<url>https://github.com/aoindustries/aoserv-daemon-client</url>
