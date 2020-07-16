@@ -693,6 +693,7 @@ final public class AOServDaemonConnector {
 	public MysqlReplication.SlaveStatus getMySQLSlaveStatus(
 		PosixPath failoverRoot,
 		int nestedOperatingSystemVersion,
+		Server.Name serverName,
 		Port port
 	) throws IOException, SQLException {
 		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
@@ -702,6 +703,9 @@ final public class AOServDaemonConnector {
 			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS);
 			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+				daemonOut.writeUTF(serverName.toString());
+			}
 			daemonOut.writeCompressedInt(port.getPort());
 			daemonOut.flush();
 
@@ -744,6 +748,7 @@ final public class AOServDaemonConnector {
 	public List<TableStatus> getMySQLTableStatus(
 		PosixPath failoverRoot,
 		int nestedOperatingSystemVersion,
+		Server.Name serverName,
 		Port port,
 		com.aoindustries.aoserv.client.mysql.Database.Name databaseName
 	) throws IOException, SQLException {
@@ -754,6 +759,9 @@ final public class AOServDaemonConnector {
 			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS);
 			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+				daemonOut.writeUTF(serverName.toString());
+			}
 			daemonOut.writeCompressedInt(port.getPort());
 			daemonOut.writeUTF(databaseName.toString());
 			daemonOut.flush();
@@ -809,6 +817,7 @@ final public class AOServDaemonConnector {
 	public List<CheckTableResult> checkMySQLTables(
 		PosixPath failoverRoot,
 		int nestedOperatingSystemVersion,
+		Server.Name serverName,
 		Port port,
 		com.aoindustries.aoserv.client.mysql.Database.Name databaseName,
 		List<? extends Table_Name> tableNames
@@ -820,6 +829,9 @@ final public class AOServDaemonConnector {
 			StreamableOutput daemonOut = conn.getRequestOut(AOServDaemonProtocol.CHECK_MYSQL_TABLES);
 			daemonOut.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 			daemonOut.writeCompressedInt(nestedOperatingSystemVersion);
+			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+				daemonOut.writeUTF(serverName.toString());
+			}
 			daemonOut.writeCompressedInt(port.getPort());
 			daemonOut.writeUTF(databaseName.toString());
 			int numTables = tableNames.size();
