@@ -37,7 +37,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2020-07-18T23:34:13-05:00"
+		dateModified="2020-09-15T04:09:01-05:00"
 	>
 		<!-- The current snapshot, unreleased version -->
 		<c:set var="version" value="@{com.aoindustries:aoserv-daemon-client:pom.version}" />
@@ -52,7 +52,21 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 				groupId="@{project.groupId}"
 				artifactId="@{documented.artifactId}"
 				scmUrl="@{project.scm.url}"
-			/>
+			>
+				<ul>
+					<li>
+						<code>AOServDaemonConnection</code> now implements <code>Closeable</code> for use
+						in try-with-resources.  This is a behind-the-scenes detail and does not change
+						the public API.
+					</li>
+					<li>Significantly reduced the redundancy within the implementation of <code>AOServDaemonConnector</code>.</li>
+					<li>
+						No longer closing connection from a <code>IOException</code> that was serialized across the conection.
+						Previously, there was no distinction between a exception on the connection versus serialized over
+						the connection, and the connection was forced closed in either case.
+					</li>
+				</ul>
+			</changelog:release>
 		</c:if>
 
 		<changelog:release

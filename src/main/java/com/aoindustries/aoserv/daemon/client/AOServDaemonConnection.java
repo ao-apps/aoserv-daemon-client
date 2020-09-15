@@ -27,17 +27,18 @@ import com.aoindustries.collections.AoArrays;
 import com.aoindustries.io.AOPool;
 import com.aoindustries.io.stream.StreamableInput;
 import com.aoindustries.io.stream.StreamableOutput;
+import com.aoindustries.lang.AutoCloseables;
 import com.aoindustries.lang.EmptyArrays;
+import com.aoindustries.lang.Throwables;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InterruptedIOException;
-import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.logging.Level;
 import javax.net.ssl.SSLSocketFactory;
 
 /**
@@ -45,7 +46,7 @@ import javax.net.ssl.SSLSocketFactory;
  *
  * @author  AO Industries, Inc.
  */
-final public class AOServDaemonConnection {
+final public class AOServDaemonConnection implements Closeable {
 
 	/**
 	 * The set of supported versions, with the most preferred versions first.
@@ -90,38 +91,6 @@ final public class AOServDaemonConnection {
 	}
 
 	/**
-	 * Closes a socket while logging any {@link IOException} as a warning.
-	 */
-	private static void close(
-		AOServDaemonConnector connector,
-		InputStream i,
-		OutputStream o,
-		Socket s
-	) {
-		if(i != null) {
-			try {
-				i.close();
-			} catch(IOException err) {
-				connector.getLogger().log(Level.WARNING, null, err);
-			}
-		}
-		if(o != null) {
-			try {
-				o.close();
-			} catch(IOException err) {
-				connector.getLogger().log(Level.WARNING, null, err);
-			}
-		}
-		if(s != null) {
-			try {
-				s.close();
-			} catch(IOException err) {
-				connector.getLogger().log(Level.WARNING, null, err);
-			}
-		}
-	}
-
-	/**
 	 * The connector that this connection is part of.
 	 */
 	private final AOServDaemonConnector connector;
@@ -129,7 +98,7 @@ final public class AOServDaemonConnection {
 	/**
 	 * Keeps a flag of the connection status.
 	 */
-	private boolean isClosed = true;
+	private final AtomicBoolean isClosed = new AtomicBoolean(true);
 
 	/**
 	 * The socket to the server.
@@ -172,7 +141,6 @@ final public class AOServDaemonConnection {
 		StreamableInput newIn = null;
 		AOServDaemonProtocol.Version selectedVersion = null;
 		long newStartSeq = 0;
-		boolean successful = false;
 		try {
 			newSocket = connect(connector);
 			newOut = new StreamableOutput(new BufferedOutputStream(newSocket.getOutputStream()));
@@ -220,7 +188,11 @@ final public class AOServDaemonConnection {
 					&& AoArrays.indexOf(SUPPORTED_VERSIONS, AOServDaemonProtocol.Version.VERSION_1_77) != -1
 				) {
 					// Reconnect as forced protocol 1.77, since we already sent extra output incompatible with 1.77
-					close(connector, newIn, newOut, newSocket);
+					Throwable closeT = AutoCloseables.closeAndCatch(newIn, newOut, newSocket);
+					newIn = null;
+					newOut = null;
+					newSocket = null;
+					if(closeT != null) throw closeT;
 					newSocket = connect(connector);
 					newOut = new StreamableOutput(new BufferedOutputStream(newSocket.getOutputStream()));
 					newIn = new StreamableInput(new BufferedInputStream(newSocket.getInputStream()));
@@ -268,35 +240,52 @@ final public class AOServDaemonConnection {
 					throw new IOException(message.toString());
 				}
 			}
-			successful = true;
-		} finally {
-			if(!successful) {
-				close(connector, newIn, newOut, newSocket);
-			}
+			assert newSocket != null;
+			assert newOut != null;
+			assert newIn != null;
+			assert selectedVersion != null;
+			this.connector = connector;
+			this.isClosed.set(false);
+			this.socket = newSocket;
+			this.out = newOut;
+			this.in = newIn;
+			this.protocolVersion = selectedVersion;
+			//this.startSeq = newStartSeq;
+			this.seq = new AtomicLong(newStartSeq);
+		} catch(Throwable t) {
+			throw AutoCloseables.closeAndWrap(t, IOException.class, IOException::new, newIn, newOut, newSocket);
 		}
-		assert successful;
-		assert newSocket != null;
-		assert newOut != null;
-		assert newIn != null;
-		assert selectedVersion != null;
-		this.connector = connector;
-		this.isClosed = false;
-		this.socket = newSocket;
-		this.out = newOut;
-		this.in = newIn;
-		this.protocolVersion = selectedVersion;
-		//this.startSeq = newStartSeq;
-		this.seq = new AtomicLong(newStartSeq);
 	}
 
 	/**
-	 * Closes this connection to the server
-	 * so that a reconnect is forced in the
-	 * future.
+	 * Releases this connection back to the pool.
+	 *
+	 * @see  AOServDaemonConnector#release(com.aoindustries.aoserv.daemon.client.AOServDaemonConnection)
 	 */
-	public void close() {
-		close(connector, in, out, socket);
-		isClosed = true;
+	@Override
+	public void close() throws IOException {
+		connector.release(this);
+	}
+
+	/**
+	 * Closes this connection to the server so that a reconnect is forced in the future.
+	 * Adds any new throwables to {@code t0} via {@link Throwables#addSuppressed(java.lang.Throwable, java.lang.Throwable)}.
+	 */
+	public Throwable abort(Throwable t0) {
+		if(!isClosed.getAndSet(true)) {
+			t0 = AutoCloseables.closeAndCatch(t0, in, out, socket);
+		}
+		return t0;
+	}
+
+	/**
+	 * Closes this connection to the server so that a reconnect is forced in the future.
+	 */
+	public void abort() throws IOException {
+		Throwable t0 = abort(null);
+		if(t0 != null) {
+			throw Throwables.wrap(t0, IOException.class, IOException::new);
+		}
 	}
 
 	private long currentSeq;
@@ -331,6 +320,6 @@ final public class AOServDaemonConnection {
 	 * Determines if this connection has been closed.
 	 */
 	boolean isClosed() {
-		return isClosed;
+		return isClosed.get();
 	}
 }

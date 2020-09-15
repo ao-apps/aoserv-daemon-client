@@ -48,8 +48,14 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 	}
 
 	@Override
-	protected void close(AOServDaemonConnection conn) {
-		conn.close();
+	protected void close(AOServDaemonConnection conn) throws IOException {
+		conn.abort();
+	}
+
+	// Expose to package
+	@Override
+	protected void release(AOServDaemonConnection conn) throws IOException {
+		super.release(conn);
 	}
 
 	@Override
