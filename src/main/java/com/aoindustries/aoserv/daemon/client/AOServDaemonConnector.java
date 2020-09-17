@@ -142,6 +142,11 @@ final public class AOServDaemonConnector {
 	 * pooling is obtained this way.  These connections may be over any protocol,
 	 * so they may only be used for one client/server exchange at a time.
 	 */
+	// TODO: Implement the last uses of this as Request/Response, then make this not public
+	//       This might mean implementing direct socket I/O as some sort of wrapper that creates
+	//       a bidirectional stream on top of Request/Response.  This would make everything
+	//       request/response-based, which would mean we could then run on HTTP either directly
+	//       or using ao-messaging.
 	public AOServDaemonConnection getConnection() throws IOException {
 		try {
 			return pool.getConnection();
