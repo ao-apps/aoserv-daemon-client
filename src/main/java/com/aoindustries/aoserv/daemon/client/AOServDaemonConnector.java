@@ -34,6 +34,7 @@ import com.aoindustries.aoserv.client.mysql.Server;
 import com.aoindustries.aoserv.client.mysql.Table_Name;
 import com.aoindustries.aoserv.client.pki.Certificate;
 import com.aoindustries.aoserv.client.schema.AoservProtocol;
+import com.aoindustries.collections.AoCollections;
 import com.aoindustries.io.stream.StreamableInput;
 import com.aoindustries.io.stream.StreamableOutput;
 import com.aoindustries.lang.NullArgumentException;
@@ -48,7 +49,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
@@ -2018,7 +2018,7 @@ final public class AOServDaemonConnector {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 					int numLinks = in.readCompressedInt();
-					Set<String> links = new LinkedHashSet<>(numLinks*4/3+1);
+					Set<String> links = AoCollections.newLinkedHashSet(numLinks);
 					for(int i=0; i<numLinks; i++) {
 						links.add(in.readUTF());
 					}
