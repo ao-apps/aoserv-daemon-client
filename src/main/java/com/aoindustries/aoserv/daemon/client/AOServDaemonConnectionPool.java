@@ -101,16 +101,41 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOE
 	@Override
 	protected IOException newException(String message, Throwable cause) {
 		if(cause instanceof IOException) return (IOException)cause;
-		IOException err = new IOException(message);
-		if(cause != null) err.initCause(cause);
-		return err;
+		if(cause instanceof InterruptedException) return newInterruptedException(message, cause);
+		if(message == null) {
+			if(cause == null) {
+				return new IOException();
+			} else {
+				return new IOException(cause);
+			}
+		} else {
+			if(cause == null) {
+				return new IOException(message);
+			} else {
+				return new IOException(message, cause);
+			}
+		}
 	}
 
 	@Override
 	protected InterruptedIOException newInterruptedException(String message, Throwable cause) {
 		if(cause instanceof InterruptedIOException) return (InterruptedIOException)cause;
-		InterruptedIOException err = new InterruptedIOException(message);
-		if(cause != null) err.initCause(cause);
-		return err;
+		if(message == null) {
+			if(cause == null) {
+				return new InterruptedIOException();
+			} else {
+				InterruptedIOException err = new InterruptedIOException(cause.toString());
+				err.initCause(cause);
+				return err;
+			}
+		} else {
+			if(cause == null) {
+				return new InterruptedIOException(message);
+			} else {
+				InterruptedIOException err = new InterruptedIOException(message);
+				err.initCause(cause);
+				return err;
+			}
+		}
 	}
 }
