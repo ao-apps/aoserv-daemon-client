@@ -460,8 +460,6 @@ final public class AOServDaemonConnector {
 	private static class VoidResponse extends Response {
 
 		/**
-		 * {@inheritDoc}
-		 *
 		 * @return  {@code true} if the request should continue, or {@code false} to skip the request and proceed to
 		 *          {@link #after()}
 		 */
@@ -501,8 +499,6 @@ final public class AOServDaemonConnector {
 		protected T result;
 
 		/**
-		 * {@inheritDoc}
-		 *
 		 * @return  {@code true} if the request should continue, or {@code false} to skip the request and proceed to
 		 *          {@link #after()}
 		 */
