@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020  AO Industries, Inc.
+ * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -66,7 +66,8 @@ final public class AOServDaemonProtocol {
 		VERSION_1_80_1("1.80.1"),
 		VERSION_1_81_10("1.81.10"),
 		VERSION_1_83_0("1.83.0"),
-		VERSION_1_84_11("1.84.11");
+		VERSION_1_84_11("1.84.11"),
+		VERSION_1_84_13("1.84.13");
 
 		private static final Map<String,Version> versionMap = new HashMap<>();
 		static {

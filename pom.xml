@@ -29,7 +29,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		<relativePath>../../ao-oss-parent/pom.xml</relativePath>
 	</parent>
 
-	<groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.84.12-POST-SNAPSHOT</version>
+	<groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.84.13-SNAPSHOT</version>
 	<packaging>bundle</packaging>
 
 	<properties>
@@ -109,6 +109,11 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 											<outputDirectory>${project.build.directory}/offlineLinks/com.aoindustries/ao-net-types</outputDirectory>
 										</artifactItem>
 										<artifactItem>
+											<groupId>com.aoindustries</groupId><artifactId>ao-security</artifactId><classifier>javadoc</classifier>
+											<includes>element-list, package-list</includes>
+											<outputDirectory>${project.build.directory}/offlineLinks/com.aoindustries/ao-security</outputDirectory>
+										</artifactItem>
+										<artifactItem>
 											<groupId>com.aoindustries</groupId><artifactId>aocode-public</artifactId><classifier>javadoc</classifier>
 											<includes>element-list, package-list</includes>
 											<outputDirectory>${project.build.directory}/offlineLinks/com.aoindustries/aocode-public</outputDirectory>
@@ -139,6 +144,10 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 								<offlineLink>
 									<url>https://aoindustries.com/ao-net-types/apidocs/</url>
 									<location>${project.build.directory}/offlineLinks/com.aoindustries/ao-net-types</location>
+								</offlineLink>
+								<offlineLink>
+									<url>https://aoindustries.com/ao-security/apidocs/</url>
+									<location>${project.build.directory}/offlineLinks/com.aoindustries/ao-security</location>
 								</offlineLink>
 								<offlineLink>
 									<url>https://aoindustries.com/aocode-public/apidocs/</url>
@@ -174,15 +183,15 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 				<groupId>com.aoindustries</groupId><artifactId>ao-net-types</artifactId><version>1.2.4${POST-SNAPSHOT}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.aoindustries</groupId><artifactId>ao-security</artifactId><version>2.2.0${POST-SNAPSHOT}</version>
+			</dependency>
+			<dependency>
 				<groupId>com.aoindustries</groupId><artifactId>aocode-public</artifactId><version>4.7.2${POST-SNAPSHOT}</version>
 			</dependency>
 			<dependency>
 				<groupId>com.aoindustries</groupId><artifactId>aoserv-client</artifactId><version>1.84.13-SNAPSHOT<!-- ${POST-SNAPSHOT} --></version>
 			</dependency>
 			<!-- Transitive -->
-			<dependency>
-				<groupId>com.aoindustries</groupId><artifactId>ao-security</artifactId><version>2.1.0${POST-SNAPSHOT}</version>
-			</dependency>
 			<dependency>
 				<groupId>com.aoindustries</groupId><artifactId>ao-sql</artifactId><version>1.0.1${POST-SNAPSHOT}</version>
 			</dependency>
@@ -205,6 +214,9 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		</dependency>
 		<dependency>
 			<groupId>com.aoindustries</groupId><artifactId>ao-net-types</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.aoindustries</groupId><artifactId>ao-security</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.aoindustries</groupId><artifactId>aocode-public</artifactId>

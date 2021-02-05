@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020  AO Industries, Inc.
+ * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -42,6 +42,8 @@ import com.aoindustries.lang.Throwables;
 import com.aoindustries.net.HostAddress;
 import com.aoindustries.net.InetAddress;
 import com.aoindustries.net.Port;
+import com.aoindustries.security.SecurityUtil;
+import com.aoindustries.security.UnprotectedKey;
 import com.aoindustries.util.BufferManager;
 import com.aoindustries.util.Tuple2;
 import com.aoindustries.validation.ValidationException;
@@ -93,7 +95,7 @@ final public class AOServDaemonConnector {
 	/**
 	 * The key to connect with.
 	 */
-	final String key;
+	final UnprotectedKey key;
 
 	final int poolSize;
 
@@ -113,7 +115,7 @@ final public class AOServDaemonConnector {
 		InetAddress local_ip,
 		Port port,
 		String protocol,
-		String key,
+		UnprotectedKey key,
 		int poolSize,
 		long maxConnectionAge,
 		String trustStore,
@@ -187,7 +189,7 @@ final public class AOServDaemonConnector {
 		InetAddress local_ip,
 		Port port,
 		String protocol,
-		String key,
+		UnprotectedKey key,
 		int poolSize,
 		long maxConnectionAge,
 		String trustStore,

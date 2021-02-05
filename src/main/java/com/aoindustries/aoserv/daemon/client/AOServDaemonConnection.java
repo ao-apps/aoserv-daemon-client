@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020, 2021  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -37,6 +37,7 @@ import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Base64;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import javax.net.ssl.SSLSocketFactory;
@@ -52,6 +53,7 @@ final public class AOServDaemonConnection implements Closeable {
 	 * The set of supported versions, with the most preferred versions first.
 	 */
 	private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
+		AOServDaemonProtocol.Version.VERSION_1_84_13,
 		AOServDaemonProtocol.Version.VERSION_1_84_11,
 		AOServDaemonProtocol.Version.VERSION_1_83_0,
 		AOServDaemonProtocol.Version.VERSION_1_81_10,
@@ -149,7 +151,17 @@ final public class AOServDaemonConnection implements Closeable {
 			// Write the most preferred version
 			newOut.writeUTF(SUPPORTED_VERSIONS[0].getVersion());
 			// Then connector key
-			newOut.writeNullUTF(connector.key);
+			if(connector.key == null) {
+				newOut.writeShort(0);
+			} else {
+				final StreamableOutput newOutFinal = newOut;
+				connector.key.accept(key -> {
+					if(key.length == 0) throw new AssertionError("key.length == 0");
+					if(key.length > 0xFFFF) throw new AssertionError("key.length > 0xFFFF");
+					newOutFinal.writeShort(key.length);
+					newOutFinal.write(key);
+				});
+			}
 			// Now write additional versions.
 			// This is done in this order for backwards compatibility to protocol 1.77 that only supported a single version.
 			{
@@ -197,7 +209,13 @@ final public class AOServDaemonConnection implements Closeable {
 					newOut = new StreamableOutput(new BufferedOutputStream(newSocket.getOutputStream()));
 					newIn = new StreamableInput(new BufferedInputStream(newSocket.getInputStream()));
 					newOut.writeUTF(AOServDaemonProtocol.Version.VERSION_1_77.getVersion());
-					newOut.writeNullUTF(connector.key);
+					String daemonKey;
+					if(connector.key == null) {
+						daemonKey = null;
+					} else {
+						daemonKey = connector.key.invoke(Base64.getEncoder()::encodeToString);
+					}
+					newOut.writeNullUTF(daemonKey);
 					newOut.flush();
 					if(!newIn.readBoolean()) {
 						String requiredVersion = newIn.readUTF();
