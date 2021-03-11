@@ -34,7 +34,7 @@ import java.util.logging.Logger;
  *
  * @author  AO Industries, Inc.
  */
-final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection,IOException,InterruptedIOException> {
+final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IOException, InterruptedIOException> {
 
 	private final AOServDaemonConnector connector;
 

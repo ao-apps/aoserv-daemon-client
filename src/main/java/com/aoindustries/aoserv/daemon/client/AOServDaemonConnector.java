@@ -1127,11 +1127,11 @@ final public class AOServDaemonConnector {
 	/**
 	 * Gets the encrypted password for a linux account as found in the /etc/shadow file.
 	 */
-	public Tuple2<String,Integer> getEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username) throws IOException, SQLException {
+	public Tuple2<String, Integer> getEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username) throws IOException, SQLException {
 		return requestResult(
 			AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
 			new UtfRequest(username.toString()),
-			new ResultResponse<Tuple2<String,Integer>>() {
+			new ResultResponse<Tuple2<String, Integer>>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 					String encryptedPassword = in.readUTF();
@@ -1827,11 +1827,11 @@ final public class AOServDaemonConnector {
 		return requestResult(AOServDaemonProtocol.GET_DRBD_REPORT, new UtfResponse());
 	}
 
-	public Tuple2<Long,String> getFailoverFileReplicationActivity(int replication) throws IOException, SQLException {
+	public Tuple2<Long, String> getFailoverFileReplicationActivity(int replication) throws IOException, SQLException {
 		return requestResult(
 			AOServDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY,
 			new CompressedIntRequest(replication),
-			new ResultResponse<Tuple2<Long,String>>() {
+			new ResultResponse<Tuple2<Long, String>>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 					result = new Tuple2<>(in.readLong(), in.readUTF());
