@@ -37,7 +37,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 		shortTitle="Changelog"
 		tocLevels="1"
 		datePublished="2016-10-29T21:12:06-0500"
-		dateModified="2021-02-05T15:01:07-06:00"
+		dateModified="2021-03-21T22:15:54-05:00"
 	>
 		<c:if test="${fn:endsWith('@{project.version}', '-SNAPSHOT') and !fn:endsWith('@{project.version}', '-POST-SNAPSHOT')}">
 			<changelog:release
@@ -46,7 +46,11 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 				groupId="@{project.groupId}"
 				artifactId="@{documented.artifactId}"
 				scmUrl="@{project.scm.url}"
-			/>
+			>
+				<ul>
+					<li>Updated dependencies.</li>
+				</ul>
+			</changelog:release>
 		</c:if>
 
 		<changelog:release
