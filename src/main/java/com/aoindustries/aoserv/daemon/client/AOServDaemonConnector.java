@@ -603,18 +603,18 @@ final public class AOServDaemonConnector {
 
 		@Override
 		public void before(AOServDaemonConnection conn) throws IOException, SQLException {
-			if(gzip && conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+			if(gzip && conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 				throw new IOException(
 					"Gzip compression requires AOServ Daemon version "
 						+ AOServDaemonProtocol.Version.VERSION_1_80_0
-						+ " or higher.  Current version is " + conn.protocolVersion + '.');
+						+ " or higher.  Current version is " + conn.getProtocolVersion() + '.');
 			}
 		}
 
 		@Override
 		public void write(AOServDaemonConnection conn, StreamableOutput out) throws IOException {
 			out.writeCompressedInt(param1);
-			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
+			if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 				out.writeBoolean(gzip);
 			}
 		}
@@ -632,7 +632,7 @@ final public class AOServDaemonConnector {
 
 		@Override
 		protected void read(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-			if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
+			if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
 				dumpSize = in.readLong();
 			} else {
 				dumpSize = -1;
@@ -1136,7 +1136,7 @@ final public class AOServDaemonConnector {
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 					String encryptedPassword = in.readUTF();
 					Integer changedDate;
-					if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
+					if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
 						int i = in.readCompressedInt();
 						changedDate = i==-1 ? null : i;
 					} else {
@@ -1224,7 +1224,7 @@ final public class AOServDaemonConnector {
 			(conn, out) -> {
 				out.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 				out.writeCompressedInt(nestedOperatingSystemVersion);
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+				if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
 					out.writeUTF(serverName.toString());
 				}
 				out.writeCompressedInt(port.getPort());
@@ -1270,7 +1270,7 @@ final public class AOServDaemonConnector {
 			(conn, out) -> {
 				out.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 				out.writeCompressedInt(nestedOperatingSystemVersion);
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+				if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
 					out.writeUTF(serverName.toString());
 				}
 				out.writeCompressedInt(port.getPort());
@@ -1328,7 +1328,7 @@ final public class AOServDaemonConnector {
 			(conn, out) -> {
 				out.writeUTF(failoverRoot==null ? "" : failoverRoot.toString());
 				out.writeCompressedInt(nestedOperatingSystemVersion);
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+				if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
 					out.writeUTF(serverName.toString());
 				}
 				out.writeCompressedInt(port.getPort());
@@ -1553,7 +1553,7 @@ final public class AOServDaemonConnector {
 			(conn, out) -> {
 				out.writeUTF(username.toString());
 				out.writeUTF(encryptedPassword);
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
+				if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
 					out.writeCompressedInt(changedDate==null ? -1 : changedDate);
 				}
 			}
@@ -1694,14 +1694,14 @@ final public class AOServDaemonConnector {
 
 	private void waitFor(int taskCode) throws IOException, SQLException {
 		requestVoid(
-			conn -> (conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0)
+			conn -> (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0)
 				? AOServDaemonProtocol.OLD_WAIT_FOR_REBUILD
 				: taskCode,
 			new Request() {
 				private int tableId;
 				@Override
 				public void before(AOServDaemonConnection conn) throws IOException, SQLException {
-					if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+					if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 						// Older protocol use a single WAIT_FOR_REBUILD with a follow-up table ID.
 						// Table IDs can change over time, so the new protocol uses distinct task codes for each type of wait.
 						// Find the table ID consistent with schema version 1.77
@@ -1738,7 +1738,7 @@ final public class AOServDaemonConnector {
 				}
 				@Override
 				public void write(AOServDaemonConnection conn, StreamableOutput out) throws IOException {
-					if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+					if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 						out.writeCompressedInt(tableId);
 					}
 				}
@@ -1922,7 +1922,7 @@ final public class AOServDaemonConnector {
 			(conn, out) -> {
 				out.writeUTF(ipAddress.toString());
 				out.writeCompressedInt(port.getPort());
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+				if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
 					// Old protocol transferred lowercase
 					out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
 				} else {
@@ -1956,17 +1956,17 @@ final public class AOServDaemonConnector {
 			AOServDaemonProtocol.CHECK_SSL_CERTIFICATE,
 			(conn, out) -> {
 				out.writeCompressedInt(sslCertificate);
-				if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_83_0) >= 0) {
+				if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_83_0) >= 0) {
 					out.writeBoolean(allowCached);
 				}
 			},
 			new ResultResponse<List<Certificate.Check>>() {
 				@Override
 				protected boolean before(AOServDaemonConnection conn) throws IOException, SQLException {
-					if(conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
+					if(conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
 						result = Collections.singletonList(new Certificate.Check(
 								"Daemon Protocol",
-								conn.protocolVersion.toString(),
+								conn.getProtocolVersion().toString(),
 								AlertLevel.UNKNOWN,
 								"Protocol version does not support checking SSL certificates, please installed AOServ Daemon >= " + AOServDaemonProtocol.Version.VERSION_1_81_10
 							)
@@ -1978,7 +1978,7 @@ final public class AOServDaemonConnector {
 				}
 				@Override
 				protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-					assert conn.protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) >= 0;
+					assert conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) >= 0;
 					int size = in.readCompressedInt();
 					List<Certificate.Check> results = new ArrayList<>(size);
 					for(int i = 0; i < size; i++) {

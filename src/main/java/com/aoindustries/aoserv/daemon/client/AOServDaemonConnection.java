@@ -52,7 +52,9 @@ final public class AOServDaemonConnection implements Closeable {
 	/**
 	 * The set of supported versions, with the most preferred versions first.
 	 */
+	// Matches AOServDaemonServerThread.java
 	private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
+		AOServDaemonProtocol.Version.VERSION_1_84_19,
 		AOServDaemonProtocol.Version.VERSION_1_84_13,
 		AOServDaemonProtocol.Version.VERSION_1_84_11,
 		AOServDaemonProtocol.Version.VERSION_1_83_0,
@@ -120,7 +122,7 @@ final public class AOServDaemonConnection implements Closeable {
 	/**
 	 * The negotiated protocol version.
 	 */
-	final AOServDaemonProtocol.Version protocolVersion;
+	private final AOServDaemonProtocol.Version protocolVersion;
 
 	/**
 	 * The first command sequence for this connection.
@@ -332,6 +334,13 @@ final public class AOServDaemonConnection implements Closeable {
 			if(serverSeq != currentSeq) throw new IOException("Sequence mismatch: " + serverSeq + " != " + currentSeq);
 		}
 		return in;
+	}
+
+	/**
+	 * Gets the protocol negotiated for this connection.
+	 */
+	public AOServDaemonProtocol.Version getProtocolVersion() {
+		return protocolVersion;
 	}
 
 	/**

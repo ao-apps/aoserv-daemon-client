@@ -67,7 +67,12 @@ final public class AOServDaemonProtocol {
 		VERSION_1_81_10("1.81.10"),
 		VERSION_1_83_0("1.83.0"),
 		VERSION_1_84_11("1.84.11"),
-		VERSION_1_84_13("1.84.13");
+		VERSION_1_84_13("1.84.13"),
+		VERSION_1_84_19("1.84.19");
+		// New entries will typically also be added to:
+		// AOServDaemonConnection.java
+		// AOServDaemonServerThread.java.java
+		
 
 		private static final Map<String, Version> versionMap = new HashMap<>();
 		static {
@@ -242,6 +247,12 @@ final public class AOServDaemonProtocol {
 	 */
 	public static final int FAILOVER_FILE_REPLICATION_CHUNK_SIZE_BITS = 20;
 	public static final int FAILOVER_FILE_REPLICATION_CHUNK_SIZE = 1 << FAILOVER_FILE_REPLICATION_CHUNK_SIZE_BITS; // 1 MiB
+
+	/**
+	 * The GZIP buffer size for compressed transfers.
+	 * See <a href="https://stackoverflow.com/a/55151757">https://stackoverflow.com/a/55151757</a>.
+	 */
+	public static final int FAILOVER_FILE_REPLICATION_GZIP_BUFFER_SIZE = 65536;
 
 	private AOServDaemonProtocol() {}
 }
