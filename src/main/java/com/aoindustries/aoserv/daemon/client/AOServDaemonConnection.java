@@ -22,14 +22,14 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
+import com.aoapps.collections.AoArrays;
+import com.aoapps.hodgepodge.io.AOPool;
+import com.aoapps.hodgepodge.io.stream.StreamableInput;
+import com.aoapps.hodgepodge.io.stream.StreamableOutput;
+import com.aoapps.lang.AutoCloseables;
+import com.aoapps.lang.EmptyArrays;
+import com.aoapps.lang.Throwables;
 import com.aoindustries.aoserv.client.net.AppProtocol;
-import com.aoindustries.collections.AoArrays;
-import com.aoindustries.io.AOPool;
-import com.aoindustries.io.stream.StreamableInput;
-import com.aoindustries.io.stream.StreamableOutput;
-import com.aoindustries.lang.AutoCloseables;
-import com.aoindustries.lang.EmptyArrays;
-import com.aoindustries.lang.Throwables;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.Closeable;
@@ -66,7 +66,7 @@ final public class AOServDaemonConnection implements Closeable {
 
 	private static Socket connect(AOServDaemonConnector connector) throws IOException {
 		if(connector.protocol.equals(AppProtocol.AOSERV_DAEMON)) {
-			assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
+			assert connector.port.getProtocol() == com.aoapps.net.Protocol.TCP;
 			Socket socket = new Socket();
 			socket.setKeepAlive(true);
 			socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
@@ -76,7 +76,7 @@ final public class AOServDaemonConnection implements Closeable {
 			if(Thread.interrupted()) throw new InterruptedIOException();
 			return socket;
 		} else if(connector.protocol.equals(AppProtocol.AOSERV_DAEMON_SSL)) {
-			assert connector.port.getProtocol() == com.aoindustries.net.Protocol.TCP;
+			assert connector.port.getProtocol() == com.aoapps.net.Protocol.TCP;
 			if(connector.trustStore != null && !connector.trustStore.isEmpty()) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
 			if(connector.trustStorePassword != null && !connector.trustStorePassword.isEmpty()) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
 			SSLSocketFactory sslFact = (SSLSocketFactory)SSLSocketFactory.getDefault();

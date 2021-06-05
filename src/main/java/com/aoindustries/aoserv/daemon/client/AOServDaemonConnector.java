@@ -22,6 +22,18 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
+import com.aoapps.collections.AoCollections;
+import com.aoapps.hodgepodge.io.stream.StreamableInput;
+import com.aoapps.hodgepodge.io.stream.StreamableOutput;
+import com.aoapps.hodgepodge.util.Tuple2;
+import com.aoapps.lang.NullArgumentException;
+import com.aoapps.lang.Throwables;
+import com.aoapps.lang.util.BufferManager;
+import com.aoapps.lang.validation.ValidationException;
+import com.aoapps.net.HostAddress;
+import com.aoapps.net.InetAddress;
+import com.aoapps.net.Port;
+import com.aoapps.security.UnprotectedKey;
 import com.aoindustries.aoserv.client.backup.MysqlReplication;
 import com.aoindustries.aoserv.client.email.InboxAttributes;
 import com.aoindustries.aoserv.client.infrastructure.VirtualServer;
@@ -34,19 +46,6 @@ import com.aoindustries.aoserv.client.mysql.Server;
 import com.aoindustries.aoserv.client.mysql.Table_Name;
 import com.aoindustries.aoserv.client.pki.Certificate;
 import com.aoindustries.aoserv.client.schema.AoservProtocol;
-import com.aoindustries.collections.AoCollections;
-import com.aoindustries.io.stream.StreamableInput;
-import com.aoindustries.io.stream.StreamableOutput;
-import com.aoindustries.lang.NullArgumentException;
-import com.aoindustries.lang.Throwables;
-import com.aoindustries.net.HostAddress;
-import com.aoindustries.net.InetAddress;
-import com.aoindustries.net.Port;
-import com.aoindustries.security.SecurityUtil;
-import com.aoindustries.security.UnprotectedKey;
-import com.aoindustries.util.BufferManager;
-import com.aoindustries.util.Tuple2;
-import com.aoindustries.validation.ValidationException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -121,7 +120,7 @@ final public class AOServDaemonConnector {
 		String trustStore,
 		String trustStorePassword
 	) {
-		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
+		if(port.getProtocol() != com.aoapps.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		this.hostname=hostname;
 		this.local_ip=local_ip;
 		this.port=port;
@@ -383,7 +382,7 @@ final public class AOServDaemonConnector {
 		 * @throws  RuntimeException  any unchecked exception will {@linkplain AOServDaemonConnection#abort(java.lang.Throwable) abort the connection}
 		 * @throws  IOException       any I/O error will {@linkplain AOServDaemonConnection#abort(java.lang.Throwable) abort the connection}
 		 *
-		 * @see  #dispatch(com.aoindustries.aoserv.daemon.client.AOServDaemonConnection, com.aoindustries.io.stream.StreamableInput, int)
+		 * @see  #dispatch(com.aoindustries.aoserv.daemon.client.AOServDaemonConnection, com.aoapps.hodgepodge.io.stream.StreamableInput, int)
 		 */
 		protected void read(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 			dispatch(conn, in, in.read());
@@ -392,11 +391,11 @@ final public class AOServDaemonConnector {
 		/**
 		 * Dispatches response block by result code.
 		 *
-		 * @see  #done(com.aoindustries.io.stream.StreamableInput)
-		 * @see  #next(com.aoindustries.io.stream.StreamableInput)
-		 * @see  #nextChunk(com.aoindustries.io.stream.StreamableInput)
-		 * @see  #ioException(com.aoindustries.io.stream.StreamableInput)
-		 * @see  #sqlException(com.aoindustries.io.stream.StreamableInput)
+		 * @see  #done(com.aoapps.hodgepodge.io.stream.StreamableInput)
+		 * @see  #next(com.aoapps.hodgepodge.io.stream.StreamableInput)
+		 * @see  #nextChunk(com.aoapps.hodgepodge.io.stream.StreamableInput)
+		 * @see  #ioException(com.aoapps.hodgepodge.io.stream.StreamableInput)
+		 * @see  #sqlException(com.aoapps.hodgepodge.io.stream.StreamableInput)
 		 */
 		protected void dispatch(AOServDaemonConnection conn, StreamableInput in, int code) throws IOException {
 			switch(code) {
@@ -412,7 +411,7 @@ final public class AOServDaemonConnector {
 		/**
 		 * Called for response code {@link AOServDaemonProtocol#DONE}.
 		 *
-		 * @see  #read(com.aoindustries.io.stream.StreamableInput)
+		 * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
 		 */
 		protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 			throw new IOException("Unknown result: " + AOServDaemonProtocol.DONE);
@@ -421,7 +420,7 @@ final public class AOServDaemonConnector {
 		/**
 		 * Called for response code {@link AOServDaemonProtocol#NEXT}.
 		 *
-		 * @see  #read(com.aoindustries.io.stream.StreamableInput)
+		 * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
 		 */
 		protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 			throw new IOException("Unknown result: " + AOServDaemonProtocol.NEXT);
@@ -430,7 +429,7 @@ final public class AOServDaemonConnector {
 		/**
 		 * Called for response code {@link AOServDaemonProtocol#NEXT_CHUNK}.
 		 *
-		 * @see  #read(com.aoindustries.io.stream.StreamableInput)
+		 * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
 		 */
 		protected void nextChunk(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 			throw new IOException("Unknown result: " + AOServDaemonProtocol.NEXT_CHUNK);
@@ -439,7 +438,7 @@ final public class AOServDaemonConnector {
 		/**
 		 * Called for response code {@link AOServDaemonProtocol#IO_EXCEPTION}.
 		 *
-		 * @see  #read(com.aoindustries.io.stream.StreamableInput)
+		 * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
 		 */
 		protected void ioException(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 			ioException = new IOException(in.readUTF());
@@ -448,7 +447,7 @@ final public class AOServDaemonConnector {
 		/**
 		 * Called for response code {@link AOServDaemonProtocol#SQL_EXCEPTION}.
 		 *
-		 * @see  #read(com.aoindustries.io.stream.StreamableInput)
+		 * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
 		 */
 		protected void sqlException(AOServDaemonConnection conn, StreamableInput in) throws IOException {
 			sqlException = new SQLException(in.readUTF());
@@ -1218,7 +1217,7 @@ final public class AOServDaemonConnector {
 		Server.Name serverName,
 		Port port
 	) throws IOException, SQLException {
-		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
+		if(port.getProtocol() != com.aoapps.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		return requestResult(
 			AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS,
 			(conn, out) -> {
@@ -1264,7 +1263,7 @@ final public class AOServDaemonConnector {
 		Port port,
 		com.aoindustries.aoserv.client.mysql.Database.Name databaseName
 	) throws IOException, SQLException {
-		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
+		if(port.getProtocol() != com.aoapps.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		return requestResult(
 			AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS,
 			(conn, out) -> {
@@ -1322,7 +1321,7 @@ final public class AOServDaemonConnector {
 		com.aoindustries.aoserv.client.mysql.Database.Name databaseName,
 		List<? extends Table_Name> tableNames
 	) throws IOException, SQLException {
-		if(port.getProtocol() != com.aoindustries.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
+		if(port.getProtocol() != com.aoapps.net.Protocol.TCP) throw new IllegalArgumentException("Only TCP supported: " + port);
 		return requestResult(
 			AOServDaemonProtocol.CHECK_MYSQL_TABLES,
 			(conn, out) -> {

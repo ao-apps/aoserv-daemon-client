@@ -22,8 +22,8 @@
  */
 package com.aoindustries.aoserv.daemon.client;
 
-import com.aoindustries.io.AOPool;
-import com.aoindustries.security.Password;
+import com.aoapps.hodgepodge.io.AOPool;
+import com.aoapps.security.Password;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.logging.Logger;
@@ -77,14 +77,14 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
 				+ "  </thead>\n");
 		super.printConnectionStats(out, isXhtml);
 		out.append("    <tr><td>Local IP:</td><td>");
-		com.aoindustries.util.EncodingUtils.encodeHtml(connector.local_ip.toString(), out, isXhtml);
+		com.aoapps.hodgepodge.util.EncodingUtils.encodeHtml(connector.local_ip.toString(), out, isXhtml);
 		out.append("</td></tr>\n"
 				+ "    <tr><td>Host:</td><td>");
-		com.aoindustries.util.EncodingUtils.encodeHtml(connector.hostname.toString(), out, isXhtml);
+		com.aoapps.hodgepodge.util.EncodingUtils.encodeHtml(connector.hostname.toString(), out, isXhtml);
 		out.append("</td></tr>\n"
 				+ "    <tr><td>Port:</td><td>").append(Integer.toString(connector.port.getPort())).append("</td></tr>\n"
 				+ "    <tr><td>Protocol:</td><td>");
-		com.aoindustries.util.EncodingUtils.encodeHtml(connector.protocol, out, isXhtml);
+		com.aoapps.hodgepodge.util.EncodingUtils.encodeHtml(connector.protocol, out, isXhtml);
 		out.append("</td></tr>\n"
 				+ "    <tr><td>Key:</td><td>");
 		if(connector.key != null) out.append(Password.MASKED_PASSWORD);
