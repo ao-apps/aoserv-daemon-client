@@ -6,6 +6,8 @@
 [![java: &gt;= 8](https://aoindustries.com/ao-badges/java-8.svg)](https://docs.oracle.com/javase/8/docs/api/)
 [![license: LGPL v3](https://aoindustries.com/ao-badges/license-lgpl-3.0.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
+[![Build](https://github.com/aoindustries/aoserv-daemon-client/workflows/Build/badge.svg?branch=master)](https://github.com/aoindustries/aoserv-daemon-client/actions?query=workflow%3ABuild)
+
 Java client for the [AOServ Daemon](https://github.com/aoindustries/aoserv-daemon).
 
 ## Project Links
