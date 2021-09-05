@@ -256,7 +256,7 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 				<groupId>com.aoapps</groupId><artifactId>ao-security</artifactId><version>3.0.0${POST-SNAPSHOT}</version>
 			</dependency>
 			<dependency>
-				<groupId>com.aoindustries</groupId><artifactId>aoserv-client</artifactId><version>1.86.0-SNAPSHOT<!-- ${POST-SNAPSHOT} --></version>
+				<groupId>com.aoindustries</groupId><artifactId>aoserv-client</artifactId><version>1.86.0${POST-SNAPSHOT}</version>
 			</dependency>
 			<!-- Transitive -->
 			<dependency>
