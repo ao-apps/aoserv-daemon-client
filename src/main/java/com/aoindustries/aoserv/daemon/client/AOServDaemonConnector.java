@@ -62,7 +62,7 @@ import java.util.logging.Logger;
  *
  * @author  AO Industries, Inc.
  */
-final public class AOServDaemonConnector {
+public final class AOServDaemonConnector {
 
 	private static final Logger logger = Logger.getLogger(AOServDaemonConnector.class.getName());
 
@@ -183,7 +183,7 @@ final public class AOServDaemonConnector {
 	 * made.  If no connection is made, an <code>IOException</code>
 	 * is thrown.
 	 */
-	public synchronized static AOServDaemonConnector getConnector(
+	public static synchronized AOServDaemonConnector getConnector(
 		HostAddress hostname,
 		InetAddress local_ip,
 		Port port,
@@ -495,7 +495,7 @@ final public class AOServDaemonConnector {
 	 *
 	 * @see  #requestResult(int, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.ResultResponse)
 	 */
-	private static abstract class ResultResponse<T> extends Response {
+	private abstract static class ResultResponse<T> extends Response {
 
 		protected T result;
 

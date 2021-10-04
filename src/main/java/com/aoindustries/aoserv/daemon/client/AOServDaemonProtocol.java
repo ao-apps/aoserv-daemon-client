@@ -32,7 +32,7 @@ import java.util.Map;
  *
  * @author  AO Industries, Inc.
  */
-final public class AOServDaemonProtocol {
+public final class AOServDaemonProtocol {
 
 	/**
 	 * Each time the protocols are changed in a way that is not backwards-compatible, please increase this number

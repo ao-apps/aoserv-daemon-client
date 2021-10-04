@@ -47,7 +47,7 @@ import javax.net.ssl.SSLSocketFactory;
  *
  * @author  AO Industries, Inc.
  */
-final public class AOServDaemonConnection implements Closeable {
+public final class AOServDaemonConnection implements Closeable {
 
 	/**
 	 * The set of supported versions, with the most preferred versions first.
