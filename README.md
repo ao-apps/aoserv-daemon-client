@@ -1,4 +1,4 @@
-# [<img src="ao-logo.png" alt="AO Logo" width="35" height="40">](https://github.com/aoindustries) [AOServ](https://aoindustries.com/aoserv/) / [Daemon](https://github.com/aoindustries/aoserv-daemon) / [Client](https://github.com/aoindustries/aoserv-daemon-client)
+# [<img src="ao-logo.png" alt="AO Logo" width="35" height="40">](https://github.com/ao-apps) [AOServ](https://aoindustries.com/aoserv/) / [Daemon](https://github.com/ao-apps/aoserv-daemon) / [Client](https://github.com/ao-apps/aoserv-daemon-client)
 
 [![project: current stable](https://aoindustries.com/ao-badges/project-current-stable.svg)](https://aoindustries.com/life-cycle#project-current-stable)
 [![management: production](https://aoindustries.com/ao-badges/management-production.svg)](https://aoindustries.com/life-cycle#management-production)
@@ -6,7 +6,7 @@
 [![java: &gt;= 8](https://aoindustries.com/ao-badges/java-8.svg)](https://docs.oracle.com/javase/8/docs/api/)
 [![license: LGPL v3](https://aoindustries.com/ao-badges/license-lgpl-3.0.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 
-[![Build](https://github.com/aoindustries/aoserv-daemon-client/workflows/Build/badge.svg?branch=master)](https://github.com/aoindustries/aoserv-daemon-client/actions?query=workflow%3ABuild)
+[![Build](https://github.com/ao-apps/aoserv-daemon-client/workflows/Build/badge.svg?branch=master)](https://github.com/ao-apps/aoserv-daemon-client/actions?query=workflow%3ABuild)
 [![Maven Central](https://maven-badges.herokuapp.com/maven-central/com.aoindustries/aoserv-daemon-client/badge.svg)](https://maven-badges.herokuapp.com/maven-central/com.aoindustries/aoserv-daemon-client)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?branch=master&project=com.aoapps.platform%3Aaoapps-daemon-client&metric=alert_status)](https://sonarcloud.io/dashboard?branch=master&id=com.aoapps.platform%3Aaoapps-daemon-client)
 [![Lines of Code](https://sonarcloud.io/api/project_badges/measure?branch=master&project=com.aoapps.platform%3Aaoapps-daemon-client&metric=ncloc)](https://sonarcloud.io/component_measures?branch=master&id=com.aoapps.platform%3Aaoapps-daemon-client&metric=ncloc)  
@@ -15,14 +15,14 @@
 [![Maintainability Rating](https://sonarcloud.io/api/project_badges/measure?branch=master&project=com.aoapps.platform%3Aaoapps-daemon-client&metric=sqale_rating)](https://sonarcloud.io/component_measures?branch=master&id=com.aoapps.platform%3Aaoapps-daemon-client&metric=Maintainability)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?branch=master&project=com.aoapps.platform%3Aaoapps-daemon-client&metric=coverage)](https://sonarcloud.io/component_measures?branch=master&id=com.aoapps.platform%3Aaoapps-daemon-client&metric=Coverage)
 
-Java client for the [AOServ Daemon](https://github.com/aoindustries/aoserv-daemon).
+Java client for the [AOServ Daemon](https://github.com/ao-apps/aoserv-daemon).
 
 ## Project Links
 * [Project Home](https://aoindustries.com/aoserv/daemon/client/)
 * [Changelog](https://aoindustries.com/aoserv/daemon/client/changelog)
 * [API Docs](https://aoindustries.com/aoserv/daemon/client/apidocs/)
 * [Maven Central Repository](https://search.maven.org/artifact/com.aoindustries/aoserv-daemon-client)
-* [GitHub](https://github.com/aoindustries/aoserv-daemon-client)
+* [GitHub](https://github.com/ao-apps/aoserv-daemon-client)
 
 ## Contact Us
 For questions or support, please [contact us](https://aoindustries.com/contact):

@@ -78,20 +78,20 @@ along with aoserv-daemon-client.  If not, see <http://www.gnu.org/licenses />.
 	</developers>
 
 	<scm>
-		<connection>scm:git:git://github.com/aoindustries/aoserv-daemon-client.git</connection>
-		<developerConnection>scm:git:git@github.com:aoindustries/aoserv-daemon-client.git</developerConnection>
-		<url>https://github.com/aoindustries/aoserv-daemon-client</url>
+		<connection>scm:git:git://github.com/ao-apps/aoserv-daemon-client.git</connection>
+		<developerConnection>scm:git:git@github.com:ao-apps/aoserv-daemon-client.git</developerConnection>
+		<url>https://github.com/ao-apps/aoserv-daemon-client</url>
 		<tag>HEAD</tag>
 	</scm>
 
 	<issueManagement>
 		<system>GitHub Issues</system>
-		<url>https://github.com/aoindustries/aoserv-daemon-client/issues</url>
+		<url>https://github.com/ao-apps/aoserv-daemon-client/issues</url>
 	</issueManagement>
 
 	<ciManagement>
 		<system>GitHub Actions</system>
-		<url>https://github.com/aoindustries/aoserv-daemon-client/actions</url>
+		<url>https://github.com/ao-apps/aoserv-daemon-client/actions</url>
 	</ciManagement>
 
 	<repositories>
