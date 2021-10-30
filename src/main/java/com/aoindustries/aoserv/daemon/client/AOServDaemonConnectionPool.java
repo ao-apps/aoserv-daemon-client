@@ -116,6 +116,8 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
 
 	@Override
 	protected InterruptedIOException newInterruptedException(String message, Throwable cause) {
+		// Restore the interrupted status
+		Thread.currentThread().interrupt();
 		if(cause instanceof InterruptedIOException) return (InterruptedIOException)cause;
 		if(message == null) {
 			if(cause == null) {

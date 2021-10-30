@@ -73,25 +73,27 @@ public final class AOServDaemonConnection implements Closeable {
 			socket.setTcpNoDelay(true);
 			if(!connector.local_ip.isUnspecified()) socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
 			socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
-			if(Thread.interrupted()) throw new InterruptedIOException();
+			if(Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
 			return socket;
 		} else if(connector.protocol.equals(AppProtocol.AOSERV_DAEMON_SSL)) {
 			assert connector.port.getProtocol() == com.aoapps.net.Protocol.TCP;
 			if(connector.trustStore != null && !connector.trustStore.isEmpty()) System.setProperty("javax.net.ssl.trustStore", connector.trustStore);
 			if(connector.trustStorePassword != null && !connector.trustStorePassword.isEmpty()) System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
 			SSLSocketFactory sslFact = (SSLSocketFactory)SSLSocketFactory.getDefault();
-			if(Thread.interrupted()) throw new InterruptedIOException();
+			if(Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
 			Socket regSocket = new Socket();
 			regSocket.setKeepAlive(true);
 			regSocket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
 			regSocket.setTcpNoDelay(true);
 			if(!connector.local_ip.isUnspecified()) regSocket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
 			regSocket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
-			if(Thread.interrupted()) throw new InterruptedIOException();
+			if(Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
 			Socket socket = sslFact.createSocket(regSocket, connector.hostname.toString(), connector.port.getPort(), true);
-			if(Thread.interrupted()) throw new InterruptedIOException();
+			if(Thread.currentThread().isInterrupted()) throw new InterruptedIOException();
 			return socket;
-		} else throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
+		} else {
+			throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
+		}
 	}
 
 	/**
