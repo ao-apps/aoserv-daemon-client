@@ -161,7 +161,7 @@ public final class AOServDaemonConnection implements Closeable {
 				final StreamableOutput newOutFinal = newOut;
 				connector.key.accept(key -> {
 					if(key.length == 0) throw new AssertionError("key.length == 0");
-					if(key.length > 0xFFFF) throw new AssertionError("key.length > 0xFFFF");
+					if(key.length >= (1 << Short.SIZE)) throw new AssertionError("key.length >= (1 << Short.SIZE)");
 					newOutFinal.writeShort(key.length);
 					newOutFinal.write(key);
 				});
