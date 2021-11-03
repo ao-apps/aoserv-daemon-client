@@ -349,7 +349,7 @@ public final class AOServDaemonConnector {
 
 	// TODO: Move to protocol?
 	private static IOException newUnknownResult(int code) {
-		return new IOException("Unknown result: " + code);		
+		return new IOException("Unknown result: " + code);
 	}
 
 	/**
@@ -1130,6 +1130,7 @@ public final class AOServDaemonConnector {
 		return requestResult(
 			AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
 			new UtfRequest(username.toString()),
+			// Java 9: new ResultResponse<>
 			new ResultResponse<Tuple2<String, Integer>>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1157,6 +1158,7 @@ public final class AOServDaemonConnector {
 					out.writeUTF(folderName);
 				}
 			},
+			// Java 9: new AOServConnector.ResultRequest<>
 			new ResultResponse<long[]>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1174,6 +1176,7 @@ public final class AOServDaemonConnector {
 		return requestResult(
 			AOServDaemonProtocol.GET_INBOX_ATTRIBUTES,
 			new UtfRequest(username.toString()),
+			// Java 9: new AOServConnector.ResultRequest<>
 			new ResultResponse<InboxAttributes>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1195,6 +1198,7 @@ public final class AOServDaemonConnector {
 		return requestResult(
 			AOServDaemonProtocol.GET_MYSQL_MASTER_STATUS,
 			new CompressedIntRequest(mysqlServer),
+			// Java 9: new AOServConnector.ResultRequest<>
 			new ResultResponse<Server.MasterStatus>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1228,6 +1232,7 @@ public final class AOServDaemonConnector {
 				}
 				out.writeCompressedInt(port.getPort());
 			},
+			// Java 9: new AOServConnector.ResultRequest<>
 			new ResultResponse<MysqlReplication.SlaveStatus>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1275,6 +1280,7 @@ public final class AOServDaemonConnector {
 				out.writeCompressedInt(port.getPort());
 				out.writeUTF(databaseName.toString());
 			},
+			// Java 9: new ResultResponse<>
 			new ResultResponse<List<TableStatus>>() {
 				@Override
 				protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1338,6 +1344,7 @@ public final class AOServDaemonConnector {
 					out.writeUTF(tableNames.get(c).toString());
 				}
 			},
+			// Java 9: new ResultResponse<>
 			new ResultResponse<List<CheckTableResult>>() {
 				@Override
 				protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1830,6 +1837,7 @@ public final class AOServDaemonConnector {
 		return requestResult(
 			AOServDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY,
 			new CompressedIntRequest(replication),
+			// Java 9: new ResultResponse<>
 			new ResultResponse<Tuple2<Long, String>>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1847,6 +1855,7 @@ public final class AOServDaemonConnector {
 	public String[] getLvmReport() throws IOException, SQLException {
 		return requestResult(
 			AOServDaemonProtocol.GET_LVM_REPORT,
+			// Java 9: new AOServConnector.ResultRequest<>
 			new ResultResponse<String[]>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
@@ -1959,6 +1968,7 @@ public final class AOServDaemonConnector {
 					out.writeBoolean(allowCached);
 				}
 			},
+			// Java 9: new ResultResponse<>
 			new ResultResponse<List<Certificate.Check>>() {
 				@Override
 				protected boolean before(AOServDaemonConnection conn) throws IOException, SQLException {
@@ -2011,6 +2021,7 @@ public final class AOServDaemonConnector {
 	public Set<String> getXenAutoStartLinks() throws IOException, SQLException {
 		return requestResult(
 			AOServDaemonProtocol.GET_XEN_AUTO_START_LINKS,
+			// Java 9: new ResultResponse<>
 			new ResultResponse<Set<String>>() {
 				@Override
 				protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
