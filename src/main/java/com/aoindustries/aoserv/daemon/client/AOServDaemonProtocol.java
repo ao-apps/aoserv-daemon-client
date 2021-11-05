@@ -32,7 +32,10 @@ import java.util.Map;
  *
  * @author  AO Industries, Inc.
  */
-public final class AOServDaemonProtocol {
+public abstract class AOServDaemonProtocol {
+
+	/** Make no instances. */
+	private AOServDaemonProtocol() {throw new AssertionError();}
 
 	/**
 	 * Each time the protocols are changed in a way that is not backwards-compatible, please increase this number
@@ -72,7 +75,7 @@ public final class AOServDaemonProtocol {
 		// New entries will typically also be added to:
 		// AOServDaemonConnection.java
 		// AOServDaemonServerThread.java.java
-		
+
 
 		private static final Map<String, Version> versionMap = new HashMap<>();
 		static {
@@ -253,6 +256,4 @@ public final class AOServDaemonProtocol {
 	 * See <a href="https://stackoverflow.com/a/55151757">https://stackoverflow.com/a/55151757</a>.
 	 */
 	public static final int FAILOVER_FILE_REPLICATION_GZIP_BUFFER_SIZE = 65536;
-
-	private AOServDaemonProtocol() {}
 }

@@ -93,6 +93,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
 
 	@Override
 	protected void resetConnection(AOServDaemonConnection conn) {
+		// Do nothing
 	}
 
 	@Override
