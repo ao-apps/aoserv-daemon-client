@@ -55,14 +55,14 @@ public final class AOServDaemonConnection implements Closeable {
    */
   // Matches AOServDaemonServerThread.java
   private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
-    AOServDaemonProtocol.Version.VERSION_1_84_19,
-    AOServDaemonProtocol.Version.VERSION_1_84_13,
-    AOServDaemonProtocol.Version.VERSION_1_84_11,
-    AOServDaemonProtocol.Version.VERSION_1_83_0,
-    AOServDaemonProtocol.Version.VERSION_1_81_10,
-    AOServDaemonProtocol.Version.VERSION_1_80_1,
-    AOServDaemonProtocol.Version.VERSION_1_80_0,
-    AOServDaemonProtocol.Version.VERSION_1_77
+      AOServDaemonProtocol.Version.VERSION_1_84_19,
+      AOServDaemonProtocol.Version.VERSION_1_84_13,
+      AOServDaemonProtocol.Version.VERSION_1_84_11,
+      AOServDaemonProtocol.Version.VERSION_1_83_0,
+      AOServDaemonProtocol.Version.VERSION_1_81_10,
+      AOServDaemonProtocol.Version.VERSION_1_80_1,
+      AOServDaemonProtocol.Version.VERSION_1_80_0,
+      AOServDaemonProtocol.Version.VERSION_1_77
   };
 
   private static Socket connect(AOServDaemonConnector connector) throws IOException {
@@ -92,7 +92,7 @@ public final class AOServDaemonConnection implements Closeable {
       if (connector.trustStorePassword != null && !connector.trustStorePassword.isEmpty()) {
         System.setProperty("javax.net.ssl.trustStorePassword", connector.trustStorePassword);
       }
-      SSLSocketFactory sslFact = (SSLSocketFactory)SSLSocketFactory.getDefault();
+      SSLSocketFactory sslFact = (SSLSocketFactory) SSLSocketFactory.getDefault();
       if (Thread.currentThread().isInterrupted()) {
         throw new InterruptedIOException();
       }
@@ -117,7 +117,7 @@ public final class AOServDaemonConnection implements Closeable {
         throw AutoCloseables.closeAndWrap(t, IOException.class, IOException::new, socket);
       }
     } else {
-      throw new IllegalArgumentException("Unsupported protocol: "+connector.protocol);
+      throw new IllegalArgumentException("Unsupported protocol: " + connector.protocol);
     }
   }
 
@@ -231,8 +231,8 @@ public final class AOServDaemonConnection implements Closeable {
           }
         }
         if (
-          preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())
-          && AoArrays.indexOf(SUPPORTED_VERSIONS, AOServDaemonProtocol.Version.VERSION_1_77) != -1
+            preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())
+                && AoArrays.indexOf(SUPPORTED_VERSIONS, AOServDaemonProtocol.Version.VERSION_1_77) != -1
         ) {
           // Reconnect as forced protocol 1.77, since we already sent extra output incompatible with 1.77
           Throwable closeT = AutoCloseables.closeAndCatch(newIn, newOut, newSocket);
@@ -257,11 +257,11 @@ public final class AOServDaemonConnection implements Closeable {
           if (!newIn.readBoolean()) {
             String requiredVersion = newIn.readUTF();
             throw new IOException(
-              "Unsupported protocol version requested.  Requested version "
-                + AOServDaemonProtocol.Version.VERSION_1_77.getVersion()
-                + ", server requires version "
-                + requiredVersion
-                + "."
+                "Unsupported protocol version requested.  Requested version "
+                    + AOServDaemonProtocol.Version.VERSION_1_77.getVersion()
+                    + ", server requires version "
+                    + requiredVersion
+                    + "."
             );
           }
           // Read if the connection is allowed

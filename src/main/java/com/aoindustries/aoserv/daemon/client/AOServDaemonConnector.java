@@ -111,28 +111,28 @@ public final class AOServDaemonConnector {
    * Creates a new <code>AOServConnector</code>.
    */
   private AOServDaemonConnector(
-    HostAddress hostname,
-    InetAddress local_ip,
-    Port port,
-    String protocol,
-    UnprotectedKey key,
-    int poolSize,
-    long maxConnectionAge,
-    String trustStore,
-    String trustStorePassword
+      HostAddress hostname,
+      InetAddress local_ip,
+      Port port,
+      String protocol,
+      UnprotectedKey key,
+      int poolSize,
+      long maxConnectionAge,
+      String trustStore,
+      String trustStorePassword
   ) {
     if (port.getProtocol() != com.aoapps.net.Protocol.TCP) {
       throw new IllegalArgumentException("Only TCP supported: " + port);
     }
-    this.hostname=hostname;
-    this.local_ip=local_ip;
-    this.port=port;
-    this.protocol=protocol;
-    this.key=key;
-    this.poolSize=poolSize;
-    this.maxConnectionAge=maxConnectionAge;
-    this.trustStore=trustStore;
-    this.trustStorePassword=trustStorePassword;
+    this.hostname = hostname;
+    this.local_ip = local_ip;
+    this.port = port;
+    this.protocol = protocol;
+    this.key = key;
+    this.poolSize = poolSize;
+    this.maxConnectionAge = maxConnectionAge;
+    this.trustStore = trustStore;
+    this.trustStorePassword = trustStorePassword;
     this.pool = new AOServDaemonConnectionPool(this, logger);
   }
 
@@ -155,7 +155,7 @@ public final class AOServDaemonConnector {
     try {
       return pool.getConnection();
     } catch (IOException err) {
-      logger.log(Level.INFO, "IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+      logger.log(Level.INFO, "IOException while trying to get a connection to server from " + local_ip + " to " + hostname + ":" + port, err);
       throw err;
     }
   }
@@ -170,7 +170,7 @@ public final class AOServDaemonConnector {
     try {
       return pool.getConnection(maxConnections);
     } catch (IOException err) {
-      logger.log(Level.INFO, "IOException while trying to get a connection to server from "+local_ip+" to "+hostname+":"+port, err);
+      logger.log(Level.INFO, "IOException while trying to get a connection to server from " + local_ip + " to " + hostname + ":" + port, err);
       throw err;
     }
   }
@@ -187,45 +187,45 @@ public final class AOServDaemonConnector {
    * is thrown.
    */
   public static synchronized AOServDaemonConnector getConnector(
-    HostAddress hostname,
-    InetAddress local_ip,
-    Port port,
-    String protocol,
-    UnprotectedKey key,
-    int poolSize,
-    long maxConnectionAge,
-    String trustStore,
-    String trustStorePassword
+      HostAddress hostname,
+      InetAddress local_ip,
+      Port port,
+      String protocol,
+      UnprotectedKey key,
+      int poolSize,
+      long maxConnectionAge,
+      String trustStore,
+      String trustStorePassword
   ) {
     NullArgumentException.checkNotNull(hostname, "hostname");
     NullArgumentException.checkNotNull(local_ip, "local_ip");
     NullArgumentException.checkNotNull(protocol, "protocol");
 
-    int size=connectors.size();
-    for (int c=0;c<size;c++) {
-      AOServDaemonConnector connector=connectors.get(c);
+    int size = connectors.size();
+    for (int c = 0; c < size; c++) {
+      AOServDaemonConnector connector = connectors.get(c);
       if (
-        connector.hostname.equals(hostname)
-        && connector.local_ip.equals(local_ip)
-        && connector.port == port
-        && connector.protocol.equals(protocol)
-        && (key == null?connector.key == null:key.equals(connector.key))
-        && connector.poolSize == poolSize
-        && connector.maxConnectionAge == maxConnectionAge
+          connector.hostname.equals(hostname)
+              && connector.local_ip.equals(local_ip)
+              && connector.port == port
+              && connector.protocol.equals(protocol)
+              && (key == null ? connector.key == null : key.equals(connector.key))
+              && connector.poolSize == poolSize
+              && connector.maxConnectionAge == maxConnectionAge
       ) {
         return connector;
       }
     }
-    AOServDaemonConnector connector=new AOServDaemonConnector(
-      hostname,
-      local_ip,
-      port,
-      protocol,
-      key,
-      poolSize,
-      maxConnectionAge,
-      trustStore,
-      trustStorePassword
+    AOServDaemonConnector connector = new AOServDaemonConnector(
+        hostname,
+        local_ip,
+        port,
+        protocol,
+        key,
+        poolSize,
+        maxConnectionAge,
+        trustStore,
+        trustStorePassword
     );
     connectors.add(connector);
     return connector;
@@ -279,6 +279,7 @@ public final class AOServDaemonConnector {
   public void printConnectionStatsHTML(Appendable out, boolean isXhtml) throws IOException {
     pool.printStatisticsHTML(out, isXhtml);
   }
+
   /**
    * Releases a connection to the server.  This will either close the
    * connection or allow another thread to use the connection.
@@ -298,7 +299,7 @@ public final class AOServDaemonConnector {
 
   @Override
   public String toString() {
-    return getClass().getName()+"?hostname="+hostname+"&local_ip="+local_ip+"&port="+port+"&protocol="+protocol;
+    return getClass().getName() + "?hostname=" + hostname + "&local_ip=" + local_ip + "&port=" + port + "&protocol=" + protocol;
   }
 
   /**
@@ -617,9 +618,9 @@ public final class AOServDaemonConnector {
     public void before(AOServDaemonConnection conn) throws IOException, SQLException {
       if (gzip && conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
         throw new IOException(
-          "Gzip compression requires AOServ Daemon version "
-            + AOServDaemonProtocol.Version.VERSION_1_80_0
-            + " or higher.  Current version is " + conn.getProtocolVersion() + '.');
+            "Gzip compression requires AOServ Daemon version "
+                + AOServDaemonProtocol.Version.VERSION_1_80_0
+                + " or higher.  Current version is " + conn.getProtocolVersion() + '.');
       }
     }
 
@@ -789,10 +790,10 @@ public final class AOServDaemonConnector {
   }
 
   private void requestVoid(
-    // TODO: boolean allowRetry,
-    TaskCodeSupplier taskCodeSupplier,
-    Request request,
-    VoidResponse response
+      // TODO: boolean allowRetry,
+      TaskCodeSupplier taskCodeSupplier,
+      Request request,
+      VoidResponse response
   ) throws IOException, SQLException {
     try (AOServDaemonConnection conn = getConnection()) {
       int taskCode = taskCodeSupplier.getTaskCode(conn);
@@ -817,10 +818,10 @@ public final class AOServDaemonConnector {
   }
 
   private void requestVoid(
-    // TODO: boolean allowRetry,
-    int taskCode,
-    Request request,
-    VoidResponse response
+      // TODO: boolean allowRetry,
+      int taskCode,
+      Request request,
+      VoidResponse response
   ) throws IOException, SQLException {
     requestVoid(conn -> taskCode, request, response);
   }
@@ -831,9 +832,9 @@ public final class AOServDaemonConnector {
    * @see  #requestVoid(com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.VoidResponse)
    */
   private void requestVoid(
-    // TODO: boolean allowRetry,
-    TaskCodeSupplier taskCodeSupplier,
-    Request request
+      // TODO: boolean allowRetry,
+      TaskCodeSupplier taskCodeSupplier,
+      Request request
   ) throws IOException, SQLException {
     requestVoid(taskCodeSupplier, request, new VoidResponse());
   }
@@ -844,9 +845,9 @@ public final class AOServDaemonConnector {
    * @see  #requestVoid(int, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.VoidResponse)
    */
   private void requestVoid(
-    // TODO: boolean allowRetry,
-    int taskCode,
-    Request request
+      // TODO: boolean allowRetry,
+      int taskCode,
+      Request request
   ) throws IOException, SQLException {
     requestVoid(taskCode, request, new VoidResponse());
   }
@@ -857,8 +858,8 @@ public final class AOServDaemonConnector {
    * @see  #requestVoid(com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.VoidResponse)
    */
   private void requestVoid(
-    // TODO: boolean allowRetry,
-    TaskCodeSupplier taskCodeSupplier
+      // TODO: boolean allowRetry,
+      TaskCodeSupplier taskCodeSupplier
   ) throws IOException, SQLException {
     requestVoid(taskCodeSupplier, null, new VoidResponse());
   }
@@ -869,17 +870,17 @@ public final class AOServDaemonConnector {
    * @see  #requestVoid(int, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.VoidResponse)
    */
   private void requestVoid(
-    // TODO: boolean allowRetry,
-    int taskCode
+      // TODO: boolean allowRetry,
+      int taskCode
   ) throws IOException, SQLException {
     requestVoid(taskCode, null, new VoidResponse());
   }
 
   private <T> T requestResult(
-    // TODO: boolean allowRetry,
-    TaskCodeSupplier taskCodeSupplier,
-    Request request,
-    ResultResponse<T> response
+      // TODO: boolean allowRetry,
+      TaskCodeSupplier taskCodeSupplier,
+      Request request,
+      ResultResponse<T> response
   ) throws IOException, SQLException {
     try (AOServDaemonConnection conn = getConnection()) {
       int taskCode = taskCodeSupplier.getTaskCode(conn);
@@ -904,10 +905,10 @@ public final class AOServDaemonConnector {
   }
 
   private <T> T requestResult(
-    // TODO: boolean allowRetry,
-    int taskCode,
-    Request request,
-    ResultResponse<T> response
+      // TODO: boolean allowRetry,
+      int taskCode,
+      Request request,
+      ResultResponse<T> response
   ) throws IOException, SQLException {
     return requestResult(conn -> taskCode, request, response);
   }
@@ -918,9 +919,9 @@ public final class AOServDaemonConnector {
    * @see  #requestResult(com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.ResultResponse)
    */
   private <T> T requestResult(
-    // TODO: boolean allowRetry,
-    TaskCodeSupplier taskCodeSupplier,
-    ResultResponse<T> response
+      // TODO: boolean allowRetry,
+      TaskCodeSupplier taskCodeSupplier,
+      ResultResponse<T> response
   ) throws IOException, SQLException {
     return requestResult(taskCodeSupplier, null, response);
   }
@@ -931,9 +932,9 @@ public final class AOServDaemonConnector {
    * @see  #requestResult(int, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AOServDaemonConnector.ResultResponse)
    */
   private <T> T requestResult(
-    // TODO: boolean allowRetry,
-    int taskCode,
-    ResultResponse<T> response
+      // TODO: boolean allowRetry,
+      int taskCode,
+      ResultResponse<T> response
   ) throws IOException, SQLException {
     return requestResult(taskCode, null, response);
   }
@@ -954,7 +955,7 @@ public final class AOServDaemonConnector {
         sourceOut.writeUTF(username.toString());
         sourceOut.flush();
 
-        StreamableInput sourceIn=sourceConn.getResponseIn();
+        StreamableInput sourceIn = sourceConn.getResponseIn();
 
         // Establish the connection to the destination
         // TODO: Have a specialized version when both home directories are on the same server
@@ -964,13 +965,13 @@ public final class AOServDaemonConnector {
             StreamableOutput destOut = destConn.getRequestOut(AOServDaemonProtocol.UNTAR_HOME_DIRECTORY);
             destOut.writeUTF(username.toString());
 
-            long byteCount=0;
+            long byteCount = 0;
             int sourceCode;
-            byte[] buff=BufferManager.getBytes();
+            byte[] buff = BufferManager.getBytes();
             try {
-              while ((sourceCode=sourceIn.read()) == AOServDaemonProtocol.NEXT) {
-                int len=sourceIn.readShort();
-                byteCount+=len;
+              while ((sourceCode = sourceIn.read()) == AOServDaemonProtocol.NEXT) {
+                int len = sourceIn.readShort();
+                byteCount += len;
                 sourceIn.readFully(buff, 0, len);
                 destOut.writeByte(AOServDaemonProtocol.NEXT);
                 destOut.writeShort(len);
@@ -981,13 +982,13 @@ public final class AOServDaemonConnector {
             }
             if (sourceCode != AOServDaemonProtocol.DONE) {
               if (sourceCode == AOServDaemonProtocol.IO_EXCEPTION) {
-                String message=sourceIn.readUTF();
+                String message = sourceIn.readUTF();
                 destOut.writeByte(AOServDaemonProtocol.IO_EXCEPTION);
                 destOut.writeUTF(message);
                 destOut.flush();
                 throw new IOException(message);
               } else if (sourceCode == AOServDaemonProtocol.SQL_EXCEPTION) {
-                String message=sourceIn.readUTF();
+                String message = sourceIn.readUTF();
                 destOut.writeByte(AOServDaemonProtocol.SQL_EXCEPTION);
                 destOut.writeUTF(message);
                 destOut.flush();
@@ -999,8 +1000,8 @@ public final class AOServDaemonConnector {
             destOut.writeByte(AOServDaemonProtocol.DONE);
             destOut.flush();
 
-            StreamableInput destIn=destConn.getResponseIn();
-            int destResult=destIn.read();
+            StreamableInput destIn = destConn.getResponseIn();
+            int destResult = destIn.read();
             if (destResult != AOServDaemonProtocol.DONE) {
               if (destResult == AOServDaemonProtocol.IO_EXCEPTION) {
                 throw new IOException(destIn.readUTF());
@@ -1034,36 +1035,36 @@ public final class AOServDaemonConnector {
   }
 
   public void dumpMySQLDatabase(
-    int pkey,
-    boolean gzip,
-    DumpSizeCallback onDumpSize,
-    StreamableOutput masterOut
+      int pkey,
+      boolean gzip,
+      DumpSizeCallback onDumpSize,
+      StreamableOutput masterOut
   ) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.DUMP_MYSQL_DATABASE,
-      new DumpRequest(pkey, gzip),
-      new DumpResponse(onDumpSize, masterOut)
+        AOServDaemonProtocol.DUMP_MYSQL_DATABASE,
+        new DumpRequest(pkey, gzip),
+        new DumpResponse(onDumpSize, masterOut)
     );
   }
 
   public void dumpPostgresDatabase(
-    int pkey,
-    boolean gzip,
-    DumpSizeCallback onDumpSize,
-    StreamableOutput masterOut
+      int pkey,
+      boolean gzip,
+      DumpSizeCallback onDumpSize,
+      StreamableOutput masterOut
   ) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.DUMP_POSTGRES_DATABASE,
-      new DumpRequest(pkey, gzip),
-      new DumpResponse(onDumpSize, masterOut)
+        AOServDaemonProtocol.DUMP_POSTGRES_DATABASE,
+        new DumpRequest(pkey, gzip),
+        new DumpResponse(onDumpSize, masterOut)
     );
   }
 
   public String getAutoresponderContent(PosixPath path) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_AUTORESPONDER_CONTENT,
-      new UtfRequest(path.toString()),
-      new UtfResponse()
+        AOServDaemonProtocol.GET_AUTORESPONDER_CONTENT,
+        new UtfRequest(path.toString()),
+        new UtfResponse()
     );
   }
 
@@ -1076,9 +1077,9 @@ public final class AOServDaemonConnector {
    */
   public String getCronTable(com.aoindustries.aoserv.client.linux.User.Name username) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_CRON_TABLE,
-      new UtfRequest(username.toString()),
-      new UtfResponse()
+        AOServDaemonProtocol.GET_CRON_TABLE,
+        new UtfRequest(username.toString()),
+        new UtfResponse()
     );
   }
 
@@ -1091,9 +1092,9 @@ public final class AOServDaemonConnector {
    */
   public String getNetDeviceBondingReport(int pkey) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_NET_DEVICE_BONDING_REPORT,
-      new CompressedIntRequest(pkey),
-      new UtfResponse()
+        AOServDaemonProtocol.GET_NET_DEVICE_BONDING_REPORT,
+        new CompressedIntRequest(pkey),
+        new UtfResponse()
     );
   }
 
@@ -1106,9 +1107,9 @@ public final class AOServDaemonConnector {
    */
   public String getNetDeviceStatisticsReport(int pkey) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_NET_DEVICE_STATISTICS_REPORT,
-      new CompressedIntRequest(pkey),
-      new UtfResponse()
+        AOServDaemonProtocol.GET_NET_DEVICE_STATISTICS_REPORT,
+        new CompressedIntRequest(pkey),
+        new UtfResponse()
     );
   }
 
@@ -1119,9 +1120,9 @@ public final class AOServDaemonConnector {
    */
   public boolean isProcmailManual(int lsa) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.IS_PROCMAIL_MANUAL,
-      new CompressedIntRequest(lsa),
-      new BooleanResponse()
+        AOServDaemonProtocol.IS_PROCMAIL_MANUAL,
+        new CompressedIntRequest(lsa),
+        new BooleanResponse()
     );
   }
 
@@ -1130,9 +1131,9 @@ public final class AOServDaemonConnector {
    */
   public long getDiskDeviceTotalSize(PosixPath path) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_DISK_DEVICE_TOTAL_SIZE,
-      new UtfRequest(path.toString()),
-      new LongResponse()
+        AOServDaemonProtocol.GET_DISK_DEVICE_TOTAL_SIZE,
+        new UtfRequest(path.toString()),
+        new LongResponse()
     );
   }
 
@@ -1141,9 +1142,9 @@ public final class AOServDaemonConnector {
    */
   public long getDiskDeviceUsedSize(PosixPath path) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_DISK_DEVICE_USED_SIZE,
-      new UtfRequest(path.toString()),
-      new LongResponse()
+        AOServDaemonProtocol.GET_DISK_DEVICE_USED_SIZE,
+        new UtfRequest(path.toString()),
+        new LongResponse()
     );
   }
 
@@ -1152,9 +1153,9 @@ public final class AOServDaemonConnector {
    */
   public String getEmailListFile(PosixPath path) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_EMAIL_LIST_FILE,
-      new UtfRequest(path.toString()),
-      new UtfResponse()
+        AOServDaemonProtocol.GET_EMAIL_LIST_FILE,
+        new UtfRequest(path.toString()),
+        new UtfResponse()
     );
   }
 
@@ -1163,262 +1164,262 @@ public final class AOServDaemonConnector {
    */
   public Tuple2<String, Integer> getEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
-      new UtfRequest(username.toString()),
-      // Java 9: new ResultResponse<>
-      new ResultResponse<Tuple2<String, Integer>>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          String encryptedPassword = in.readUTF();
-          Integer changedDate;
-          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
-            int i = in.readCompressedInt();
-            changedDate = i == -1 ? null : i;
-          } else {
-            changedDate = null;
+        AOServDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
+        new UtfRequest(username.toString()),
+        // Java 9: new ResultResponse<>
+        new ResultResponse<Tuple2<String, Integer>>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            String encryptedPassword = in.readUTF();
+            Integer changedDate;
+            if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
+              int i = in.readCompressedInt();
+              changedDate = i == -1 ? null : i;
+            } else {
+              changedDate = null;
+            }
+            result = new Tuple2<>(encryptedPassword, changedDate);
           }
-          result = new Tuple2<>(encryptedPassword, changedDate);
         }
-      }
     );
   }
 
   public long[] getImapFolderSizes(com.aoindustries.aoserv.client.linux.User.Name username, String[] folderNames) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES,
-      (conn, out) -> {
-        out.writeUTF(username.toString());
-        out.writeCompressedInt(folderNames.length);
-        for (String folderName : folderNames) {
-          out.writeUTF(folderName);
-        }
-      },
-      // Java 9: new AOServConnector.ResultRequest<>
-      new ResultResponse<long[]>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          long[] sizes = new long[folderNames.length];
-          for (int c = 0; c < folderNames.length; c++) {
-            sizes[c] = in.readLong();
+        AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES,
+        (conn, out) -> {
+          out.writeUTF(username.toString());
+          out.writeCompressedInt(folderNames.length);
+          for (String folderName : folderNames) {
+            out.writeUTF(folderName);
           }
-          result = sizes;
+        },
+        // Java 9: new AOServConnector.ResultRequest<>
+        new ResultResponse<long[]>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            long[] sizes = new long[folderNames.length];
+            for (int c = 0; c < folderNames.length; c++) {
+              sizes[c] = in.readLong();
+            }
+            result = sizes;
+          }
         }
-      }
     );
   }
 
   public InboxAttributes getInboxAttributes(com.aoindustries.aoserv.client.linux.User.Name username) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_INBOX_ATTRIBUTES,
-      new UtfRequest(username.toString()),
-      // Java 9: new AOServConnector.ResultRequest<>
-      new ResultResponse<InboxAttributes>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = new InboxAttributes(in.readLong(), in.readLong());
+        AOServDaemonProtocol.GET_INBOX_ATTRIBUTES,
+        new UtfRequest(username.toString()),
+        // Java 9: new AOServConnector.ResultRequest<>
+        new ResultResponse<InboxAttributes>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = new InboxAttributes(in.readLong(), in.readLong());
+          }
         }
-      }
     );
   }
 
   public void getMrtgFile(String filename, StreamableOutput out) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.GET_MRTG_FILE,
-      new UtfRequest(filename),
-      new StreamingResponse(out)
+        AOServDaemonProtocol.GET_MRTG_FILE,
+        new UtfRequest(filename),
+        new StreamingResponse(out)
     );
   }
 
   public Server.MasterStatus getMySQLMasterStatus(int mysqlServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_MYSQL_MASTER_STATUS,
-      new CompressedIntRequest(mysqlServer),
-      // Java 9: new AOServConnector.ResultRequest<>
-      new ResultResponse<Server.MasterStatus>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = null;
+        AOServDaemonProtocol.GET_MYSQL_MASTER_STATUS,
+        new CompressedIntRequest(mysqlServer),
+        // Java 9: new AOServConnector.ResultRequest<>
+        new ResultResponse<Server.MasterStatus>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = null;
+          }
+          @Override
+          protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = new Server.MasterStatus(
+                in.readNullUTF(),
+                in.readNullUTF()
+            );
+          }
         }
-        @Override
-        protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = new Server.MasterStatus(
-            in.readNullUTF(),
-            in.readNullUTF()
-          );
-        }
-      }
     );
   }
 
   public MysqlReplication.SlaveStatus getMySQLSlaveStatus(
-    PosixPath failoverRoot,
-    int nestedOperatingSystemVersion,
-    Server.Name serverName,
-    Port port
+      PosixPath failoverRoot,
+      int nestedOperatingSystemVersion,
+      Server.Name serverName,
+      Port port
   ) throws IOException, SQLException {
     if (port.getProtocol() != com.aoapps.net.Protocol.TCP) {
       throw new IllegalArgumentException("Only TCP supported: " + port);
     }
     return requestResult(
-      AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS,
-      (conn, out) -> {
-        out.writeUTF(failoverRoot == null ? "" : failoverRoot.toString());
-        out.writeCompressedInt(nestedOperatingSystemVersion);
-        if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
-          out.writeUTF(serverName.toString());
+        AOServDaemonProtocol.GET_MYSQL_SLAVE_STATUS,
+        (conn, out) -> {
+          out.writeUTF(failoverRoot == null ? "" : failoverRoot.toString());
+          out.writeCompressedInt(nestedOperatingSystemVersion);
+          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+            out.writeUTF(serverName.toString());
+          }
+          out.writeCompressedInt(port.getPort());
+        },
+        // Java 9: new AOServConnector.ResultRequest<>
+        new ResultResponse<MysqlReplication.SlaveStatus>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = null;
+          }
+          @Override
+          protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = new MysqlReplication.SlaveStatus(
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF(),
+                in.readNullUTF()
+            );
+          }
         }
-        out.writeCompressedInt(port.getPort());
-      },
-      // Java 9: new AOServConnector.ResultRequest<>
-      new ResultResponse<MysqlReplication.SlaveStatus>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = null;
-        }
-        @Override
-        protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = new MysqlReplication.SlaveStatus(
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF(),
-            in.readNullUTF()
-          );
-        }
-      }
     );
   }
 
   public List<TableStatus> getMySQLTableStatus(
-    PosixPath failoverRoot,
-    int nestedOperatingSystemVersion,
-    Server.Name serverName,
-    Port port,
-    com.aoindustries.aoserv.client.mysql.Database.Name databaseName
+      PosixPath failoverRoot,
+      int nestedOperatingSystemVersion,
+      Server.Name serverName,
+      Port port,
+      com.aoindustries.aoserv.client.mysql.Database.Name databaseName
   ) throws IOException, SQLException {
     if (port.getProtocol() != com.aoapps.net.Protocol.TCP) {
       throw new IllegalArgumentException("Only TCP supported: " + port);
     }
     return requestResult(
-      AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS,
-      (conn, out) -> {
-        out.writeUTF(failoverRoot == null ? "" : failoverRoot.toString());
-        out.writeCompressedInt(nestedOperatingSystemVersion);
-        if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
-          out.writeUTF(serverName.toString());
-        }
-        out.writeCompressedInt(port.getPort());
-        out.writeUTF(databaseName.toString());
-      },
-      // Java 9: new ResultResponse<>
-      new ResultResponse<List<TableStatus>>() {
-        @Override
-        protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          try {
-            int size = in.readCompressedInt();
-            List<TableStatus> tableStatuses = new ArrayList<>(size);
-            for (int c=0;c<size;c++) {
-              tableStatuses.add(new TableStatus(
-                  Table_Name.valueOf(in.readUTF()), // name
-                  in.readNullEnum(Engine.class), // engine
-                  in.readNullInteger(), // version
-                  in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
-                  in.readNullLong(), // rows
-                  in.readNullLong(), // avgRowLength
-                  in.readNullLong(), // dataLength
-                  in.readNullLong(), // maxDataLength
-                  in.readNullLong(), // indexLength
-                  in.readNullLong(), // dataFree
-                  in.readNullLong(), // autoIncrement
-                  in.readNullUTF(), // createTime
-                  in.readNullUTF(), // updateTime
-                  in.readNullUTF(), // checkTime
-                  in.readNullEnum(TableStatus.Collation.class), // collation
-                  in.readNullUTF(), // checksum
-                  in.readNullUTF(), // createOptions
-                  in.readNullUTF() // comment
-                )
-              );
-            }
-            result = tableStatuses;
-          } catch (ValidationException e) {
-            throw new IOException(e);
+        AOServDaemonProtocol.GET_MYSQL_TABLE_STATUS,
+        (conn, out) -> {
+          out.writeUTF(failoverRoot == null ? "" : failoverRoot.toString());
+          out.writeCompressedInt(nestedOperatingSystemVersion);
+          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+            out.writeUTF(serverName.toString());
           }
-        }
-      }
-    );
-  }
-
-  public List<CheckTableResult> checkMySQLTables(
-    PosixPath failoverRoot,
-    int nestedOperatingSystemVersion,
-    Server.Name serverName,
-    Port port,
-    com.aoindustries.aoserv.client.mysql.Database.Name databaseName,
-    List<? extends Table_Name> tableNames
-  ) throws IOException, SQLException {
-    if (port.getProtocol() != com.aoapps.net.Protocol.TCP) {
-      throw new IllegalArgumentException("Only TCP supported: " + port);
-    }
-    return requestResult(
-      AOServDaemonProtocol.CHECK_MYSQL_TABLES,
-      (conn, out) -> {
-        out.writeUTF(failoverRoot == null ? "" : failoverRoot.toString());
-        out.writeCompressedInt(nestedOperatingSystemVersion);
-        if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
-          out.writeUTF(serverName.toString());
-        }
-        out.writeCompressedInt(port.getPort());
-        out.writeUTF(databaseName.toString());
-        int numTables = tableNames.size();
-        out.writeCompressedInt(numTables);
-        for (int c = 0; c < numTables; c++) {
-          out.writeUTF(tableNames.get(c).toString());
-        }
-      },
-      // Java 9: new ResultResponse<>
-      new ResultResponse<List<CheckTableResult>>() {
-        @Override
-        protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          int size = in.readCompressedInt();
-          List<CheckTableResult> checkTableResults = new ArrayList<>(size);
-          for (int c=0;c<size;c++) {
+          out.writeCompressedInt(port.getPort());
+          out.writeUTF(databaseName.toString());
+        },
+        // Java 9: new ResultResponse<>
+        new ResultResponse<List<TableStatus>>() {
+          @Override
+          protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
             try {
-              checkTableResults.add(new CheckTableResult(
-                  Table_Name.valueOf(in.readUTF()), // table
-                  in.readLong(), // duration
-                  in.readNullEnum(CheckTableResult.MsgType.class), // msgType
-                  in.readNullUTF() // msgText
+              int size = in.readCompressedInt();
+              List<TableStatus> tableStatuses = new ArrayList<>(size);
+              for (int c = 0; c < size; c++) {
+                tableStatuses.add(new TableStatus(
+                    Table_Name.valueOf(in.readUTF()), // name
+                    in.readNullEnum(Engine.class), // engine
+                    in.readNullInteger(), // version
+                    in.readNullEnum(TableStatus.RowFormat.class), // rowFormat
+                    in.readNullLong(), // rows
+                    in.readNullLong(), // avgRowLength
+                    in.readNullLong(), // dataLength
+                    in.readNullLong(), // maxDataLength
+                    in.readNullLong(), // indexLength
+                    in.readNullLong(), // dataFree
+                    in.readNullLong(), // autoIncrement
+                    in.readNullUTF(), // createTime
+                    in.readNullUTF(), // updateTime
+                    in.readNullUTF(), // checkTime
+                    in.readNullEnum(TableStatus.Collation.class), // collation
+                    in.readNullUTF(), // checksum
+                    in.readNullUTF(), // createOptions
+                    in.readNullUTF() // comment
                 )
-              );
+                );
+              }
+              result = tableStatuses;
             } catch (ValidationException e) {
               throw new IOException(e);
             }
           }
-          result = checkTableResults;
         }
-      }
+    );
+  }
+
+  public List<CheckTableResult> checkMySQLTables(
+      PosixPath failoverRoot,
+      int nestedOperatingSystemVersion,
+      Server.Name serverName,
+      Port port,
+      com.aoindustries.aoserv.client.mysql.Database.Name databaseName,
+      List<? extends Table_Name> tableNames
+  ) throws IOException, SQLException {
+    if (port.getProtocol() != com.aoapps.net.Protocol.TCP) {
+      throw new IllegalArgumentException("Only TCP supported: " + port);
+    }
+    return requestResult(
+        AOServDaemonProtocol.CHECK_MYSQL_TABLES,
+        (conn, out) -> {
+          out.writeUTF(failoverRoot == null ? "" : failoverRoot.toString());
+          out.writeCompressedInt(nestedOperatingSystemVersion);
+          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_84_11) >= 0) {
+            out.writeUTF(serverName.toString());
+          }
+          out.writeCompressedInt(port.getPort());
+          out.writeUTF(databaseName.toString());
+          int numTables = tableNames.size();
+          out.writeCompressedInt(numTables);
+          for (int c = 0; c < numTables; c++) {
+            out.writeUTF(tableNames.get(c).toString());
+          }
+        },
+        // Java 9: new ResultResponse<>
+        new ResultResponse<List<CheckTableResult>>() {
+          @Override
+          protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            int size = in.readCompressedInt();
+            List<CheckTableResult> checkTableResults = new ArrayList<>(size);
+            for (int c = 0; c < size; c++) {
+              try {
+                checkTableResults.add(new CheckTableResult(
+                    Table_Name.valueOf(in.readUTF()), // table
+                    in.readLong(), // duration
+                    in.readNullEnum(CheckTableResult.MsgType.class), // msgType
+                    in.readNullUTF() // msgText
+                )
+                );
+              } catch (ValidationException e) {
+                throw new IOException(e);
+              }
+            }
+            result = checkTableResults;
+          }
+        }
     );
   }
 
   public void getAWStatsFile(String siteName, String path, String queryString, StreamableOutput out) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.GET_AWSTATS_FILE,
-      (conn, daemonOut) -> {
-        daemonOut.writeUTF(siteName);
-        daemonOut.writeUTF(path);
-        daemonOut.writeUTF(queryString);
-      },
-      new StreamingResponse(out)
+        AOServDaemonProtocol.GET_AWSTATS_FILE,
+        (conn, daemonOut) -> {
+          daemonOut.writeUTF(siteName);
+          daemonOut.writeUTF(path);
+          daemonOut.writeUTF(queryString);
+        },
+        new StreamingResponse(out)
     );
   }
 
@@ -1427,12 +1428,12 @@ public final class AOServDaemonConnector {
    */
   public boolean compareLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String password) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.COMPARE_LINUX_ACCOUNT_PASSWORD,
-      (conn, out) -> {
-        out.writeUTF(username.toString());
-        out.writeUTF(password);
-      },
-      new BooleanResponse()
+        AOServDaemonProtocol.COMPARE_LINUX_ACCOUNT_PASSWORD,
+        (conn, out) -> {
+          out.writeUTF(username.toString());
+          out.writeUTF(password);
+        },
+        new BooleanResponse()
     );
   }
 
@@ -1441,12 +1442,12 @@ public final class AOServDaemonConnector {
    */
   public String getEncryptedMySQLUserPassword(int mysqlServer, com.aoindustries.aoserv.client.mysql.User.Name username) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD,
-      (conn, out) -> {
-        out.writeCompressedInt(mysqlServer);
-        out.writeUTF(username.toString());
-      },
-      new UtfResponse()
+        AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD,
+        (conn, out) -> {
+          out.writeCompressedInt(mysqlServer);
+          out.writeUTF(username.toString());
+        },
+        new UtfResponse()
     );
   }
 
@@ -1455,42 +1456,42 @@ public final class AOServDaemonConnector {
    */
   public String getPostgresUserPassword(int pkey) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_POSTGRES_PASSWORD,
-      new CompressedIntRequest(pkey),
-      new UtfResponse()
+        AOServDaemonProtocol.GET_POSTGRES_PASSWORD,
+        new CompressedIntRequest(pkey),
+        new UtfResponse()
     );
   }
 
   public void grantDaemonAccess(
-    long key,
-    int command,
-    String param1,
-    String param2,
-    String param3,
-    String param4
+      long key,
+      int command,
+      String param1,
+      String param2,
+      String param3,
+      String param4
   ) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.GRANT_DAEMON_ACCESS,
-      (conn, out) -> {
-        out.writeLong(key);
-        out.writeCompressedInt(command);
-        out.writeBoolean(param1 != null);
-        if (param1 != null) {
-          out.writeUTF(param1);
+        AOServDaemonProtocol.GRANT_DAEMON_ACCESS,
+        (conn, out) -> {
+          out.writeLong(key);
+          out.writeCompressedInt(command);
+          out.writeBoolean(param1 != null);
+          if (param1 != null) {
+            out.writeUTF(param1);
+          }
+          out.writeBoolean(param2 != null);
+          if (param2 != null) {
+            out.writeUTF(param2);
+          }
+          out.writeBoolean(param3 != null);
+          if (param3 != null) {
+            out.writeUTF(param3);
+          }
+          out.writeBoolean(param4 != null);
+          if (param4 != null) {
+            out.writeUTF(param4);
+          }
         }
-        out.writeBoolean(param2 != null);
-        if (param2 != null) {
-          out.writeUTF(param2);
-        }
-        out.writeBoolean(param3 != null);
-        if (param3 != null) {
-          out.writeUTF(param3);
-        }
-        out.writeBoolean(param4 != null);
-        if (param4 != null) {
-          out.writeUTF(param4);
-        }
-      }
     );
   }
 
@@ -1528,8 +1529,8 @@ public final class AOServDaemonConnector {
    */
   public void removeEmailList(PosixPath listPath) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.REMOVE_EMAIL_LIST,
-      new UtfRequest(listPath.toString())
+        AOServDaemonProtocol.REMOVE_EMAIL_LIST,
+        new UtfRequest(listPath.toString())
     );
   }
 
@@ -1543,15 +1544,15 @@ public final class AOServDaemonConnector {
 
   public void restartMySQL(int mysqlServer) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.RESTART_MYSQL,
-      new CompressedIntRequest(mysqlServer)
+        AOServDaemonProtocol.RESTART_MYSQL,
+        new CompressedIntRequest(mysqlServer)
     );
   }
 
   public void restartPostgres(int pkey) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.RESTART_POSTGRES,
-      new CompressedIntRequest(pkey)
+        AOServDaemonProtocol.RESTART_POSTGRES,
+        new CompressedIntRequest(pkey)
     );
   }
 
@@ -1565,16 +1566,16 @@ public final class AOServDaemonConnector {
 
   public void setAutoresponderContent(PosixPath path, String content, int uid, int gid) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_AUTORESPONDER_CONTENT,
-      (conn, out) -> {
-        out.writeUTF(path.toString());
-        out.writeBoolean(content != null);
-        if (content != null) {
-          out.writeUTF(content);
+        AOServDaemonProtocol.SET_AUTORESPONDER_CONTENT,
+        (conn, out) -> {
+          out.writeUTF(path.toString());
+          out.writeBoolean(content != null);
+          if (content != null) {
+            out.writeUTF(content);
+          }
+          out.writeCompressedInt(uid);
+          out.writeCompressedInt(gid);
         }
-        out.writeCompressedInt(uid);
-        out.writeCompressedInt(gid);
-      }
     );
   }
 
@@ -1586,11 +1587,11 @@ public final class AOServDaemonConnector {
    */
   public void setCronTable(com.aoindustries.aoserv.client.linux.User.Name username, String cronTable) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_CRON_TABLE,
-      (conn, out) -> {
-        out.writeUTF(username.toString());
-        out.writeUTF(cronTable);
-      }
+        AOServDaemonProtocol.SET_CRON_TABLE,
+        (conn, out) -> {
+          out.writeUTF(username.toString());
+          out.writeUTF(cronTable);
+        }
     );
   }
 
@@ -1599,14 +1600,14 @@ public final class AOServDaemonConnector {
    */
   public void setEmailListFile(PosixPath path, String file, int uid, int gid, int mode) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_EMAIL_LIST_FILE,
-      (conn, out) -> {
-        out.writeUTF(path.toString());
-        out.writeUTF(file);
-        out.writeCompressedInt(uid);
-        out.writeCompressedInt(gid);
-        out.writeCompressedInt(mode);
-      }
+        AOServDaemonProtocol.SET_EMAIL_LIST_FILE,
+        (conn, out) -> {
+          out.writeUTF(path.toString());
+          out.writeUTF(file);
+          out.writeCompressedInt(uid);
+          out.writeCompressedInt(gid);
+          out.writeCompressedInt(mode);
+        }
     );
   }
 
@@ -1615,14 +1616,14 @@ public final class AOServDaemonConnector {
    */
   public void setEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String encryptedPassword, Integer changedDate) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
-      (conn, out) -> {
-        out.writeUTF(username.toString());
-        out.writeUTF(encryptedPassword);
-        if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
-          out.writeCompressedInt(changedDate == null ? -1 : changedDate);
+        AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
+        (conn, out) -> {
+          out.writeUTF(username.toString());
+          out.writeUTF(encryptedPassword);
+          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
+            out.writeCompressedInt(changedDate == null ? -1 : changedDate);
+          }
         }
-      }
     );
   }
 
@@ -1631,11 +1632,11 @@ public final class AOServDaemonConnector {
    */
   public void setLinuxServerAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String plain_password) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD,
-      (conn, out) -> {
-        out.writeUTF(username.toString());
-        out.writeUTF(plain_password);
-      }
+        AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD,
+        (conn, out) -> {
+          out.writeUTF(username.toString());
+          out.writeUTF(plain_password);
+        }
     );
   }
 
@@ -1644,15 +1645,15 @@ public final class AOServDaemonConnector {
    */
   public void setMySQLUserPassword(int mysqlServer, com.aoindustries.aoserv.client.mysql.User.Name username, String password) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD,
-      (conn, out) -> {
-        out.writeCompressedInt(mysqlServer);
-        out.writeUTF(username.toString());
-        out.writeBoolean(password != null);
-        if (password != null) {
-          out.writeUTF(password);
+        AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD,
+        (conn, out) -> {
+          out.writeCompressedInt(mysqlServer);
+          out.writeUTF(username.toString());
+          out.writeBoolean(password != null);
+          if (password != null) {
+            out.writeUTF(password);
+          }
         }
-      }
     );
   }
 
@@ -1661,14 +1662,14 @@ public final class AOServDaemonConnector {
    */
   public void setPostgresUserPassword(int pkey, String password) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.SET_POSTGRES_USER_PASSWORD,
-      (conn, out) -> {
-        out.writeCompressedInt(pkey);
-        out.writeBoolean(password != null);
-        if (password != null) {
-          out.writeUTF(password);
+        AOServDaemonProtocol.SET_POSTGRES_USER_PASSWORD,
+        (conn, out) -> {
+          out.writeCompressedInt(pkey);
+          out.writeBoolean(password != null);
+          if (password != null) {
+            out.writeUTF(password);
+          }
         }
-      }
     );
   }
 
@@ -1685,8 +1686,8 @@ public final class AOServDaemonConnector {
    */
   public void startDistro(boolean includeUser) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.START_DISTRO,
-      new BooleanRequest(includeUser)
+        AOServDaemonProtocol.START_DISTRO,
+        new BooleanRequest(includeUser)
     );
   }
 
@@ -1695,23 +1696,23 @@ public final class AOServDaemonConnector {
    */
   public String startJVM(int httpdSite) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.START_JVM,
-      new CompressedIntRequest(httpdSite),
-      new NullUtfResponse()
+        AOServDaemonProtocol.START_JVM,
+        new CompressedIntRequest(httpdSite),
+        new NullUtfResponse()
     );
   }
 
   public void startMySQL(int mysqlServer) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.START_MYSQL,
-      new CompressedIntRequest(mysqlServer)
+        AOServDaemonProtocol.START_MYSQL,
+        new CompressedIntRequest(mysqlServer)
     );
   }
 
   public void startPostgreSQL(int pkey) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.START_POSTGRESQL,
-      new CompressedIntRequest(pkey)
+        AOServDaemonProtocol.START_POSTGRESQL,
+        new CompressedIntRequest(pkey)
     );
   }
 
@@ -1736,23 +1737,23 @@ public final class AOServDaemonConnector {
    */
   public String stopJVM(int httpdSite) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.STOP_JVM,
-      new CompressedIntRequest(httpdSite),
-      new NullUtfResponse()
+        AOServDaemonProtocol.STOP_JVM,
+        new CompressedIntRequest(httpdSite),
+        new NullUtfResponse()
     );
   }
 
   public void stopMySQL(int mysqlServer) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.STOP_MYSQL,
-      new CompressedIntRequest(mysqlServer)
+        AOServDaemonProtocol.STOP_MYSQL,
+        new CompressedIntRequest(mysqlServer)
     );
   }
 
   public void stopPostgreSQL(int pkey) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.STOP_POSTGRESQL,
-      new CompressedIntRequest(pkey)
+        AOServDaemonProtocol.STOP_POSTGRESQL,
+        new CompressedIntRequest(pkey)
     );
   }
 
@@ -1766,55 +1767,55 @@ public final class AOServDaemonConnector {
 
   private void waitFor(int taskCode) throws IOException, SQLException {
     requestVoid(
-      conn -> (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0)
-        ? AOServDaemonProtocol.OLD_WAIT_FOR_REBUILD
-        : taskCode,
-      new Request() {
-        private int tableId;
-        @Override
-        public void before(AOServDaemonConnection conn) throws IOException, SQLException {
-          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
-            // Older protocol use a single WAIT_FOR_REBUILD with a follow-up table ID.
-            // Table IDs can change over time, so the new protocol uses distinct task codes for each type of wait.
-            // Find the table ID consistent with schema version 1.77
-            switch (taskCode) {
-              case AOServDaemonProtocol.WAIT_FOR_HTTPD_SITE_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_HTTPD_SITES_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_LINUX_ACCOUNT_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_LINUX_ACCOUNTS_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_MYSQL_DATABASE_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_MYSQL_DATABASES_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_MYSQL_DB_USER_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_MYSQL_DB_USERS_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_MYSQL_USER_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_MYSQL_USERS_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_POSTGRES_DATABASE_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_POSTGRES_DATABASES_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_POSTGRES_SERVER_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_POSTGRES_SERVERS_TABLE_ID;
-                break;
-              case AOServDaemonProtocol.WAIT_FOR_POSTGRES_USER_REBUILD :
-                tableId = AOServDaemonProtocol.OLD_POSTGRES_USERS_TABLE_ID;
-                break;
-              default :
-                throw new IOException("Unexpected taskCode: " + taskCode);
+        conn -> (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0)
+            ? AOServDaemonProtocol.OLD_WAIT_FOR_REBUILD
+            : taskCode,
+        new Request() {
+          private int tableId;
+          @Override
+          public void before(AOServDaemonConnection conn) throws IOException, SQLException {
+            if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+              // Older protocol use a single WAIT_FOR_REBUILD with a follow-up table ID.
+              // Table IDs can change over time, so the new protocol uses distinct task codes for each type of wait.
+              // Find the table ID consistent with schema version 1.77
+              switch (taskCode) {
+                case AOServDaemonProtocol.WAIT_FOR_HTTPD_SITE_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_HTTPD_SITES_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_LINUX_ACCOUNT_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_LINUX_ACCOUNTS_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_MYSQL_DATABASE_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_MYSQL_DATABASES_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_MYSQL_DB_USER_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_MYSQL_DB_USERS_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_MYSQL_USER_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_MYSQL_USERS_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_POSTGRES_DATABASE_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_POSTGRES_DATABASES_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_POSTGRES_SERVER_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_POSTGRES_SERVERS_TABLE_ID;
+                  break;
+                case AOServDaemonProtocol.WAIT_FOR_POSTGRES_USER_REBUILD :
+                  tableId = AOServDaemonProtocol.OLD_POSTGRES_USERS_TABLE_ID;
+                  break;
+                default :
+                  throw new IOException("Unexpected taskCode: " + taskCode);
 
+              }
+            }
+          }
+          @Override
+          public void write(AOServDaemonConnection conn, StreamableOutput out) throws IOException {
+            if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+              out.writeCompressedInt(tableId);
             }
           }
         }
-        @Override
-        public void write(AOServDaemonConnection conn, StreamableOutput out) throws IOException {
-          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
-            out.writeCompressedInt(tableId);
-          }
-        }
-      }
     );
   }
 
@@ -1901,15 +1902,15 @@ public final class AOServDaemonConnector {
 
   public Tuple2<Long, String> getFailoverFileReplicationActivity(int replication) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY,
-      new CompressedIntRequest(replication),
-      // Java 9: new ResultResponse<>
-      new ResultResponse<Tuple2<Long, String>>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = new Tuple2<>(in.readLong(), in.readUTF());
+        AOServDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY,
+        new CompressedIntRequest(replication),
+        // Java 9: new ResultResponse<>
+        new ResultResponse<Tuple2<Long, String>>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = new Tuple2<>(in.readLong(), in.readUTF());
+          }
         }
-      }
     );
   }
 
@@ -1920,18 +1921,18 @@ public final class AOServDaemonConnector {
    */
   public String[] getLvmReport() throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_LVM_REPORT,
-      // Java 9: new AOServConnector.ResultRequest<>
-      new ResultResponse<String[]>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          result = new String[] {
-            in.readUTF(),
-            in.readUTF(),
-            in.readUTF()
-          };
+        AOServDaemonProtocol.GET_LVM_REPORT,
+        // Java 9: new AOServConnector.ResultRequest<>
+        new ResultResponse<String[]>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            result = new String[]{
+                in.readUTF(),
+                in.readUTF(),
+                in.readUTF()
+            };
+          }
         }
-      }
     );
   }
 
@@ -1986,26 +1987,26 @@ public final class AOServDaemonConnector {
    * @return  the result
    */
   public String checkPort(
-    InetAddress ipAddress,
-    Port port,
-    String appProtocol,
-    String monitoringParameters
+      InetAddress ipAddress,
+      Port port,
+      String appProtocol,
+      String monitoringParameters
   ) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.CHECK_PORT,
-      (conn, out) -> {
-        out.writeUTF(ipAddress.toString());
-        out.writeCompressedInt(port.getPort());
-        if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
-          // Old protocol transferred lowercase
-          out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
-        } else {
-          out.writeEnum(port.getProtocol());
-        }
-        out.writeUTF(appProtocol);
-        out.writeUTF(monitoringParameters);
-      },
-      new UtfResponse()
+        AOServDaemonProtocol.CHECK_PORT,
+        (conn, out) -> {
+          out.writeUTF(ipAddress.toString());
+          out.writeCompressedInt(port.getPort());
+          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
+            // Old protocol transferred lowercase
+            out.writeUTF(port.getProtocol().name().toLowerCase(Locale.ROOT));
+          } else {
+            out.writeEnum(port.getProtocol());
+          }
+          out.writeUTF(appProtocol);
+          out.writeUTF(monitoringParameters);
+        },
+        new UtfResponse()
     );
   }
 
@@ -2016,59 +2017,59 @@ public final class AOServDaemonConnector {
    */
   public String checkSmtpBlacklist(InetAddress sourceIp, InetAddress connectIp) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.CHECK_SMTP_BLACKLIST,
-      (conn, out) -> {
-        out.writeUTF(sourceIp.toString());
-        out.writeUTF(connectIp.toString());
-      },
-      new UtfResponse()
+        AOServDaemonProtocol.CHECK_SMTP_BLACKLIST,
+        (conn, out) -> {
+          out.writeUTF(sourceIp.toString());
+          out.writeUTF(connectIp.toString());
+        },
+        new UtfResponse()
     );
   }
 
   public List<Certificate.Check> checkSslCertificate(int sslCertificate, boolean allowCached) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.CHECK_SSL_CERTIFICATE,
-      (conn, out) -> {
-        out.writeCompressedInt(sslCertificate);
-        if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_83_0) >= 0) {
-          out.writeBoolean(allowCached);
-        }
-      },
-      // Java 9: new ResultResponse<>
-      new ResultResponse<List<Certificate.Check>>() {
-        @Override
-        protected boolean before(AOServDaemonConnection conn) throws IOException, SQLException {
-          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
-            result = Collections.singletonList(new Certificate.Check(
-                "Daemon Protocol",
-                conn.getProtocolVersion().toString(),
-                AlertLevel.UNKNOWN,
-                "Protocol version does not support checking SSL certificates, please installed AOServ Daemon >= " + AOServDaemonProtocol.Version.VERSION_1_81_10
+        AOServDaemonProtocol.CHECK_SSL_CERTIFICATE,
+        (conn, out) -> {
+          out.writeCompressedInt(sslCertificate);
+          if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_83_0) >= 0) {
+            out.writeBoolean(allowCached);
+          }
+        },
+        // Java 9: new ResultResponse<>
+        new ResultResponse<List<Certificate.Check>>() {
+          @Override
+          protected boolean before(AOServDaemonConnection conn) throws IOException, SQLException {
+            if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) < 0) {
+              result = Collections.singletonList(new Certificate.Check(
+                  "Daemon Protocol",
+                  conn.getProtocolVersion().toString(),
+                  AlertLevel.UNKNOWN,
+                  "Protocol version does not support checking SSL certificates, please installed AOServ Daemon >= " + AOServDaemonProtocol.Version.VERSION_1_81_10
               )
-            );
-            return false;
-          } else {
-            return true;
+              );
+              return false;
+            } else {
+              return true;
+            }
+          }
+          @Override
+          protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            assert conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) >= 0;
+            int size = in.readCompressedInt();
+            List<Certificate.Check> results = new ArrayList<>(size);
+            for (int i = 0; i < size; i++) {
+              results.add(
+                  new Certificate.Check(
+                      in.readUTF(),
+                      in.readUTF(),
+                      AlertLevel.valueOf(in.readUTF()),
+                      in.readNullUTF()
+                  )
+              );
+            }
+            result = results;
           }
         }
-        @Override
-        protected void next(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          assert conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_81_10) >= 0;
-          int size = in.readCompressedInt();
-          List<Certificate.Check> results = new ArrayList<>(size);
-          for (int i = 0; i < size; i++) {
-            results.add(
-              new Certificate.Check(
-                in.readUTF(),
-                in.readUTF(),
-                AlertLevel.valueOf(in.readUTF()),
-                in.readNullUTF()
-              )
-            );
-          }
-          result = results;
-        }
-      }
     );
   }
 
@@ -2086,19 +2087,19 @@ public final class AOServDaemonConnector {
    */
   public Set<String> getXenAutoStartLinks() throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_XEN_AUTO_START_LINKS,
-      // Java 9: new ResultResponse<>
-      new ResultResponse<Set<String>>() {
-        @Override
-        protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
-          int numLinks = in.readCompressedInt();
-          Set<String> links = AoCollections.newLinkedHashSet(numLinks);
-          for (int i=0; i<numLinks; i++) {
-            links.add(in.readUTF());
+        AOServDaemonProtocol.GET_XEN_AUTO_START_LINKS,
+        // Java 9: new ResultResponse<>
+        new ResultResponse<Set<String>>() {
+          @Override
+          protected void done(AOServDaemonConnection conn, StreamableInput in) throws IOException {
+            int numLinks = in.readCompressedInt();
+            Set<String> links = AoCollections.newLinkedHashSet(numLinks);
+            for (int i = 0; i < numLinks; i++) {
+              links.add(in.readUTF());
+            }
+            result = Collections.unmodifiableSet(links);
           }
-          result = Collections.unmodifiableSet(links);
         }
-      }
     );
   }
 
@@ -2107,9 +2108,9 @@ public final class AOServDaemonConnector {
    */
   public String createVirtualServer(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.CREATE_VIRTUAL_SERVER,
-      new UtfRequest(virtualServer),
-      new UtfResponse()
+        AOServDaemonProtocol.CREATE_VIRTUAL_SERVER,
+        new UtfRequest(virtualServer),
+        new UtfResponse()
     );
   }
 
@@ -2118,9 +2119,9 @@ public final class AOServDaemonConnector {
    */
   public String rebootVirtualServer(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.REBOOT_VIRTUAL_SERVER,
-      new UtfRequest(virtualServer),
-      new UtfResponse()
+        AOServDaemonProtocol.REBOOT_VIRTUAL_SERVER,
+        new UtfRequest(virtualServer),
+        new UtfResponse()
     );
   }
 
@@ -2129,9 +2130,9 @@ public final class AOServDaemonConnector {
    */
   public String shutdownVirtualServer(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.SHUTDOWN_VIRTUAL_SERVER,
-      new UtfRequest(virtualServer),
-      new UtfResponse()
+        AOServDaemonProtocol.SHUTDOWN_VIRTUAL_SERVER,
+        new UtfRequest(virtualServer),
+        new UtfResponse()
     );
   }
 
@@ -2140,9 +2141,9 @@ public final class AOServDaemonConnector {
    */
   public String destroyVirtualServer(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.DESTROY_VIRTUAL_SERVER,
-      new UtfRequest(virtualServer),
-      new UtfResponse()
+        AOServDaemonProtocol.DESTROY_VIRTUAL_SERVER,
+        new UtfRequest(virtualServer),
+        new UtfResponse()
     );
   }
 
@@ -2151,9 +2152,9 @@ public final class AOServDaemonConnector {
    */
   public String pauseVirtualServer(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.PAUSE_VIRTUAL_SERVER,
-      new UtfRequest(virtualServer),
-      new UtfResponse()
+        AOServDaemonProtocol.PAUSE_VIRTUAL_SERVER,
+        new UtfRequest(virtualServer),
+        new UtfResponse()
     );
   }
 
@@ -2162,9 +2163,9 @@ public final class AOServDaemonConnector {
    */
   public String unpauseVirtualServer(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.UNPAUSE_VIRTUAL_SERVER,
-      new UtfRequest(virtualServer),
-      new UtfResponse()
+        AOServDaemonProtocol.UNPAUSE_VIRTUAL_SERVER,
+        new UtfRequest(virtualServer),
+        new UtfResponse()
     );
   }
 
@@ -2173,9 +2174,9 @@ public final class AOServDaemonConnector {
    */
   public int getVirtualServerStatus(String virtualServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_VIRTUAL_SERVER_STATUS,
-      new UtfRequest(virtualServer),
-      new CompressedIntResponse()
+        AOServDaemonProtocol.GET_VIRTUAL_SERVER_STATUS,
+        new UtfRequest(virtualServer),
+        new CompressedIntResponse()
     );
   }
 
@@ -2184,12 +2185,12 @@ public final class AOServDaemonConnector {
    */
   public long verifyVirtualDisk(String virtualServerName, String device) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.VERIFY_VIRTUAL_DISK,
-      (conn, out) -> {
-        out.writeUTF(virtualServerName);
-        out.writeUTF(device);
-      },
-      new LongResponse()
+        AOServDaemonProtocol.VERIFY_VIRTUAL_DISK,
+        (conn, out) -> {
+          out.writeUTF(virtualServerName);
+          out.writeUTF(device);
+        },
+        new LongResponse()
     );
   }
 
@@ -2198,12 +2199,12 @@ public final class AOServDaemonConnector {
    */
   public void updateVirtualDiskLastVerified(String virtualServerName, String device, long lastVerified) throws IOException, SQLException {
     requestVoid(
-      AOServDaemonProtocol.UPDATE_VIRTUAL_DISK_LAST_UPDATED,
-      (conn, out) -> {
-        out.writeUTF(virtualServerName);
-        out.writeUTF(device);
-        out.writeLong(lastVerified);
-      }
+        AOServDaemonProtocol.UPDATE_VIRTUAL_DISK_LAST_UPDATED,
+        (conn, out) -> {
+          out.writeUTF(virtualServerName);
+          out.writeUTF(device);
+          out.writeLong(lastVerified);
+        }
     );
   }
 
@@ -2214,9 +2215,9 @@ public final class AOServDaemonConnector {
    */
   public int getHttpdServerConcurrency(int httpdServer) throws IOException, SQLException {
     return requestResult(
-      AOServDaemonProtocol.GET_HTTPD_SERVER_CONCURRENCY,
-      new CompressedIntRequest(httpdServer),
-      new CompressedIntResponse()
+        AOServDaemonProtocol.GET_HTTPD_SERVER_CONCURRENCY,
+        new CompressedIntRequest(httpdServer),
+        new CompressedIntResponse()
     );
   }
 }

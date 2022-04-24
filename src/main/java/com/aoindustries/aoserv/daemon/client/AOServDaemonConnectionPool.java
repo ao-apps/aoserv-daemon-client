@@ -41,12 +41,12 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
 
   AOServDaemonConnectionPool(AOServDaemonConnector connector, Logger logger) {
     super(
-      AOServDaemonConnectionPool.class.getName()+"?hostname=" + connector.hostname+"&local_ip="+connector.local_ip+"&port="+connector.port+"&protocol="+connector.protocol,
-      connector.poolSize,
-      connector.maxConnectionAge,
-      logger
+        AOServDaemonConnectionPool.class.getName() + "?hostname=" + connector.hostname + "&local_ip=" + connector.local_ip + "&port=" + connector.port + "&protocol=" + connector.protocol,
+        connector.poolSize,
+        connector.maxConnectionAge,
+        logger
     );
-    this.connector=connector;
+    this.connector = connector;
   }
 
   @Override
@@ -102,7 +102,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
   @Override
   protected IOException newException(String message, Throwable cause) {
     if (cause instanceof IOException) {
-      return (IOException)cause;
+      return (IOException) cause;
     }
     if (cause instanceof InterruptedException) {
       return newInterruptedException(message, cause);
@@ -127,7 +127,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
     // Restore the interrupted status
     Thread.currentThread().interrupt();
     if (cause instanceof InterruptedIOException) {
-      return (InterruptedIOException)cause;
+      return (InterruptedIOException) cause;
     }
     if (message == null) {
       if (cause == null) {
