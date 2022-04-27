@@ -711,7 +711,7 @@ public final class AOServDaemonConnector {
   private static class StreamingResponse extends VoidResponse {
 
     private final StreamableOutput out;
-    private long bytesRead = 0;
+    private long bytesRead;
 
     private StreamingResponse(StreamableOutput out) {
       this.out = out;
@@ -1187,7 +1187,7 @@ public final class AOServDaemonConnector {
   public long[] getImapFolderSizes(com.aoindustries.aoserv.client.linux.User.Name username, String[] folderNames) throws IOException, SQLException {
     return requestResult(
         AOServDaemonProtocol.GET_IMAP_FOLDER_SIZES,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(username.toString());
           out.writeCompressedInt(folderNames.length);
           for (String folderName : folderNames) {
@@ -1414,7 +1414,7 @@ public final class AOServDaemonConnector {
   public void getAWStatsFile(String siteName, String path, String queryString, StreamableOutput out) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.GET_AWSTATS_FILE,
-        (conn, daemonOut) -> {
+        (AOServDaemonConnection conn, StreamableOutput daemonOut) -> {
           daemonOut.writeUTF(siteName);
           daemonOut.writeUTF(path);
           daemonOut.writeUTF(queryString);
@@ -1429,7 +1429,7 @@ public final class AOServDaemonConnector {
   public boolean compareLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String password) throws IOException, SQLException {
     return requestResult(
         AOServDaemonProtocol.COMPARE_LINUX_ACCOUNT_PASSWORD,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(username.toString());
           out.writeUTF(password);
         },
@@ -1443,7 +1443,7 @@ public final class AOServDaemonConnector {
   public String getEncryptedMySQLUserPassword(int mysqlServer, com.aoindustries.aoserv.client.mysql.User.Name username) throws IOException, SQLException {
     return requestResult(
         AOServDaemonProtocol.GET_ENCRYPTED_MYSQL_USER_PASSWORD,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeCompressedInt(mysqlServer);
           out.writeUTF(username.toString());
         },
@@ -1472,7 +1472,7 @@ public final class AOServDaemonConnector {
   ) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.GRANT_DAEMON_ACCESS,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeLong(key);
           out.writeCompressedInt(command);
           out.writeBoolean(param1 != null);
@@ -1567,7 +1567,7 @@ public final class AOServDaemonConnector {
   public void setAutoresponderContent(PosixPath path, String content, int uid, int gid) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_AUTORESPONDER_CONTENT,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(path.toString());
           out.writeBoolean(content != null);
           if (content != null) {
@@ -1588,7 +1588,7 @@ public final class AOServDaemonConnector {
   public void setCronTable(com.aoindustries.aoserv.client.linux.User.Name username, String cronTable) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_CRON_TABLE,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(username.toString());
           out.writeUTF(cronTable);
         }
@@ -1601,7 +1601,7 @@ public final class AOServDaemonConnector {
   public void setEmailListFile(PosixPath path, String file, int uid, int gid, int mode) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_EMAIL_LIST_FILE,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(path.toString());
           out.writeUTF(file);
           out.writeCompressedInt(uid);
@@ -1617,7 +1617,7 @@ public final class AOServDaemonConnector {
   public void setEncryptedLinuxAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String encryptedPassword, Integer changedDate) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(username.toString());
           out.writeUTF(encryptedPassword);
           if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
@@ -1633,7 +1633,7 @@ public final class AOServDaemonConnector {
   public void setLinuxServerAccountPassword(com.aoindustries.aoserv.client.linux.User.Name username, String plain_password) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_LINUX_SERVER_ACCOUNT_PASSWORD,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(username.toString());
           out.writeUTF(plain_password);
         }
@@ -1646,7 +1646,7 @@ public final class AOServDaemonConnector {
   public void setMySQLUserPassword(int mysqlServer, com.aoindustries.aoserv.client.mysql.User.Name username, String password) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_MYSQL_USER_PASSWORD,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeCompressedInt(mysqlServer);
           out.writeUTF(username.toString());
           out.writeBoolean(password != null);
@@ -1663,7 +1663,7 @@ public final class AOServDaemonConnector {
   public void setPostgresUserPassword(int pkey, String password) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.SET_POSTGRES_USER_PASSWORD,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeCompressedInt(pkey);
           out.writeBoolean(password != null);
           if (password != null) {
@@ -1994,7 +1994,7 @@ public final class AOServDaemonConnector {
   ) throws IOException, SQLException {
     return requestResult(
         AOServDaemonProtocol.CHECK_PORT,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(ipAddress.toString());
           out.writeCompressedInt(port.getPort());
           if (conn.getProtocolVersion().compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) < 0) {
@@ -2018,7 +2018,7 @@ public final class AOServDaemonConnector {
   public String checkSmtpBlacklist(InetAddress sourceIp, InetAddress connectIp) throws IOException, SQLException {
     return requestResult(
         AOServDaemonProtocol.CHECK_SMTP_BLACKLIST,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(sourceIp.toString());
           out.writeUTF(connectIp.toString());
         },
@@ -2186,7 +2186,7 @@ public final class AOServDaemonConnector {
   public long verifyVirtualDisk(String virtualServerName, String device) throws IOException, SQLException {
     return requestResult(
         AOServDaemonProtocol.VERIFY_VIRTUAL_DISK,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(virtualServerName);
           out.writeUTF(device);
         },
@@ -2200,7 +2200,7 @@ public final class AOServDaemonConnector {
   public void updateVirtualDiskLastVerified(String virtualServerName, String device, long lastVerified) throws IOException, SQLException {
     requestVoid(
         AOServDaemonProtocol.UPDATE_VIRTUAL_DISK_LAST_UPDATED,
-        (conn, out) -> {
+        (AOServDaemonConnection conn, StreamableOutput out) -> {
           out.writeUTF(virtualServerName);
           out.writeUTF(device);
           out.writeLong(lastVerified);
