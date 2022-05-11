@@ -30,18 +30,18 @@ import java.io.InterruptedIOException;
 import java.util.logging.Logger;
 
 /**
- * Connections made by <code>TCPConnector</code> or any
+ * Connections made by <code>TcpConnector</code> or any
  * of its derivatives are pooled and reused.
  *
  * @author  AO Industries, Inc.
  */
-final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IOException, InterruptedIOException> {
+final class AoservDaemonConnectionPool extends AOPool<AoservDaemonConnection, IOException, InterruptedIOException> {
 
-  private final AOServDaemonConnector connector;
+  private final AoservDaemonConnector connector;
 
-  AOServDaemonConnectionPool(AOServDaemonConnector connector, Logger logger) {
+  AoservDaemonConnectionPool(AoservDaemonConnector connector, Logger logger) {
     super(
-        AOServDaemonConnectionPool.class.getName() + "?hostname=" + connector.hostname + "&local_ip=" + connector.local_ip + "&port=" + connector.port + "&protocol=" + connector.protocol,
+        AoservDaemonConnectionPool.class.getName() + "?hostname=" + connector.hostname + "&local_ip=" + connector.localIp + "&port=" + connector.port + "&protocol=" + connector.protocol,
         connector.poolSize,
         connector.maxConnectionAge,
         logger
@@ -50,23 +50,23 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
   }
 
   @Override
-  protected void close(AOServDaemonConnection conn) throws IOException {
+  protected void close(AoservDaemonConnection conn) throws IOException {
     conn.abort();
   }
 
   // Expose to package
   @Override
-  protected void release(AOServDaemonConnection conn) throws IOException {
+  protected void release(AoservDaemonConnection conn) throws IOException {
     super.release(conn);
   }
 
   @Override
-  protected AOServDaemonConnection getConnectionObject() throws InterruptedIOException, IOException {
-    return new AOServDaemonConnection(connector);
+  protected AoservDaemonConnection getConnectionObject() throws InterruptedIOException, IOException {
+    return new AoservDaemonConnection(connector);
   }
 
   @Override
-  protected boolean isClosed(AOServDaemonConnection conn) {
+  protected boolean isClosed(AoservDaemonConnection conn) {
     return conn.isClosed();
   }
 
@@ -78,7 +78,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
         + "  </thead>\n");
     super.printConnectionStats(out, isXhtml);
     out.append("    <tr><td>Local IP:</td><td>");
-    com.aoapps.hodgepodge.util.EncodingUtils.encodeHtml(connector.local_ip.toString(), out, isXhtml);
+    com.aoapps.hodgepodge.util.EncodingUtils.encodeHtml(connector.localIp.toString(), out, isXhtml);
     out.append("</td></tr>\n"
         + "    <tr><td>Host:</td><td>");
     com.aoapps.hodgepodge.util.EncodingUtils.encodeHtml(connector.hostname.toString(), out, isXhtml);
@@ -95,7 +95,7 @@ final class AOServDaemonConnectionPool extends AOPool<AOServDaemonConnection, IO
   }
 
   @Override
-  protected void resetConnection(AOServDaemonConnection conn) {
+  protected void resetConnection(AoservDaemonConnection conn) {
     // Do nothing
   }
 

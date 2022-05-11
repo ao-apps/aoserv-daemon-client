@@ -48,24 +48,24 @@ import javax.net.ssl.SSLSocketFactory;
  *
  * @author  AO Industries, Inc.
  */
-public final class AOServDaemonConnection implements Closeable {
+public final class AoservDaemonConnection implements Closeable {
 
   /**
    * The set of supported versions, with the most preferred versions first.
    */
-  // Matches AOServDaemonServerThread.java
-  private static final AOServDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
-      AOServDaemonProtocol.Version.VERSION_1_84_19,
-      AOServDaemonProtocol.Version.VERSION_1_84_13,
-      AOServDaemonProtocol.Version.VERSION_1_84_11,
-      AOServDaemonProtocol.Version.VERSION_1_83_0,
-      AOServDaemonProtocol.Version.VERSION_1_81_10,
-      AOServDaemonProtocol.Version.VERSION_1_80_1,
-      AOServDaemonProtocol.Version.VERSION_1_80_0,
-      AOServDaemonProtocol.Version.VERSION_1_77
+  // Matches AoservDaemonServerThread.java
+  private static final AoservDaemonProtocol.Version[] SUPPORTED_VERSIONS = {
+      AoservDaemonProtocol.Version.VERSION_1_84_19,
+      AoservDaemonProtocol.Version.VERSION_1_84_13,
+      AoservDaemonProtocol.Version.VERSION_1_84_11,
+      AoservDaemonProtocol.Version.VERSION_1_83_0,
+      AoservDaemonProtocol.Version.VERSION_1_81_10,
+      AoservDaemonProtocol.Version.VERSION_1_80_1,
+      AoservDaemonProtocol.Version.VERSION_1_80_0,
+      AoservDaemonProtocol.Version.VERSION_1_77
   };
 
-  private static Socket connect(AOServDaemonConnector connector) throws IOException {
+  private static Socket connect(AoservDaemonConnector connector) throws IOException {
     if (connector.protocol.equals(AppProtocol.AOSERV_DAEMON)) {
       assert connector.port.getProtocol() == com.aoapps.net.Protocol.TCP;
       Socket socket = new Socket();
@@ -73,8 +73,8 @@ public final class AOServDaemonConnection implements Closeable {
         socket.setKeepAlive(true);
         socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
         socket.setTcpNoDelay(true);
-        if (!connector.local_ip.isUnspecified()) {
-          socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
+        if (!connector.localIp.isUnspecified()) {
+          socket.bind(new InetSocketAddress(connector.localIp.toString(), 0));
         }
         socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
         if (Thread.currentThread().isInterrupted()) {
@@ -101,8 +101,8 @@ public final class AOServDaemonConnection implements Closeable {
         socket.setKeepAlive(true);
         socket.setSoLinger(true, AOPool.DEFAULT_SOCKET_SO_LINGER);
         socket.setTcpNoDelay(true);
-        if (!connector.local_ip.isUnspecified()) {
-          socket.bind(new InetSocketAddress(connector.local_ip.toString(), 0));
+        if (!connector.localIp.isUnspecified()) {
+          socket.bind(new InetSocketAddress(connector.localIp.toString(), 0));
         }
         socket.connect(new InetSocketAddress(connector.hostname.toString(), connector.port.getPort()), AOPool.DEFAULT_CONNECT_TIMEOUT);
         if (Thread.currentThread().isInterrupted()) {
@@ -124,7 +124,7 @@ public final class AOServDaemonConnection implements Closeable {
   /**
    * The connector that this connection is part of.
    */
-  private final AOServDaemonConnector connector;
+  private final AoservDaemonConnector connector;
 
   /**
    * Keeps a flag of the connection status.
@@ -149,11 +149,11 @@ public final class AOServDaemonConnection implements Closeable {
   /**
    * The negotiated protocol version.
    */
-  private final AOServDaemonProtocol.Version protocolVersion;
+  private final AoservDaemonProtocol.Version protocolVersion;
 
-  /**
-   * The first command sequence for this connection.
-   */
+  ///**
+  // * The first command sequence for this connection.
+  // */
   //private final long startSeq;
 
   /**
@@ -162,15 +162,16 @@ public final class AOServDaemonConnection implements Closeable {
   private final AtomicLong seq;
 
   /**
-   * Creates a new <code>AOServConnection</code>.
-   *
-   * // TODO: Once all daemons are running &gt; version 1.77, can simplify this considerably
+   * Creates a new <code>AoservConnection</code>.
+   * <p>
+   * TODO: Once all daemons are running &gt; version 1.77, can simplify this considerably
+   * </p>
    */
-  protected AOServDaemonConnection(AOServDaemonConnector connector) throws IOException {
+  protected AoservDaemonConnection(AoservDaemonConnector connector) throws IOException {
     Socket newSocket = null;
     StreamableOutput newOut = null;
     StreamableInput newIn = null;
-    AOServDaemonProtocol.Version selectedVersion = null;
+    AoservDaemonProtocol.Version selectedVersion = null;
     long newStartSeq = 0;
     try {
       newSocket = connect(connector);
@@ -195,14 +196,14 @@ public final class AOServDaemonConnection implements Closeable {
           newOutFinal.write(key);
         });
       }
-      // Now write additional versions.
-      // This is done in this order for backwards compatibility to protocol 1.77 that only supported a single version.
-      {
-        newOut.writeCompressedInt(SUPPORTED_VERSIONS.length - 1);
-        for (int i = 1; i < SUPPORTED_VERSIONS.length; i++) {
-          newOut.writeUTF(SUPPORTED_VERSIONS[i].getVersion());
+        // Now write additional versions.
+        // This is done in this order for backwards compatibility to protocol 1.77 that only supported a single version.
+        {
+          newOut.writeCompressedInt(SUPPORTED_VERSIONS.length - 1);
+          for (int i = 1; i < SUPPORTED_VERSIONS.length; i++) {
+            newOut.writeUTF(SUPPORTED_VERSIONS[i].getVersion());
+          }
         }
-      }
       newOut.flush();
 
       // The first boolean will tell if the version is now allowed
@@ -213,14 +214,14 @@ public final class AOServDaemonConnection implements Closeable {
           throw new IOException("Connection not allowed.");
         }
         // Read the selected protocol version
-        selectedVersion = AOServDaemonProtocol.Version.getVersion(newIn.readUTF());
-        assert selectedVersion != AOServDaemonProtocol.Version.VERSION_1_77;
+        selectedVersion = AoservDaemonProtocol.Version.getVersion(newIn.readUTF());
+        assert selectedVersion != AoservDaemonProtocol.Version.VERSION_1_77;
         newStartSeq = newIn.readLong();
       } else {
         // When not allowed, the server will write the set of supported versions
         String preferredVersion = newIn.readUTF();
         String[] extraVersions;
-        if (preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())) {
+        if (preferredVersion.equals(AoservDaemonProtocol.Version.VERSION_1_77.getVersion())) {
           // Server 1.77 only sends the single preferred version
           extraVersions = EmptyArrays.EMPTY_STRING_ARRAY;
         } else {
@@ -231,11 +232,11 @@ public final class AOServDaemonConnection implements Closeable {
           }
         }
         if (
-            preferredVersion.equals(AOServDaemonProtocol.Version.VERSION_1_77.getVersion())
-                && AoArrays.indexOf(SUPPORTED_VERSIONS, AOServDaemonProtocol.Version.VERSION_1_77) != -1
+            preferredVersion.equals(AoservDaemonProtocol.Version.VERSION_1_77.getVersion())
+                && AoArrays.indexOf(SUPPORTED_VERSIONS, AoservDaemonProtocol.Version.VERSION_1_77) != -1
         ) {
           // Reconnect as forced protocol 1.77, since we already sent extra output incompatible with 1.77
-          Throwable closeT = AutoCloseables.closeAndCatch(newIn, newOut, newSocket);
+          final Throwable closeT = AutoCloseables.closeAndCatch(newIn, newOut, newSocket);
           newIn = null;
           newOut = null;
           newSocket = null;
@@ -245,7 +246,7 @@ public final class AOServDaemonConnection implements Closeable {
           newSocket = connect(connector);
           newOut = new StreamableOutput(new BufferedOutputStream(newSocket.getOutputStream()));
           newIn = new StreamableInput(new BufferedInputStream(newSocket.getInputStream()));
-          newOut.writeUTF(AOServDaemonProtocol.Version.VERSION_1_77.getVersion());
+          newOut.writeUTF(AoservDaemonProtocol.Version.VERSION_1_77.getVersion());
           String daemonKey;
           if (connector.key == null) {
             daemonKey = null;
@@ -258,7 +259,7 @@ public final class AOServDaemonConnection implements Closeable {
             String requiredVersion = newIn.readUTF();
             throw new IOException(
                 "Unsupported protocol version requested.  Requested version "
-                    + AOServDaemonProtocol.Version.VERSION_1_77.getVersion()
+                    + AoservDaemonProtocol.Version.VERSION_1_77.getVersion()
                     + ", server requires version "
                     + requiredVersion
                     + "."
@@ -269,7 +270,7 @@ public final class AOServDaemonConnection implements Closeable {
             throw new IOException("Connection not allowed.");
           }
           // Selected protocol version is forced 1.77 for this reconnect
-          selectedVersion = AOServDaemonProtocol.Version.VERSION_1_77;
+          selectedVersion = AoservDaemonProtocol.Version.VERSION_1_77;
           newStartSeq = 0;
         } else {
           StringBuilder message = new StringBuilder();
@@ -321,7 +322,7 @@ public final class AOServDaemonConnection implements Closeable {
   /**
    * Releases this connection back to the pool.
    *
-   * @see  AOServDaemonConnector#release(com.aoindustries.aoserv.daemon.client.AOServDaemonConnection)
+   * @see  AoservDaemonConnector#release(com.aoindustries.aoserv.daemon.client.AoservDaemonConnection)
    */
   @Override
   public void close() throws IOException {
@@ -358,7 +359,7 @@ public final class AOServDaemonConnection implements Closeable {
     // Increment sequence
     currentSeq = seq.getAndIncrement();
     // Send command sequence
-    if (protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
+    if (protocolVersion.compareTo(AoservDaemonProtocol.Version.VERSION_1_80_0) >= 0) {
       out.writeLong(currentSeq);
     }
     out.writeCompressedInt(taskCode);
@@ -370,7 +371,7 @@ public final class AOServDaemonConnection implements Closeable {
    */
   public StreamableInput getResponseIn() throws IOException {
     // Verify server sends matching sequence
-    if (protocolVersion.compareTo(AOServDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
+    if (protocolVersion.compareTo(AoservDaemonProtocol.Version.VERSION_1_80_1) >= 0) {
       long serverSeq = in.readLong();
       if (serverSeq != currentSeq) {
         throw new IOException("Sequence mismatch: " + serverSeq + " != " + currentSeq);
@@ -382,7 +383,7 @@ public final class AOServDaemonConnection implements Closeable {
   /**
    * Gets the protocol negotiated for this connection.
    */
-  public AOServDaemonProtocol.Version getProtocolVersion() {
+  public AoservDaemonProtocol.Version getProtocolVersion() {
     return protocolVersion;
   }
 

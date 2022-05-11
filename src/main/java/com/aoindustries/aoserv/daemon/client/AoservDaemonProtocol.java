@@ -28,15 +28,15 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Codes used in communication between the <code>AOServServer</code> and
- * the <code>SimpleAOClient</code>.
+ * Codes used in communication between the <code>AoservDaemonClient</code> and
+ * the <code>AoservMaster</code>.
  *
  * @author  AO Industries, Inc.
  */
-public final class AOServDaemonProtocol {
+public final class AoservDaemonProtocol {
 
   /** Make no instances. */
-  private AOServDaemonProtocol() {
+  private AoservDaemonProtocol() {
     throw new AssertionError();
   }
 
@@ -76,8 +76,8 @@ public final class AOServDaemonProtocol {
     VERSION_1_84_13("1.84.13"),
     VERSION_1_84_19("1.84.19");
     // New entries will typically also be added to:
-    // AOServDaemonConnection.java
-    // AOServDaemonServerThread.java.java
+    // AoservDaemonConnection.java
+    // AoservDaemonServerThread.java.java
 
 
     private static final Map<String, Version> versionMap = new HashMap<>();
@@ -120,7 +120,7 @@ public final class AOServDaemonProtocol {
   }
 
   /**
-   * The protocol codes used between the AOServ Master and the AOServ Daemons
+   * The protocol codes used between the AOServ Master and the AOServ Daemons.
    */
   public static final int
       COMPARE_LINUX_ACCOUNT_PASSWORD = 0,
@@ -225,8 +225,7 @@ public final class AOServDaemonProtocol {
       NEXT = DONE + 1,
       NEXT_CHUNK = NEXT + 1,
       IO_EXCEPTION = NEXT_CHUNK + 1,
-      SQL_EXCEPTION = IO_EXCEPTION + 1
-  ;
+      SQL_EXCEPTION = IO_EXCEPTION + 1;
 
   /**
    * Table IDs used for backwards compatibility with clients that still require
@@ -241,15 +240,13 @@ public final class AOServDaemonProtocol {
       OLD_MYSQL_USERS_TABLE_ID = 107,
       OLD_POSTGRES_DATABASES_TABLE_ID = 124,
       OLD_POSTGRES_SERVERS_TABLE_ID = 128,
-      OLD_POSTGRES_USERS_TABLE_ID = 129
-  ;
+      OLD_POSTGRES_USERS_TABLE_ID = 129;
 
   public static final int
       FAILOVER_FILE_REPLICATION_NO_CHANGE = 0,
       FAILOVER_FILE_REPLICATION_MODIFIED = 1,
       FAILOVER_FILE_REPLICATION_MODIFIED_REQUEST_DATA = 2,
-      FAILOVER_FILE_REPLICATION_MODIFIED_REQUEST_DATA_CHUNKED = 3
-  ;
+      FAILOVER_FILE_REPLICATION_MODIFIED_REQUEST_DATA_CHUNKED = 3;
 
   /**
    * The number of bytes per block when using chunked transfers.
