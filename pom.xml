@@ -29,7 +29,7 @@ along with aoserv-daemon-client.  If not, see <https://www.gnu.org/licenses/>.
     <relativePath>../../oss/parent/pom.xml</relativePath>
   </parent>
 
-  <groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.90.0</version>
+  <groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.90.0-POST-SNAPSHOT</version>
   <packaging>bundle</packaging>
 
   <properties>
@@ -89,7 +89,7 @@ along with aoserv-daemon-client.  If not, see <https://www.gnu.org/licenses/>.
     <connection>scm:git:git://github.com/ao-apps/aoserv-daemon-client.git</connection>
     <developerConnection>scm:git:git@github.com:ao-apps/aoserv-daemon-client.git</developerConnection>
     <url>https://github.com/ao-apps/aoserv-daemon-client</url>
-    <tag>aoserv-daemon-client-1.90.0</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
