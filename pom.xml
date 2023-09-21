@@ -44,7 +44,7 @@ along with aoserv-daemon-client.  If not, see <https://www.gnu.org/licenses/>.
     <javadoc.breadcrumbs><![CDATA[<a target="${javadoc.target}" href="https://aoindustries.com/aoserv/">AOServ</a>
 / <a target="${javadoc.target}" href="https://aoindustries.com/aoserv/daemon/">Daemon</a>
 / <a target="${javadoc.target}" href="${project.url}">Client</a>]]></javadoc.breadcrumbs>
-            
+
     <description.html><![CDATA[Java client for the <a target="${javadoc.target}" href="https://aoindustries.com/aoserv/daemon/">AOServ Daemon</a>.]]></description.html>
     <!-- TODO: Remove once moved to platform.aoapps.com -->
     <google.analytics.trackingId>UA-86871646-1</google.analytics.trackingId>
