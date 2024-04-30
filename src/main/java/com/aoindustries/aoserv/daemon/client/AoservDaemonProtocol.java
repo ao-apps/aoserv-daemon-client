@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022  AO Industries, Inc.
+ * Copyright (C) 2000-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -88,6 +88,16 @@ public final class AoservDaemonProtocol {
       }
     }
 
+    private final String version;
+
+    private Version(String version) {
+      this.version = version;
+    }
+
+    public String getVersion() {
+      return version;
+    }
+
     /**
      * Gets a specific version given its unique version string.
      *
@@ -101,16 +111,6 @@ public final class AoservDaemonProtocol {
         throw new IllegalArgumentException("Version not found: " + version);
       }
       return versionEnum;
-    }
-
-    private final String version;
-
-    private Version(String version) {
-      this.version = version;
-    }
-
-    public String getVersion() {
-      return version;
     }
 
     @Override
