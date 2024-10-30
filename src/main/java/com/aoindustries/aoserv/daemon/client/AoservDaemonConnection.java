@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020, 2021, 2022  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -163,9 +163,8 @@ public final class AoservDaemonConnection implements Closeable {
 
   /**
    * Creates a new <code>AoservConnection</code>.
-   * <p>
-   * TODO: Once all daemons are running &gt; version 1.77, can simplify this considerably
-   * </p>
+   *
+   * <p>TODO: Once all daemons are running &gt; version 1.77, can simplify this considerably</p>
    */
   protected AoservDaemonConnection(AoservDaemonConnector connector) throws IOException {
     Socket newSocket = null;

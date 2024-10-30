@@ -43,9 +43,8 @@ public final class AoservDaemonProtocol {
   /**
    * Each time the protocols are changed in a way that is not backwards-compatible, please increase this number
    * so that older clients will not be allowed to connect, rather than get undefined erroneous behavior.
-   * <p>
-   * These versions roughly match the version of {@link AoservProtocol.Version#CURRENT_VERSION} at the time they were first used.
-   * </p>
+   *
+   * <p>These versions roughly match the version of {@link AoservProtocol.Version#CURRENT_VERSION} at the time they were first used.</p>
    */
   public enum Version {
     VERSION_1_1("1.1"),
