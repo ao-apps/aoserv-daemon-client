@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022  AO Industries, Inc.
+ * Copyright (C) 2001-2013, 2014, 2015, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2025  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -1185,8 +1185,7 @@ public final class AoservDaemonConnector {
     return requestResult(
         AoservDaemonProtocol.GET_ENCRYPTED_LINUX_ACCOUNT_PASSWORD,
         new UtfRequest(username.toString()),
-        // Java 9: new ResultResponse<>
-        new ResultResponse<Tuple2<String, Integer>>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             String encryptedPassword = in.readUTF();
@@ -1213,8 +1212,7 @@ public final class AoservDaemonConnector {
             out.writeUTF(folderName);
           }
         },
-        // Java 9: new AoservConnector.ResultRequest<>
-        new ResultResponse<long[]>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             long[] sizes = new long[folderNames.length];
@@ -1231,8 +1229,7 @@ public final class AoservDaemonConnector {
     return requestResult(
         AoservDaemonProtocol.GET_INBOX_ATTRIBUTES,
         new UtfRequest(username.toString()),
-        // Java 9: new AoservConnector.ResultRequest<>
-        new ResultResponse<InboxAttributes>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             result = new InboxAttributes(in.readLong(), in.readLong());
@@ -1253,8 +1250,7 @@ public final class AoservDaemonConnector {
     return requestResult(
         AoservDaemonProtocol.GET_MYSQL_MASTER_STATUS,
         new CompressedIntRequest(mysqlServer),
-        // Java 9: new AoservConnector.ResultRequest<>
-        new ResultResponse<Server.MasterStatus>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             result = null;
@@ -1290,8 +1286,7 @@ public final class AoservDaemonConnector {
           }
           out.writeCompressedInt(port.getPort());
         },
-        // Java 9: new AoservConnector.ResultRequest<>
-        new ResultResponse<MysqlReplication.SlaveStatus>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             result = null;
@@ -1341,8 +1336,7 @@ public final class AoservDaemonConnector {
           out.writeCompressedInt(port.getPort());
           out.writeUTF(databaseName.toString());
         },
-        // Java 9: new ResultResponse<>
-        new ResultResponse<List<TableStatus>>() {
+        new ResultResponse<>() {
           @Override
           protected void next(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             try {
@@ -1407,8 +1401,7 @@ public final class AoservDaemonConnector {
             out.writeUTF(tableNames.get(c).toString());
           }
         },
-        // Java 9: new ResultResponse<>
-        new ResultResponse<List<CheckTableResult>>() {
+        new ResultResponse<>() {
           @Override
           protected void next(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             int size = in.readCompressedInt();
@@ -1927,8 +1920,7 @@ public final class AoservDaemonConnector {
     return requestResult(
         AoservDaemonProtocol.GET_FAILOVER_FILE_REPLICATION_ACTIVITY,
         new CompressedIntRequest(replication),
-        // Java 9: new ResultResponse<>
-        new ResultResponse<Tuple2<Long, String>>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             result = new Tuple2<>(in.readLong(), in.readUTF());
@@ -1945,8 +1937,7 @@ public final class AoservDaemonConnector {
   public String[] getLvmReport() throws IOException, SQLException {
     return requestResult(
         AoservDaemonProtocol.GET_LVM_REPORT,
-        // Java 9: new AoservConnector.ResultRequest<>
-        new ResultResponse<String[]>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             result = new String[]{
@@ -2058,8 +2049,7 @@ public final class AoservDaemonConnector {
             out.writeBoolean(allowCached);
           }
         },
-        // Java 9: new ResultResponse<>
-        new ResultResponse<List<Certificate.Check>>() {
+        new ResultResponse<>() {
           @Override
           protected boolean before(AoservDaemonConnection conn) throws IOException, SQLException {
             if (conn.getProtocolVersion().compareTo(AoservDaemonProtocol.Version.VERSION_1_81_10) < 0) {
@@ -2112,8 +2102,7 @@ public final class AoservDaemonConnector {
   public Set<String> getXenAutoStartLinks() throws IOException, SQLException {
     return requestResult(
         AoservDaemonProtocol.GET_XEN_AUTO_START_LINKS,
-        // Java 9: new ResultResponse<>
-        new ResultResponse<Set<String>>() {
+        new ResultResponse<>() {
           @Override
           protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
             int numLinks = in.readCompressedInt();
