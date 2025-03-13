@@ -1380,7 +1380,7 @@ public final class AoservDaemonConnector {
       Server.Name serverName,
       Port port,
       com.aoindustries.aoserv.client.mysql.Database.Name databaseName,
-      List<? extends TableName> tableNames
+      List<TableName> tableNames
   ) throws IOException, SQLException {
     if (port.getProtocol() != com.aoapps.net.Protocol.TCP) {
       throw new IllegalArgumentException("Only TCP supported: " + port);
