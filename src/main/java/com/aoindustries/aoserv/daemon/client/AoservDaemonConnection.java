@@ -1,6 +1,6 @@
 /*
  * aoserv-daemon-client - Java client for the AOServ Daemon.
- * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024  AO Industries, Inc.
+ * Copyright (C) 2001-2009, 2016, 2017, 2018, 2019, 2020, 2021, 2022, 2024, 2025  AO Industries, Inc.
  *     support@aoindustries.com
  *     7262 Bull Pen Cir
  *     Mobile, AL 36695
@@ -195,14 +195,14 @@ public final class AoservDaemonConnection implements Closeable {
           newOutFinal.write(key);
         });
       }
-        // Now write additional versions.
-        // This is done in this order for backwards compatibility to protocol 1.77 that only supported a single version.
-        {
-          newOut.writeCompressedInt(SUPPORTED_VERSIONS.length - 1);
-          for (int i = 1; i < SUPPORTED_VERSIONS.length; i++) {
-            newOut.writeUTF(SUPPORTED_VERSIONS[i].getVersion());
-          }
+      // Now write additional versions.
+      // This is done in this order for backwards compatibility to protocol 1.77 that only supported a single version.
+      {
+        newOut.writeCompressedInt(SUPPORTED_VERSIONS.length - 1);
+        for (int i = 1; i < SUPPORTED_VERSIONS.length; i++) {
+          newOut.writeUTF(SUPPORTED_VERSIONS[i].getVersion());
         }
+      }
       newOut.flush();
 
       // The first boolean will tell if the version is now allowed
