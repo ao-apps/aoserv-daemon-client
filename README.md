@@ -21,7 +21,7 @@ Java client for the [AOServ Daemon](https://github.com/ao-apps/aoserv-daemon).
 * [Project Home](https://aoindustries.com/aoserv/daemon/client/)
 * [Changelog](https://aoindustries.com/aoserv/daemon/client/changelog)
 * [API Docs](https://aoindustries.com/aoserv/daemon/client/apidocs/)
-* [Maven Central Repository](https://central.sonatype.com/artifact/com.aoindustries/aoserv-daemon-client)
+* [Central Repository](https://central.sonatype.com/artifact/com.aoindustries/aoserv-daemon-client)
 * [GitHub](https://github.com/ao-apps/aoserv-daemon-client)
 
 ## Contact Us
