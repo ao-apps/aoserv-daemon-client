@@ -151,10 +151,10 @@ public final class AoservDaemonConnection implements Closeable {
    */
   private final AoservDaemonProtocol.Version protocolVersion;
 
-  ///**
-  // * The first command sequence for this connection.
-  // */
-  //private final long startSeq;
+  // /**
+  //  * The first command sequence for this connection.
+  //  */
+  // private final long startSeq;
 
   /**
    * The next command sequence that will be sent.
@@ -311,7 +311,7 @@ public final class AoservDaemonConnection implements Closeable {
       this.out = newOut;
       this.in = newIn;
       this.protocolVersion = selectedVersion;
-      //this.startSeq = newStartSeq;
+      // this.startSeq = newStartSeq;
       this.seq = new AtomicLong(newStartSeq);
     } catch (Throwable t) {
       throw AutoCloseables.closeAndWrap(t, IOException.class, IOException::new, newIn, newOut, newSocket);

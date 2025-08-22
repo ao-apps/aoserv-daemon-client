@@ -1509,34 +1509,34 @@ public final class AoservDaemonConnector {
     );
   }
 
-  //public void initializeHttpdSitePasswdFile(int sitePKey, String username, String encPassword) throws IOException, SQLException {
-  //  AoservDaemonConnection conn=getConnection();
-  //  try {
-  //    StreamableOutput out=conn.getOutputStream();
-  //    out.writeCompressedInt(AoservDaemonProtocol.INITIALIZE_HTTPD_SITE_PASSWD_FILE);
-  //    out.writeCompressedInt(sitePKey);
-  //    out.writeUTF(username);
-  //    out.writeUTF(encPassword);
-  //    out.flush();
+  // public void initializeHttpdSitePasswdFile(int sitePKey, String username, String encPassword) throws IOException, SQLException {
+  //   AoservDaemonConnection conn=getConnection();
+  //   try {
+  //     StreamableOutput out=conn.getOutputStream();
+  //     out.writeCompressedInt(AoservDaemonProtocol.INITIALIZE_HTTPD_SITE_PASSWD_FILE);
+  //     out.writeCompressedInt(sitePKey);
+  //     out.writeUTF(username);
+  //     out.writeUTF(encPassword);
+  //     out.flush();
   //
-  //    StreamableInput in=conn.getResponseIn();
-  //    int result = in.read();
-  //    if (result == AoservDaemonProtocol.DONE) {
-  //      return;
-  //    } else if (result == AoservDaemonProtocol.IO_EXCEPTION) {
-  //      throw new IOException(in.readUTF());
-  //    } else if (result == AoservDaemonProtocol.SQL_EXCEPTION) {
-  //      throw new SQLException(in.readUTF());
-  //    } else {
-  //      throw new IOException("Unknown result: " + result);
-  //    }
-  //  } catch (IOException err) {
-  //    conn.close();
-  //    throw err;
-  //  } finally {
-  //    releaseConnection(conn);
-  //  }
-  //}
+  //     StreamableInput in=conn.getResponseIn();
+  //     int result = in.read();
+  //     if (result == AoservDaemonProtocol.DONE) {
+  //       return;
+  //     } else if (result == AoservDaemonProtocol.IO_EXCEPTION) {
+  //       throw new IOException(in.readUTF());
+  //     } else if (result == AoservDaemonProtocol.SQL_EXCEPTION) {
+  //       throw new SQLException(in.readUTF());
+  //     } else {
+  //       throw new IOException("Unknown result: " + result);
+  //     }
+  //   } catch (IOException err) {
+  //     conn.close();
+  //     throw err;
+  //   } finally {
+  //     releaseConnection(conn);
+  //   }
+  // }
 
   /**
    * Deletes the contents of an email list.
