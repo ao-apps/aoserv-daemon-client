@@ -78,7 +78,6 @@ public final class AoservDaemonProtocol {
     // AoservDaemonConnection.java
     // AoservDaemonServerThread.java.java
 
-
     private static final Map<String, Version> versionMap = new HashMap<>();
 
     static {
