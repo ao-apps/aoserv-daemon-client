@@ -290,7 +290,7 @@ public final class AoservDaemonConnector {
    *
    * @throws  IOException  if an error occurred while closing or releasing the connection
    *
-   * @see  #getConnection(int)
+   * @see  AoservDaemonConnector#getConnection(int)
    * @see  AoservConnection#close()
    */
   void release(AoservDaemonConnection connection) throws IOException {
@@ -388,7 +388,7 @@ public final class AoservDaemonConnector {
      * @throws  RuntimeException  any unchecked exception will {@linkplain AoservDaemonConnection#abort(java.lang.Throwable) abort the connection}
      * @throws  IOException       any I/O error will {@linkplain AoservDaemonConnection#abort(java.lang.Throwable) abort the connection}
      *
-     * @see  #dispatch(com.aoindustries.aoserv.daemon.client.AoservDaemonConnection, com.aoapps.hodgepodge.io.stream.StreamableInput, int)
+     * @see  Response#dispatch(com.aoindustries.aoserv.daemon.client.AoservDaemonConnection, com.aoapps.hodgepodge.io.stream.StreamableInput, int)
      */
     protected void read(AoservDaemonConnection conn, StreamableInput in) throws IOException {
       dispatch(conn, in, in.read());
@@ -397,11 +397,11 @@ public final class AoservDaemonConnector {
     /**
      * Dispatches response block by result code.
      *
-     * @see  #done(com.aoapps.hodgepodge.io.stream.StreamableInput)
-     * @see  #next(com.aoapps.hodgepodge.io.stream.StreamableInput)
-     * @see  #nextChunk(com.aoapps.hodgepodge.io.stream.StreamableInput)
-     * @see  #ioException(com.aoapps.hodgepodge.io.stream.StreamableInput)
-     * @see  #sqlException(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#done(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#next(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#nextChunk(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#ioException(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#sqlException(com.aoapps.hodgepodge.io.stream.StreamableInput)
      */
     protected void dispatch(AoservDaemonConnection conn, StreamableInput in, int code) throws IOException {
       switch (code) {
@@ -428,7 +428,7 @@ public final class AoservDaemonConnector {
     /**
      * Called for response code {@link AoservDaemonProtocol#DONE}.
      *
-     * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#read(com.aoapps.hodgepodge.io.stream.StreamableInput)
      */
     protected void done(AoservDaemonConnection conn, StreamableInput in) throws IOException {
       throw new IOException("Unknown result: " + AoservDaemonProtocol.DONE);
@@ -437,7 +437,7 @@ public final class AoservDaemonConnector {
     /**
      * Called for response code {@link AoservDaemonProtocol#NEXT}.
      *
-     * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#read(com.aoapps.hodgepodge.io.stream.StreamableInput)
      */
     protected void next(AoservDaemonConnection conn, StreamableInput in) throws IOException {
       throw new IOException("Unknown result: " + AoservDaemonProtocol.NEXT);
@@ -446,7 +446,7 @@ public final class AoservDaemonConnector {
     /**
      * Called for response code {@link AoservDaemonProtocol#NEXT_CHUNK}.
      *
-     * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#read(com.aoapps.hodgepodge.io.stream.StreamableInput)
      */
     protected void nextChunk(AoservDaemonConnection conn, StreamableInput in) throws IOException {
       throw new IOException("Unknown result: " + AoservDaemonProtocol.NEXT_CHUNK);
@@ -455,7 +455,7 @@ public final class AoservDaemonConnector {
     /**
      * Called for response code {@link AoservDaemonProtocol#IO_EXCEPTION}.
      *
-     * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#read(com.aoapps.hodgepodge.io.stream.StreamableInput)
      */
     protected void ioException(AoservDaemonConnection conn, StreamableInput in) throws IOException {
       ioException = new IOException(in.readUTF());
@@ -464,7 +464,7 @@ public final class AoservDaemonConnector {
     /**
      * Called for response code {@link AoservDaemonProtocol#SQL_EXCEPTION}.
      *
-     * @see  #read(com.aoapps.hodgepodge.io.stream.StreamableInput)
+     * @see  Response#read(com.aoapps.hodgepodge.io.stream.StreamableInput)
      */
     protected void sqlException(AoservDaemonConnection conn, StreamableInput in) throws IOException {
       sqlException = new SQLException(in.readUTF());
@@ -481,7 +481,7 @@ public final class AoservDaemonConnector {
      * {@inheritDoc}
      *
      * @return  {@code true} if the request should continue, or {@code false} to skip the request and proceed to
-     *          {@link #after()}
+     *          {@link VoidResponse#after()}
      */
     // Overriding for javadocs only
     @Override
@@ -516,7 +516,7 @@ public final class AoservDaemonConnector {
   /**
    * This is the preferred mechanism for providing custom requests that have a return value.
    *
-   * @see  #requestResult(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.ResultResponse)
+   * @see  AoservDaemonConnector#requestResult(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.ResultResponse)
    */
   private abstract static class ResultResponse<T> extends Response {
 
@@ -526,7 +526,7 @@ public final class AoservDaemonConnector {
      * {@inheritDoc}
      *
      * @return  {@code true} if the request should continue, or {@code false} to skip the request and proceed to
-     *          {@link #after()}
+     *          {@link ResultResponse#after()}
      */
     // Overriding for javadocs only
     @Override
@@ -740,7 +740,7 @@ public final class AoservDaemonConnector {
     }
 
     /**
-     * Adds to {@link #bytesRead}.
+     * Adds to {@link StreamingResponse#bytesRead}.
      *
      * @throws  IOException  any I/O error will {@linkplain AoservDaemonConnection#abort(java.lang.Throwable) abort the connection}
      */
@@ -844,7 +844,7 @@ public final class AoservDaemonConnector {
   /**
    * Uses default {@link VoidResponse}.
    *
-   * @see  #requestVoid(com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
+   * @see  AoservDaemonConnector#requestVoid(com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
    */
   private void requestVoid(
       // TODO: boolean allowRetry,
@@ -857,7 +857,7 @@ public final class AoservDaemonConnector {
   /**
    * Uses default {@link VoidResponse}.
    *
-   * @see  #requestVoid(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
+   * @see  AoservDaemonConnector#requestVoid(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
    */
   private void requestVoid(
       // TODO: boolean allowRetry,
@@ -870,7 +870,7 @@ public final class AoservDaemonConnector {
   /**
    * No writer and uses default {@link VoidResponse}.
    *
-   * @see  #requestVoid(com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
+   * @see  AoservDaemonConnector#requestVoid(com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
    */
   private void requestVoid(
       // TODO: boolean allowRetry,
@@ -882,7 +882,7 @@ public final class AoservDaemonConnector {
   /**
    * No writer and uses default {@link VoidResponse}.
    *
-   * @see  #requestVoid(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
+   * @see  AoservDaemonConnector#requestVoid(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.VoidResponse)
    */
   private void requestVoid(
       // TODO: boolean allowRetry,
@@ -931,7 +931,7 @@ public final class AoservDaemonConnector {
   /**
    * No writer.
    *
-   * @see  #requestResult(com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.ResultResponse)
+   * @see  AoservDaemonConnector#requestResult(com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.TaskCodeSupplier, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.ResultResponse)
    */
   private <T> T requestResult(
       // TODO: boolean allowRetry,
@@ -944,7 +944,7 @@ public final class AoservDaemonConnector {
   /**
    * No writer.
    *
-   * @see  #requestResult(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.ResultResponse)
+   * @see  AoservDaemonConnector#requestResult(int, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.Request, com.aoindustries.aoserv.daemon.client.AoservDaemonConnector.ResultResponse)
    */
   private <T> T requestResult(
       // TODO: boolean allowRetry,

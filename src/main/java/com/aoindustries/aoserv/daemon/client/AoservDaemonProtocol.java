@@ -99,7 +99,7 @@ public final class AoservDaemonProtocol {
     /**
      * Gets a specific version given its unique version string.
      *
-     * @see  #getVersion()
+     * @see  Version#getVersion()
      *
      * @throws  IllegalArgumentException if version not found
      */
@@ -227,7 +227,7 @@ public final class AoservDaemonProtocol {
 
   /**
    * Table IDs used for backwards compatibility with clients that still require
-   * {@link #OLD_WAIT_FOR_REBUILD}.  These may be removed once there are no daemons
+   * {@link AoservDaemonProtocol#OLD_WAIT_FOR_REBUILD}.  These may be removed once there are no daemons
    * or clients supporting {@link Version#VERSION_1_77} or older.
    */
   public static final int
