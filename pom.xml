@@ -29,12 +29,12 @@ along with aoserv-daemon-client.  If not, see <https://www.gnu.org/licenses/>.
     <relativePath>../../oss/parent/pom.xml</relativePath>
   </parent>
 
-  <groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.92.1</version>
+  <groupId>com.aoindustries</groupId><artifactId>aoserv-daemon-client</artifactId><version>1.92.1-POST-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <properties>
     <!-- Must be set to ${git.commit.time} for snapshots or ISO 8601 timestamp for releases. -->
-    <project.build.outputTimestamp>2026-02-12T01:59:32Z</project.build.outputTimestamp>
+    <project.build.outputTimestamp>${git.commit.time}</project.build.outputTimestamp>
     <module.name>com.aoindustries.aoserv.daemon.client</module.name>
 
     <javadoc.breadcrumbs><![CDATA[<a target="${javadoc.target}" href="https://aoindustries.com/aoserv/">AOServ</a>
@@ -80,7 +80,7 @@ along with aoserv-daemon-client.  If not, see <https://www.gnu.org/licenses/>.
     <connection>scm:git:git://github.com/ao-apps/aoserv-daemon-client.git</connection>
     <developerConnection>scm:git:git@github.com:ao-apps/aoserv-daemon-client.git</developerConnection>
     <url>https://github.com/ao-apps/aoserv-daemon-client</url>
-    <tag>aoserv-daemon-client-1.92.1</tag>
+    <tag>HEAD</tag>
   </scm>
 
   <issueManagement>
